@@ -8,12 +8,21 @@ import { privateMessageCommand } from './commands/privateMessage.mjs';
 import { setupUsersChannel } from './channels/users.mjs';
 import { setupChatChannel } from './channels/chat.mjs';
 import apiRouter from './routes/api.mjs';
+import mongoose from 'mongoose';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// MongoDB connection
+mongoose.connect(process.env.DATABASE_URL || 'mongodb://127.0.0.1:27017/pawfect_match')
+  .then(() => console.log('Connected to MongoDB'))
+  .catch(err => console.error("MongoDB connection error:", err));
+
+  
 const app = express();
 const httpServer = http.createServer(app);
+
+
 
 app.use(express.json());
 

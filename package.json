@@ -12,6 +12,7 @@
   "dependencies": {
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.20.0",
     "vue": "^3.5.18",
     "wsmini": "^1.2.0"
   },
