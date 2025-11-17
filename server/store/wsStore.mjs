@@ -1,5 +1,4 @@
 import { WSServerPubSub } from 'wsmini';
-import { getColorForUsername } from '../utils/colorGenerator.mjs';
 import { parseCookies } from '../utils/parseCookies.mjs';
 import jwt from 'jsonwebtoken';
 

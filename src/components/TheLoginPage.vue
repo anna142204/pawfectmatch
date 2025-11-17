@@ -1,6 +1,6 @@
 <script setup>
   import { ref } from 'vue';
-  import { connectToChat } from '@/store/chat.js';
+  import { connectToChat } from '@/store/app.js';
   import { useFetchJson } from '@/composables/useFetchJson';
 
   const username = ref('');
