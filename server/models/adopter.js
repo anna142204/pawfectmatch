@@ -1,4 +1,6 @@
 import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
+
 const { Schema } = mongoose;
 
 const adopterSchema = new Schema({
@@ -16,7 +18,14 @@ const adopterSchema = new Schema({
         type: String,
         required: true,
         unique: true,
+        lowercase: true,
+        trim: true,
         match: [/^\S+@\S+\.\S+$/, 'Invalid email format'],
+    },
+    password: {
+        type: String,
+        required: true,
+        minlength: 6,
     },
     address: {
         zip: {
@@ -67,5 +76,30 @@ const adopterSchema = new Schema({
 }, {
     timestamps: true,
 });
+
+// Hash password before saving
+adopterSchema.pre('save', async function(next) {
+    if (!this.isModified('password')) return next();
+    
+    try {
+        const salt = await bcrypt.genSalt(10);
+        this.password = await bcrypt.hash(this.password, salt);
+        next();
+    } catch (err) {
+        next(err);
+    }
+});
+
+// Method to compare password for login
+adopterSchema.methods.comparePassword = async function(candidatePassword) {
+    return await bcrypt.compare(candidatePassword, this.password);
+};
+
+// Don't return password in JSON responses
+adopterSchema.methods.toJSON = function() {
+    const obj = this.toObject();
+    delete obj.password;
+    return obj;
+};
 
 export default mongoose.model('Adopter', adopterSchema);
