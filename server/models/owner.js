@@ -39,9 +39,14 @@ const ownerSchema = new Schema({
             trim: true,
         },
     },
+    societyName: {
+        type: String,
+        required: false,
+        trim: true,
+    },
     phoneNumber: {
         type: String,
-        required: true,
+        required: false,
         trim: true,
     },
     about: {
