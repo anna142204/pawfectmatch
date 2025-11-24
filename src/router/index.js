@@ -1,17 +1,41 @@
 import { createRouter, createWebHistory } from 'vue-router'
+
+// Public
 import TheLoginPage from '../views/TheLoginPage.vue'
-import AdoptantHomePage from '../views/AdoptantHomePage.vue'
-import AdoptantProfile from '../views/AdoptantProfile.vue'
-import OwnerHomePage from '../views/OwnerHomePage.vue'
-import OwnerProfile from '../views/OwnerProfile.vue'
-import Swipe from '../views/Swipe.vue'
-import AnimalDetails from '../views/AnimalDetails.vue'
 import TestPage from '../views/TestPage.vue'
+import PopupMatch from '../views/PopupMatch.vue'
+
+// Adopter
+import AdopterHomePage from '../views/Adopter/AdopterHomePage.vue'
+import AdopterProfile from '../views/Adopter/AdopterProfile.vue'
+import AdopterSwipe from '../views/Adopter/AdopterSwipe.vue'
+import AdopterAnimalDetails from '../views/Adopter/AdopterAnimalDetails.vue'
+import AdopterDiscussions from '../views/Adopter/AdopterDiscussions.vue'
+import AdopterConversation from '../views/Adopter/AdopterConversation.vue'
+import AdopterProfileOwner from '../views/Adopter/AdopterProfileOwner.vue'
+
+// Owner
+import OwnerHomePage from '../views/Owner/OwnerHomePage.vue'
+import OwnerProfile from '../views/Owner/OwnerProfile.vue'
+import OwnerAnimals from '../views/Owner/OwnerAnimals.vue'
+import OwnerRequests from '../views/Owner/OwnerRequests.vue'
+import OwnerDiscussions from '../views/Owner/OwnerDiscussions.vue'
+import OwnerConversation from '../views/Owner/OwnerConversation.vue'
+import OwnerProfileAdopter from '../views/Owner/OwnerProfileAdopter.vue'
+
+// Animal Forms
+import AnimalAddFormGeneral from '../views/Animal/AnimalAddFormGeneral.vue'
+import AnimalAddFormAffinity from '../views/Animal/AnimalAddFormAffinity.vue'
+import AnimalAddFormMedia from '../views/Animal/AnimalAddFormMedia.vue'
+import AnimalAddFormResume from '../views/Animal/AnimalAddFormResume.vue'
+
+// Admin
+import AdminDashboard from '../views/Admin/AdminDashboard.vue'
 
 const routes = [
   {
     path: '/',
-    redirect: '/test'
+    redirect: '/login'
   },
   {
     path: '/test',
@@ -24,23 +48,57 @@ const routes = [
     component: TheLoginPage
   },
   {
-    path: '/adoptant',
-    name: 'AdoptantHome',
-    component: AdoptantHomePage,
+    path: '/match',
+    name: 'PopupMatch',
+    component: PopupMatch,
+    meta: { requiresAuth: true }
+  },
+
+  // Adopter Routes
+  {
+    path: '/adopter',
+    name: 'AdopterHome',
+    component: AdopterHomePage,
     meta: { requiresAuth: true, userType: 'adopter' }
   },
   {
-    path: '/adoptant/profile',
-    name: 'AdoptantProfile',
-    component: AdoptantProfile,
+    path: '/adopter/profile',
+    name: 'AdopterProfile',
+    component: AdopterProfile,
     meta: { requiresAuth: true, userType: 'adopter' }
   },
   {
-    path: '/adoptant/swipe',
-    name: 'Swipe',
-    component: Swipe,
+    path: '/adopter/swipe',
+    name: 'AdopterSwipe',
+    component: AdopterSwipe,
     meta: { requiresAuth: true, userType: 'adopter' }
   },
+  {
+    path: '/adopter/animal/:id',
+    name: 'AdopterAnimalDetails',
+    component: AdopterAnimalDetails,
+    meta: { requiresAuth: true, userType: 'adopter' }
+  },
+  {
+    path: '/adopter/discussions',
+    name: 'AdopterDiscussions',
+    component: AdopterDiscussions,
+    meta: { requiresAuth: true, userType: 'adopter' }
+  },
+  {
+    path: '/adopter/conversation/:id',
+    name: 'AdopterConversation',
+    component: AdopterConversation,
+    meta: { requiresAuth: true, userType: 'adopter' }
+  },
+  {
+    path: '/adopter/owner/:id',
+    name: 'AdopterProfileOwner',
+    component: AdopterProfileOwner,
+    meta: { requiresAuth: true, userType: 'adopter' }
+  },
+
+  // Owner Routes
   {
     path: '/owner',
     name: 'OwnerHome',
@@ -54,10 +112,68 @@ const routes = [
     meta: { requiresAuth: true, userType: 'owner' }
   },
   {
-    path: '/animal/:id',
-    name: 'AnimalDetails',
-    component: AnimalDetails,
-    meta: { requiresAuth: true }
+    path: '/owner/animals',
+    name: 'OwnerAnimals',
+    component: OwnerAnimals,
+    meta: { requiresAuth: true, userType: 'owner' }
+  },
+  {
+    path: '/owner/requests',
+    name: 'OwnerRequests',
+    component: OwnerRequests,
+    meta: { requiresAuth: true, userType: 'owner' }
+  },
+  {
+    path: '/owner/discussions',
+    name: 'OwnerDiscussions',
+    component: OwnerDiscussions,
+    meta: { requiresAuth: true, userType: 'owner' }
+  },
+  {
+    path: '/owner/conversation/:id',
+    name: 'OwnerConversation',
+    component: OwnerConversation,
+    meta: { requiresAuth: true, userType: 'owner' }
+  },
+  {
+    path: '/owner/adopter/:id',
+    name: 'OwnerProfileAdopter',
+    component: OwnerProfileAdopter,
+    meta: { requiresAuth: true, userType: 'owner' }
+  },
+
+  // Animal Add Forms
+  {
+    path: '/owner/animal/add',
+    name: 'AnimalAddGeneral',
+    component: AnimalAddFormGeneral,
+    meta: { requiresAuth: true, userType: 'owner' }
+  },
+  {
+    path: '/owner/animal/add/affinity',
+    name: 'AnimalAddAffinity',
+    component: AnimalAddFormAffinity,
+    meta: { requiresAuth: true, userType: 'owner' }
+  },
+  {
+    path: '/owner/animal/add/media',
+    name: 'AnimalAddMedia',
+    component: AnimalAddFormMedia,
+    meta: { requiresAuth: true, userType: 'owner' }
+  },
+  {
+    path: '/owner/animal/add/resume',
+    name: 'AnimalAddResume',
+    component: AnimalAddFormResume,
+    meta: { requiresAuth: true, userType: 'owner' }
+  },
+
+  // Admin Routes
+  {
+    path: '/admin',
+    name: 'AdminDashboard',
+    component: AdminDashboard,
+    meta: { requiresAuth: true, userType: 'admin' }
   }
 ]
 
