@@ -27,8 +27,7 @@ const handleLogin = async () => {
       },
       body: JSON.stringify({
         email: email.value,
-        password: password.value,
-        rememberMe: false
+        password: password.value
       }),
     });
 
@@ -39,8 +38,7 @@ const handleLogin = async () => {
       if (contentType && contentType.includes('application/json')) {
         const data = await response.json();
         
-        // Stocker le token et les informations utilisateur
-        localStorage.setItem('auth_token', data.token);
+        // Stocker les informations utilisateur (le token est dans le cookie httpOnly)
         localStorage.setItem('user_type', data.type);
         localStorage.setItem('user_id', data.user._id);
         
@@ -81,7 +79,7 @@ const handleFacebookLogin = () => {
 
 const goToSignup = () => {
   // Navigation vers la page d'inscription
-  window.location.href = '/inscription';
+  window.location.href = '/register';
 };
 </script>
 
