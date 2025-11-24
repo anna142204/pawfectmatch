@@ -13,6 +13,7 @@ import AdopterAnimalDetails from '../views/Adopter/AdopterAnimalDetails.vue'
 import AdopterDiscussions from '../views/Adopter/AdopterDiscussions.vue'
 import AdopterConversation from '../views/Adopter/AdopterConversation.vue'
 import AdopterProfileOwner from '../views/Adopter/AdopterProfileOwner.vue'
+import AdopterRequests from '../views/Adopter/AdopterRequests.vue'
 
 // Owner
 import OwnerHomePage from '../views/Owner/OwnerHomePage.vue'
@@ -89,6 +90,12 @@ const routes = [
     path: '/adopter/conversation/:id',
     name: 'AdopterConversation',
     component: AdopterConversation,
+    meta: { requiresAuth: true, userType: 'adopter' }
+  },
+  {
+    path: '/adopter/requests',
+    name: 'AdopterRequests',
+    component: AdopterRequests,
     meta: { requiresAuth: true, userType: 'adopter' }
   },
   {
