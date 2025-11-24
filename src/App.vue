@@ -1,4 +1,4 @@
-<script setup>
+  <script setup>
   import { onMounted, onUnmounted, ref } from 'vue';
   import { isAuth, ws, users, allMsg } from '@/store/app.js';
   import { connectToChat } from '@/store/app.js';

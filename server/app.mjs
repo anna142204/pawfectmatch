@@ -29,6 +29,12 @@ app.use(express.static(path.join(__dirname, '../dist')));
 
 
 // Start HTTP server and WebSocket server
-const port = process.env.VITE_WS_PORT ? parseInt(process.env.BACKEND_PORT) : 100000;
-httpServer.listen(port, () => console.log(`HTTP server listening on ${port}`));
-wsServer.start({ server: httpServer });
+const port = process.env.BACKEND_PORT ? parseInt(process.env.BACKEND_PORT, 10) : 8989;
+
+// Start server only when not running under Jest (or when not imported for tests)
+if (!process.env.JEST_WORKER_ID) {
+    httpServer.listen(port, () => console.log(`HTTP server listening on ${port}`));
+    wsServer.start({ server: httpServer });
+}
+
+export default app;
