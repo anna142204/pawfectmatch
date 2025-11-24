@@ -1,5 +1,13 @@
 <script setup>
 import Button from '../components/Button.vue'
+import Menu from '../components/Menu.vue'
+import { ref } from 'vue'
+
+const userType = ref('adopter')
+
+const toggleUserType = () => {
+  userType.value = userType.value === 'adopter' ? 'owner' : 'adopter'
+}
 </script>
 
 <template>
@@ -12,6 +20,14 @@ import Button from '../components/Button.vue'
 
     <!-- Content -->
     <main class="content">
+      <!-- Menu Section -->
+      <section class="section">
+        <h2 class="text-h5 text-neutral-900">Menu de navigation</h2>
+        <p class="text-body-base text-neutral-700 mb-4">Type d'utilisateur : <strong>{{ userType }}</strong></p>
+        <Button variant="secondary" size="base" @click="toggleUserType">
+          Changer en {{ userType === 'adopter' ? 'owner' : 'adopter' }}
+        </Button>
+      </section>
       <!-- Buttons Section -->
       <section class="section">
         <h2 class="text-h5 text-neutral-900">Boutons</h2>
@@ -90,13 +106,20 @@ import Button from '../components/Button.vue'
         </div>
       </section>
     </main>
+
+    <!-- Menu -->
+    <Menu :userType="userType" />
   </div>
 </template>
 
 <style scoped>
 .test-page {
   min-height: 100vh;
-  padding-bottom: var(--spacing-10);
+  padding-bottom: 80px;
+}
+
+.mb-4 {
+  margin-bottom: var(--spacing-4);
 }
 
 .header {
