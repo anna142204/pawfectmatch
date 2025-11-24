@@ -1,7 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 // Public
-import TheLoginPage from '../views/TheLoginPage.vue'
+import LoginPage from '../views/LoginPage.vue'
+import RegisterPage from '../views/RegisterPage.vue'
 import TestPage from '../views/TestPage.vue'
 import PopupMatch from '../views/PopupMatch.vue'
 
@@ -46,7 +47,33 @@ const routes = [
   {
     path: '/login',
     name: 'Login',
-    component: TheLoginPage
+    component: LoginPage
+  },
+  {
+    path: '/register',
+    name: 'Register',
+    component: RegisterPage
+  },
+  {
+    path: '/logout',
+    name: 'Logout',
+    beforeEnter: async (to, from, next) => {
+      try {
+        // Appeler l'API de logout
+        await fetch('/api/auth/logout', {
+          method: 'POST',
+          credentials: 'include'
+        });
+      } catch (error) {
+        console.error('Erreur lors de la déconnexion:', error);
+      } finally {
+        // Nettoyer le localStorage
+        localStorage.removeItem('user_type');
+        localStorage.removeItem('user_id');
+        // Rediriger vers la page de connexion
+        next('/login');
+      }
+    }
   },
   {
     path: '/match',
@@ -191,10 +218,9 @@ const router = createRouter({
 
 // Navigation guard pour vérifier l'authentification
 router.beforeEach((to, from, next) => {
-  const token = localStorage.getItem('auth_token')
   const userType = localStorage.getItem('user_type')
   
-  if (to.meta.requiresAuth && !token) {
+  if (to.meta.requiresAuth && !userType) {
     // Rediriger vers login si authentification requise
     next('/login')
   } else if (to.meta.userType && to.meta.userType !== userType) {

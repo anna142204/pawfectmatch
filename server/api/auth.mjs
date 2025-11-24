@@ -108,7 +108,7 @@ export async function registerOwner(req, res) {
 
 export async function login(req, res) {
   try {
-    const { email, password, rememberMe = false } = req.body;
+    const { email, password } = req.body;
     
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required' });
@@ -143,19 +143,16 @@ export async function login(req, res) {
       }
     );
 
-    if (rememberMe) {
-      // Store JWT in httpOnly cookie
-      const maxAge = parseExpirationTime(JWT_EXPIRES_IN);
-      res.cookie('auth_token', token, {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'strict',
-        maxAge
-      });
-    }
+    // Store JWT in httpOnly cookie
+    const maxAge = parseExpirationTime(JWT_EXPIRES_IN);
+    res.cookie('auth_token', token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      maxAge
+    });
 
     res.json({ 
-      token,
       user,
       type
     });
