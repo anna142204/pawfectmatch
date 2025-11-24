@@ -1,5 +1,7 @@
 <script setup>
 import { ref } from 'vue';
+import Button from '@/components/Button.vue';
+import Input from '@/components/Input.vue';
 
 const email = ref('');
 const password = ref('');
@@ -85,36 +87,24 @@ const goToSignup = () => {
         <form @submit.prevent="handleLogin" class="login-form">
           <!-- Champ Email -->
           <div class="input-group">
-            <div class="input-wrapper">
-              <svg class="input-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M4 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6C2 4.9 2.9 4 4 4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M22 6L12 13L2 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-              <input
-                v-model="email"
-                type="email"
-                placeholder="adresse e-mail"
-                class="input-field"
-                required
-              />
-            </div>
+            <Input
+              v-model="email"
+              type="email"
+              placeholder="adresse e-mail"
+              icon="email"
+              required
+            />
           </div>
 
           <!-- Champ Mot de passe -->
           <div class="input-group">
-            <div class="input-wrapper">
-              <svg class="input-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M19 11H5C3.89543 11 3 11.8954 3 13V20C3 21.1046 3.89543 22 5 22H19C20.1046 22 21 21.1046 21 20V13C21 11.8954 20.1046 11 19 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M7 11V7C7 5.67392 7.52678 4.40215 8.46447 3.46447C9.40215 2.52678 10.6739 2 12 2C13.3261 2 14.5979 2.52678 15.5355 3.46447C16.4732 4.40215 17 5.67392 17 7V11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-              <input
-                v-model="password"
-                type="password"
-                placeholder="mot de passe"
-                class="input-field"
-                required
-              />
-            </div>
+            <Input
+              v-model="password"
+              type="password"
+              placeholder="mot de passe"
+              icon="password"
+              required
+            />
           </div>
 
           <!-- Lien mot de passe oublié -->
@@ -128,21 +118,28 @@ const goToSignup = () => {
           </div>
 
           <!-- Bouton de connexion -->
-          <button 
-            type="submit" 
-            class="btn-login"
+          <Button 
+            type="submit"
+            variant="primary"
+            size="lg"
             :disabled="loading"
+            class="btn-login"
           >
             <span v-if="loading" class="loader"></span>
             <span v-else>connexion</span>
-          </button>
+          </Button>
         </form>
 
         <!-- Lien inscription -->
         <div class="signup-container">
-          <button @click="goToSignup" class="signup-link">
+          <Button 
+            @click="goToSignup" 
+            variant="secondary"
+            size="base"
+            class="signup-link"
+          >
             Je n'ai pas encore de compte
-          </button>
+          </Button>
         </div>
 
         <!-- Séparateur -->
@@ -150,12 +147,22 @@ const goToSignup = () => {
 
         <!-- Boutons de connexion sociale -->
         <div class="social-login">
-          <button @click="handleGoogleLogin" class="btn-social btn-google">
+          <Button 
+            @click="handleGoogleLogin" 
+            variant="primary"
+            size="base"
+            class="btn-google"
+          >
             Google
-          </button>
-          <button @click="handleFacebookLogin" class="btn-social btn-facebook">
+          </Button>
+          <Button 
+            @click="handleFacebookLogin" 
+            variant="primary"
+            size="base"
+            class="btn-facebook"
+          >
             Facebook
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -169,7 +176,7 @@ const goToSignup = () => {
   display: flex;
   align-items: flex-start;
   justify-content: flex-start;
-  background: linear-gradient(180deg, #9D4EDD 0%, #C77DBB 50%, #E0A0B8 100%);
+  background: linear-gradient(180deg, var(--color-primary-600) 0%, var(--color-primary-500) 50%, var(--color-primary-400) 100%);
   padding: 0;
   overflow-y: auto;
 }
@@ -199,7 +206,7 @@ const goToSignup = () => {
   letter-spacing: var(--heading-h1-spacing);
   color: var(--color-neutral-white);
   margin: 0;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  text-shadow: var(--shadow-sm);
 }
 
 /* Container du chat */
@@ -217,7 +224,7 @@ const goToSignup = () => {
   height: 240px;
   object-fit: cover;
   object-position: top;
-  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15));
+  filter: drop-shadow(var(--shadow-md));
 }
 
 /* Formulaire wrapper */
@@ -240,49 +247,6 @@ const goToSignup = () => {
 /* Groupes d'input */
 .input-group {
   margin-bottom: var(--spacing-5);
-}
-
-.input-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-  background: var(--color-neutral-50);
-  border-radius: var(--radius-full);
-  padding: var(--spacing-5) var(--spacing-6);
-  transition: all 0.2s ease;
-  box-shadow: var(--shadow-sm);
-  min-height: 56px;
-}
-
-.input-wrapper:focus-within {
-  background: var(--color-neutral-white);
-  box-shadow: 0 4px 12px rgba(157, 78, 221, 0.15);
-  outline: 2px solid var(--color-primary-200);
-}
-
-.input-icon {
-  width: 28px;
-  height: 28px;
-  color: var(--color-neutral-400);
-  margin-right: var(--spacing-4);
-  flex-shrink: 0;
-}
-
-.input-field {
-  flex: 1;
-  border: none;
-  background: transparent;
-  outline: none;
-  font-family: var(--font-family);
-  font-size: var(--body-lg-size);
-  line-height: var(--body-lg-height);
-  color: var(--color-neutral-800);
-  font-weight: var(--font-weight-normal);
-}
-
-.input-field::placeholder {
-  color: var(--color-neutral-400);
-  font-weight: var(--font-weight-light);
 }
 
 /* Mot de passe oublié */
@@ -321,37 +285,14 @@ const goToSignup = () => {
 }
 
 /* Bouton de connexion */
-.btn-login {
+.login-form :deep(.btn-login) {
   width: 100%;
-  background: var(--color-primary-600);
-  color: var(--color-neutral-white);
-  border: none;
-  border-radius: var(--radius-full);
-  padding: var(--spacing-5) var(--spacing-6);
-  font-family: var(--font-family);
-  font-size: var(--button-base-size);
-  font-weight: var(--button-base-weight);
-  line-height: var(--button-base-height);
-  letter-spacing: var(--button-base-spacing);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: var(--shadow-lg);
   text-transform: lowercase;
   min-height: 60px;
+  border-radius: var(--radius-full);
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.btn-login:active:not(:disabled) {
-  background: var(--color-primary-700);
-  transform: scale(0.98);
-  box-shadow: var(--shadow-md);
-}
-
-.btn-login:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
 }
 
 /* Loader */
@@ -373,25 +314,14 @@ const goToSignup = () => {
 .signup-container {
   text-align: center;
   margin-top: var(--spacing-8);
+  width: 100%;
 }
 
-.signup-link {
-  background: none;
-  border: none;
-  font-family: var(--font-family);
-  font-size: var(--body-lg-size);
-  line-height: var(--body-lg-height);
-  color: var(--color-neutral-700);
-  cursor: pointer;
-  transition: color 0.2s ease;
-  font-weight: var(--font-weight-medium);
+.signup-container :deep(.signup-link) {
+  width: 100%;
   text-decoration: underline;
-  padding: var(--spacing-2);
-  min-height: 44px;
-}
-
-.signup-link:hover {
-  color: var(--color-primary-600);
+  border-radius: var(--radius-full);
+  min-height: 48px;
 }
 
 /* Séparateur */
@@ -409,46 +339,36 @@ const goToSignup = () => {
   width: 100%;
 }
 
-.btn-social {
+.social-login :deep(.btn-google),
+.social-login :deep(.btn-facebook) {
   flex: 1;
-  border: none;
   border-radius: var(--radius-full);
-  padding: var(--spacing-4) var(--spacing-6);
-  font-family: var(--font-family);
-  font-size: var(--button-md-size);
-  font-weight: var(--button-md-weight);
-  line-height: var(--button-md-height);
-  letter-spacing: var(--button-md-spacing);
-  cursor: pointer;
-  transition: all 0.2s ease;
   min-height: 56px;
 }
 
-.btn-google {
-  background: #DB4437;
+.social-login :deep(.btn-google) {
+  background-color: var(--color-secondary-600);
+  border-color: var(--color-secondary-600);
   color: var(--color-neutral-white);
-  box-shadow: 0 2px 8px rgba(219, 68, 55, 0.3);
+  box-shadow: var(--shadow-sm);
 }
 
-.btn-google:active {
-  background: #C33D2E;
+.social-login :deep(.btn-google):active {
+  background-color: var(--color-secondary-700);
+  border-color: var(--color-secondary-700);
   transform: scale(0.98);
-  box-shadow: 0 2px 6px rgba(219, 68, 55, 0.3);
 }
 
-.btn-facebook {
-  background: #D45353;
+.social-login :deep(.btn-facebook) {
+  background-color: var(--color-secondary-500);
+  border-color: var(--color-secondary-500);
   color: var(--color-neutral-white);
-  box-shadow: 0 2px 8px rgba(212, 83, 83, 0.3);
+  box-shadow: var(--shadow-sm);
 }
 
-.btn-facebook:active {
-  background: #C04545;
-  transform: scale(0.98);
-  box-shadow: 0 2px 6px rgba(212, 83, 83, 0.3);
-}
-
-.btn-social:active {
+.social-login :deep(.btn-facebook):active {
+  background-color: var(--color-secondary-600);
+  border-color: var(--color-secondary-600);
   transform: scale(0.98);
 }
 </style>
