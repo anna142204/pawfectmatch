@@ -2,6 +2,7 @@
   import { onMounted, onUnmounted, ref } from 'vue';
   import { isAuth, ws, users, allMsg } from '@/store/app.js';
   import { connectToChat } from '@/store/app.js';
+  import TheLoginPage from '@/views/TheLoginPage.vue';
 
 
   // ws.on('close', () => {
@@ -38,6 +39,7 @@
 
 <template>
   <h1>Pawfect Match </h1>
+  <TheLoginPage v-if="!isAuth"/>
 </template>
 
 <style scoped>
