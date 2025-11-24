@@ -18,7 +18,8 @@ const handleLogin = async () => {
   error.value = '';
 
   try {
-    // Logique de connexion à implémenter
+    console.log('Tentative de connexion avec:', email.value);
+    
     const response = await fetch('/api/auth/login', {
       method: 'POST',
       headers: {
@@ -27,19 +28,38 @@ const handleLogin = async () => {
       body: JSON.stringify({
         email: email.value,
         password: password.value,
+        rememberMe: false
       }),
     });
 
+    console.log('Réponse status:', response.status);
+    const contentType = response.headers.get('content-type');
+    
     if (response.ok) {
-      const data = await response.json();
-      // Redirection selon le type d'utilisateur
-      if (data.userType === 'adopter') {
-        window.location.href = '/adoptant';
-      } else if (data.userType === 'owner') {
-        window.location.href = '/proprietaire';
+      if (contentType && contentType.includes('application/json')) {
+        const data = await response.json();
+        
+        // Stocker le token et les informations utilisateur
+        localStorage.setItem('auth_token', data.token);
+        localStorage.setItem('user_type', data.type);
+        localStorage.setItem('user_id', data.user._id);
+        
+        // Redirection selon le type d'utilisateur
+        if (data.type === 'adopter') {
+          window.location.href = '/adopter';
+        } else if (data.type === 'owner') {
+          window.location.href = '/owner';
+        }
+      } else {
+        error.value = 'Réponse invalide du serveur';
       }
     } else {
-      error.value = 'Email ou mot de passe incorrect';
+      if (contentType && contentType.includes('application/json')) {
+        const errorData = await response.json();
+        error.value = errorData.error || 'Email ou mot de passe incorrect';
+      } else {
+        error.value = `Erreur de connexion (${response.status})`;
+      }
     }
   } catch (err) {
     error.value = 'Une erreur est survenue. Veuillez réessayer.';
