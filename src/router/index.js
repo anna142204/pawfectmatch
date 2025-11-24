@@ -6,11 +6,17 @@ import OwnerHomePage from '../views/OwnerHomePage.vue'
 import OwnerProfile from '../views/OwnerProfile.vue'
 import Swipe from '../views/Swipe.vue'
 import AnimalDetails from '../views/AnimalDetails.vue'
+import TestPage from '../views/TestPage.vue'
 
 const routes = [
   {
     path: '/',
-    redirect: '/login'
+    redirect: '/test'
+  },
+  {
+    path: '/test',
+    name: 'Test',
+    component: TestPage
   },
   {
     path: '/login',
