@@ -20,7 +20,7 @@ body {
   max-width: 430px;
   min-height: 100vh;
   margin: 0 auto;
-  background-color: var(--color-neutral-white);
+  background-color: var(--color-neutral-100);
   box-shadow: var(--shadow-xl);
 }
 
@@ -98,6 +98,11 @@ button, .btn {
   --color-warning: #FBBF24;
   --color-error: #EF4444;
   --color-info: #3B82F6;
+
+  /* ============================================ */
+  /* GRADIENTS */
+  /* ============================================ */
+  --gradient-primary-secondary: linear-gradient(180deg, var(--color-primary-700) 0%, var(--color-secondary-700) 100%);
 
   /* ============================================ */
   /* TYPOGRAPHY - FONT FAMILIES & WEIGHTS */

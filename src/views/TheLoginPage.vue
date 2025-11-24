@@ -176,7 +176,7 @@ const goToSignup = () => {
   display: flex;
   align-items: flex-start;
   justify-content: flex-start;
-  background: linear-gradient(180deg, var(--color-primary-600) 0%, var(--color-primary-500) 50%, var(--color-primary-400) 100%);
+  background: var(--gradient-primary-secondary);
   padding: 0;
   overflow-y: auto;
 }
