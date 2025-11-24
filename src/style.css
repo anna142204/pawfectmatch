@@ -13,14 +13,14 @@ body {
   overscroll-behavior-y: contain;
   touch-action: pan-y;
   font-family: var(--font-family);
-  background: linear-gradient(180deg, var(--color-primary-700) 0%, var(--color-secondary-700) 100%);
+  background-color: var(--color-neutral-100);
 }
 
 #app {
   max-width: 430px;
   min-height: 100vh;
   margin: 0 auto;
-  background-color: var(--color-neutral-white);
+  background-color: var(--color-neutral-100);
   box-shadow: var(--shadow-xl);
 }
 
