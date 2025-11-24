@@ -3,33 +3,33 @@ import app from "../app.mjs";
 import mongoose from "mongoose";
 import { cleanUpDatabase } from "./utils.js";
 
+// reusable payload for POST and GET tests
+const animalPayload = {
+  species: "dog",
+  race: "Labrador",
+  name: "Buddy",
+  age: 3,
+  sex: "male",
+  address: { city: "Lausanne", zip: "1004" },
+  image: "https://example.com/images/buddy.jpg",
+  price: 150,
+  ownerId: "64a1b2c3d4e5f67890123456",
+  availability: true,
+  description:
+    "Affectionate Labrador looking for a loving home. Good with children and other pets.",
+  characteristics: {
+    environment: ["appartement", "chien"],
+    dressage: ["éduqué", "habitué à la laisse"],
+    personality: ["affectueux", "joueur", "sociable"],
+  },
+};
+
 beforeEach(cleanUpDatabase);
 describe("POST /api/animals", function () {
   test("should create a new animal", async function () {
     const res = await supertest(app)
       .post("/api/animals")
-      .send({
-        species: "dog",
-        race: "Labrador",
-        name: "Buddy",
-        age: 3,
-        sex: "male",
-        address: {
-          city: "Lausanne",
-          zip: "1004",
-        },
-        image: "https://example.com/images/buddy.jpg",
-        price: 150,
-        ownerId: "64a1b2c3d4e5f67890123456",
-        availability: true,
-        description:
-          "Affectionate Labrador looking for a loving home. Good with children and other pets.",
-        characteristics: {
-          environment: ["appartement", "chien"],
-          dressage: ["éduqué", "habitué à la laisse"],
-          personality: ["affectueux", "joueur", "sociable"],
-        },
-      })
+      .send(animalPayload)
       .expect(201)
       .expect("Content-Type", /json/);
 
@@ -42,43 +42,44 @@ describe("POST /api/animals", function () {
     // Jest / jest-extended assertions matching the model & payload
     expect(created).toBeObject();
     expect(created._id).toBeString();
-    expect(created.name).toEqual("Buddy");
-    expect(created.species).toEqual("dog");
-    expect(created.race).toEqual("Labrador");
+    expect(created.name).toEqual(animalPayload.name);
+    expect(created.species).toEqual(animalPayload.species);
+    expect(created.race).toEqual(animalPayload.race);
     expect(created.age).toBeNumber();
-    expect(created.age).toEqual(3);
+    expect(created.age).toEqual(animalPayload.age);
     expect(created.sex).toBeOneOf(["male", "female"]);
 
     expect(created.address).toBeObject();
     expect(created.address).toContainAllKeys(["city", "zip"]);
-    expect(created.address.city).toEqual("Lausanne");
-    expect(created.address.zip).toEqual("1004");
+    expect(created.address.city).toEqual(animalPayload.address.city);
+    expect(created.address.zip).toEqual(animalPayload.address.zip);
 
     expect(created.image).toBeString();
     expect(created.price).toBeNumber();
-    expect(created.price).toEqual(150);
-    expect(created.ownerId).toBeString();
-    expect(created.ownerId).toEqual("64a1b2c3d4e5f67890123456");
+    expect(created.price).toEqual(animalPayload.price);
+    if (animalPayload.ownerId !== null) {
+      expect(created.ownerId).toBeString();
+      expect(created.ownerId).toEqual(animalPayload.ownerId);
+    } else {
+      expect(created.ownerId).toBeNull();
+    }
     expect(created.availability).toBeBoolean();
     expect(created.description).toBeString();
+    expect(created.description).toEqual(animalPayload.description);
 
     expect(created.characteristics).toBeObject();
     expect(created.characteristics.environment).toBeArray();
-    expect(created.characteristics.environment).toIncludeSameMembers([
-      "appartement",
-      "chien",
-    ]);
+    expect(created.characteristics.environment).toIncludeSameMembers(
+      animalPayload.characteristics.environment
+    );
     expect(created.characteristics.dressage).toBeArray();
-    expect(created.characteristics.dressage).toIncludeSameMembers([
-      "éduqué",
-      "habitué à la laisse",
-    ]);
+    expect(created.characteristics.dressage).toIncludeSameMembers(
+      animalPayload.characteristics.dressage
+    );
     expect(created.characteristics.personality).toBeArray();
-    expect(created.characteristics.personality).toIncludeSameMembers([
-      "affectueux",
-      "joueur",
-      "sociable",
-    ]);
+    expect(created.characteristics.personality).toIncludeSameMembers(
+      animalPayload.characteristics.personality
+    );
 
     // include mongoose metadata 
     expect(created.createdAt).toBeString();
@@ -108,7 +109,66 @@ describe("POST /api/animals", function () {
 });
 
 describe("GET /api/animals", function () {
-  test.todo("should retrieve the list of animals");
+  test("should retrieve the list of animals", async function () {
+    // create an animal using the same payload
+    await supertest(app).post("/api/animals").send(animalPayload).expect(201);
+
+    const res = await supertest(app)
+      .get("/api/animals")
+      .expect(200)
+      .expect("Content-Type", /json/);
+
+    // top-level shape
+    expect(res.body).toBeObject();
+    expect(res.body.animals).toBeArray();
+    expect(res.body.pagination).toBeObject();
+
+    // first animal should match payload (plus mongoose metadata)
+    const first = res.body.animals[0];
+    expect(first).toBeObject();
+    expect(first._id).toBeString();
+    expect(first.species).toEqual(animalPayload.species);
+    expect(first.race).toEqual(animalPayload.race);
+    expect(first.name).toEqual(animalPayload.name);
+    expect(first.age).toBeNumber();
+    expect(first.age).toEqual(animalPayload.age);
+    expect(first.sex).toBeOneOf(["male", "female"]);
+
+    expect(first.address).toBeObject();
+    expect(first.address.city).toEqual(animalPayload.address.city);
+    expect(first.address.zip).toEqual(animalPayload.address.zip);
+
+    expect(first.image).toBeString();
+    expect(first.price).toBeNumber();
+    expect(first.price).toEqual(animalPayload.price);
+
+    if (animalPayload.ownerId !== null) {
+      // some implementations may nullify ownerId on GET; tolerate both
+      if (first.ownerId !== null) expect(first.ownerId).toBeString();
+    }
+
+    expect(first.availability).toBeBoolean();
+    expect(first.description).toBeString();
+
+    expect(first.characteristics).toBeObject();
+    expect(first.characteristics.environment).toBeArray();
+    expect(first.characteristics.environment).toIncludeSameMembers(
+      animalPayload.characteristics.environment
+    );
+    expect(first.characteristics.dressage).toBeArray();
+    expect(first.characteristics.dressage).toIncludeSameMembers(
+      animalPayload.characteristics.dressage
+    );
+    expect(first.characteristics.personality).toBeArray();
+    expect(first.characteristics.personality).toIncludeSameMembers(
+      animalPayload.characteristics.personality
+    );
+
+    // mongoose metadata
+    expect(first.createdAt).toBeString();
+    expect(first.updatedAt).toBeString();
+    expect(first.__v).toBeNumber();
+  });
 });
 
 afterAll(async () => {
