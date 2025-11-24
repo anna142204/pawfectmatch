@@ -1,0 +1,507 @@
+/* src/styles/index.css */
+/* Système de design tokens CSS complet - PawfectMatch */
+
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  overscroll-behavior-y: contain;
+  touch-action: pan-y;
+  font-family: var(--font-family);
+  background-color: var(--color-neutral-100);
+}
+
+#app {
+  max-width: 430px;
+  min-height: 100vh;
+  margin: 0 auto;
+  background-color: var(--color-neutral-100);
+  box-shadow: var(--shadow-xl);
+}
+
+button, .btn {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+:root {
+  /* ============================================ */
+  /* COLORS - PRIMARY */
+  /* ============================================ */
+  --color-primary-50: #F3E5FF;
+  --color-primary-100: #E6CCFF;
+  --color-primary-200: #D9B3FF;
+  --color-primary-300: #CC99FF;
+  --color-primary-400: #BF80FF;
+  --color-primary-500: #B366FF;
+  --color-primary-600: #A64DFF;
+  --color-primary-700: #8D0FBC;
+  --color-primary-800: #760F99;
+  --color-primary-900: #5F0D7A;
+  --color-primary-950: #410054;
+
+  /* ============================================ */
+  /* COLORS - SECONDARY */
+  /* ============================================ */
+  --color-secondary-50: #FFE5E8;
+  --color-secondary-100: #FFCCCC;
+  --color-secondary-200: #FFB3B3;
+  --color-secondary-300: #FF9999;
+  --color-secondary-400: #FF8080;
+  --color-secondary-500: #FF6666;
+  --color-secondary-600: #FF4D4D;
+  --color-secondary-700: #FF3333;
+  --color-secondary-800: #CC0000;
+  --color-secondary-900: #990000;
+  --color-secondary-950: #660000;
+
+  /* ============================================ */
+  /* COLORS - ACCENT */
+  /* ============================================ */
+  --color-accent-50: #FFF5E6;
+  --color-accent-100: #FFEBCC;
+  --color-accent-200: #FFE0B3;
+  --color-accent-300: #FFD699;
+  --color-accent-400: #FFCC80;
+  --color-accent-500: #FFC266;
+  --color-accent-600: #FFB84D;
+  --color-accent-700: #FFAD33;
+  --color-accent-800: #FF9900;
+  --color-accent-900: #CC7A00;
+  --color-accent-950: #994D00;
+
+  /* ============================================ */
+  /* COLORS - NEUTRAL */
+  /* ============================================ */
+  --color-neutral-50: #F8F7FA;
+  --color-neutral-100: #F0EEF5;
+  --color-neutral-200: #E8E5ED;
+  --color-neutral-300: #D9D6E0;
+  --color-neutral-400: #C0BCCF;
+  --color-neutral-500: #A8A3B8;
+  --color-neutral-600: #8F8A9E;
+  --color-neutral-700: #767182;
+  --color-neutral-800: #5D5867;
+  --color-neutral-900: #3D3847;
+  --color-neutral-black: #07010A;
+  --color-neutral-white: #FDF9FF;
+
+  /* ============================================ */
+  /* COLORS - STATE */
+  /* ============================================ */
+  --color-success: #22C55E;
+  --color-warning: #FBBF24;
+  --color-error: #EF4444;
+  --color-info: #3B82F6;
+
+  /* ============================================ */
+  /* GRADIENTS */
+  /* ============================================ */
+  --gradient-primary-secondary: linear-gradient(180deg, var(--color-primary-700) 0%, var(--color-secondary-700) 100%);
+
+  /* ============================================ */
+  /* TYPOGRAPHY - FONT FAMILIES & WEIGHTS */
+  /* ============================================ */
+  --font-family: 'Comfortaa', sans-serif;
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* ============================================ */
+  /* TYPOGRAPHY - HEADINGS */
+  /* ============================================ */
+  --heading-h1-size: 48px;
+  --heading-h1-weight: 700;
+  --heading-h1-height: 54px;
+  --heading-h1-spacing: -0.5px;
+
+  --heading-h2-size: 36px;
+  --heading-h2-weight: 700;
+  --heading-h2-height: 42px;
+  --heading-h2-spacing: -0.25px;
+
+  --heading-h3-size: 24px;
+  --heading-h3-weight: 700;
+  --heading-h3-height: 28px;
+  --heading-h3-spacing: 0px;
+
+  --heading-h4-size: 20px;
+  --heading-h4-weight: 600;
+  --heading-h4-height: 24px;
+  --heading-h4-spacing: 0px;
+
+  --heading-h5-size: 18px;
+  --heading-h5-weight: 600;
+  --heading-h5-height: 22px;
+  --heading-h5-spacing: 0px;
+
+  --heading-h6-size: 16px;
+  --heading-h6-weight: 600;
+  --heading-h6-height: 20px;
+  --heading-h6-spacing: 0px;
+
+  /* ============================================ */
+  /* TYPOGRAPHY - BODY TEXT */
+  /* ============================================ */
+  --body-lg-size: 16px;
+  --body-lg-weight: 400;
+  --body-lg-height: 24px;
+  --body-lg-spacing: 0.5px;
+
+  --body-base-size: 14px;
+  --body-base-weight: 400;
+  --body-base-height: 20px;
+  --body-base-spacing: 0px;
+
+  --body-sm-size: 12px;
+  --body-sm-weight: 400;
+  --body-sm-height: 16px;
+  --body-sm-spacing: 0.25px;
+
+  --body-xs-size: 10px;
+  --body-xs-weight: 400;
+  --body-xs-height: 14px;
+  --body-xs-spacing: 0px;
+
+  /* ============================================ */
+  /* TYPOGRAPHY - LABELS */
+  /* ============================================ */
+  --label-base-size: 12px;
+  --label-base-weight: 400;
+  --label-base-height: 14px;
+  --label-base-spacing: 0px;
+
+  --label-sm-size: 10px;
+  --label-sm-weight: 300;
+  --label-sm-height: 14px;
+  --label-sm-spacing: 0px;
+
+  --label-xs-size: 8px;
+  --label-xs-weight: 300;
+  --label-xs-height: 12px;
+  --label-xs-spacing: 0.5px;
+
+  /* ============================================ */
+  /* TYPOGRAPHY - BUTTONS */
+  /* ============================================ */
+  --button-lg-size: 36px;
+  --button-lg-weight: 700;
+  --button-lg-height: 42px;
+  --button-lg-spacing: 0px;
+
+  --button-base-size: 24px;
+  --button-base-weight: 700;
+  --button-base-height: 28px;
+  --button-base-spacing: 0px;
+
+  --button-md-size: 16px;
+  --button-md-weight: 600;
+  --button-md-height: 20px;
+  --button-md-spacing: 0.25px;
+
+  --button-sm-size: 14px;
+  --button-sm-weight: 600;
+  --button-sm-height: 18px;
+  --button-sm-spacing: 0px;
+
+  /* ============================================ */
+  /* TYPOGRAPHY - LINKS */
+  /* ============================================ */
+  --link-base-size: 14px;
+  --link-base-weight: 500;
+  --link-base-height: 20px;
+  --link-base-spacing: 0px;
+
+  --link-sm-size: 12px;
+  --link-sm-weight: 500;
+  --link-sm-height: 16px;
+  --link-sm-spacing: 0px;
+
+  /* ============================================ */
+  /* SPACING */
+  /* ============================================ */
+  --spacing-0: 0px;
+  --spacing-1: 4px;
+  --spacing-2: 8px;
+  --spacing-3: 12px;
+  --spacing-4: 16px;
+  --spacing-5: 20px;
+  --spacing-6: 24px;
+  --spacing-7: 28px;
+  --spacing-8: 32px;
+  --spacing-9: 36px;
+  --spacing-10: 40px;
+  --spacing-12: 48px;
+  --spacing-14: 56px;
+  --spacing-16: 64px;
+  --spacing-20: 80px;
+  --spacing-24: 96px;
+  --spacing-28: 112px;
+  --spacing-32: 128px;
+
+  /* ============================================ */
+  /* BORDER RADIUS */
+  /* ============================================ */
+  --radius-none: 0px;
+  --radius-xxs: 4px;
+  --radius-xs: 8px;
+  --radius-sm: 12px;
+  --radius-base: 16px;
+  --radius-lg: 22px;
+  --radius-xl: 24px;
+  --radius-2xl: 32px;
+  --radius-full: 9999px;
+
+  /* ============================================ */
+  /* SHADOWS */
+  /* ============================================ */
+  --shadow-none: none;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-base: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+/* ============================================ */
+/* TYPOGRAPHY CLASSES - HEADINGS */
+/* ============================================ */
+.text-h1 {
+  font-family: var(--font-family);
+  font-size: var(--heading-h1-size);
+  font-weight: var(--heading-h1-weight);
+  line-height: var(--heading-h1-height);
+  letter-spacing: var(--heading-h1-spacing);
+  word-wrap: break-word;
+}
+
+.text-h2 {
+  font-family: var(--font-family);
+  font-size: var(--heading-h2-size);
+  font-weight: var(--heading-h2-weight);
+  line-height: var(--heading-h2-height);
+  letter-spacing: var(--heading-h2-spacing);
+  word-wrap: break-word;
+}
+
+.text-h3 {
+  font-family: var(--font-family);
+  font-size: var(--heading-h3-size);
+  font-weight: var(--heading-h3-weight);
+  line-height: var(--heading-h3-height);
+  letter-spacing: var(--heading-h3-spacing);
+  word-wrap: break-word;
+}
+
+.text-h4 {
+  font-family: var(--font-family);
+  font-size: var(--heading-h4-size);
+  font-weight: var(--heading-h4-weight);
+  line-height: var(--heading-h4-height);
+  letter-spacing: var(--heading-h4-spacing);
+  word-wrap: break-word;
+}
+
+.text-h5 {
+  font-family: var(--font-family);
+  font-size: var(--heading-h5-size);
+  font-weight: var(--heading-h5-weight);
+  line-height: var(--heading-h5-height);
+  letter-spacing: var(--heading-h5-spacing);
+  word-wrap: break-word;
+}
+
+.text-h6 {
+  font-family: var(--font-family);
+  font-size: var(--heading-h6-size);
+  font-weight: var(--heading-h6-weight);
+  line-height: var(--heading-h6-height);
+  letter-spacing: var(--heading-h6-spacing);
+  word-wrap: break-word;
+}
+
+/* ============================================ */
+/* TYPOGRAPHY CLASSES - BODY TEXT */
+/* ============================================ */
+.text-body-lg {
+  font-family: var(--font-family);
+  font-size: var(--body-lg-size);
+  font-weight: var(--body-lg-weight);
+  line-height: var(--body-lg-height);
+  letter-spacing: var(--body-lg-spacing);
+  word-wrap: break-word;
+}
+
+.text-body-base {
+  font-family: var(--font-family);
+  font-size: var(--body-base-size);
+  font-weight: var(--body-base-weight);
+  line-height: var(--body-base-height);
+  letter-spacing: var(--body-base-spacing);
+  word-wrap: break-word;
+}
+
+.text-body-sm {
+  font-family: var(--font-family);
+  font-size: var(--body-sm-size);
+  font-weight: var(--body-sm-weight);
+  line-height: var(--body-sm-height);
+  letter-spacing: var(--body-sm-spacing);
+  word-wrap: break-word;
+}
+
+.text-body-xs {
+  font-family: var(--font-family);
+  font-size: var(--body-xs-size);
+  font-weight: var(--body-xs-weight);
+  line-height: var(--body-xs-height);
+  letter-spacing: var(--body-xs-spacing);
+  word-wrap: break-word;
+}
+
+/* ============================================ */
+/* TYPOGRAPHY CLASSES - LABELS */
+/* ============================================ */
+.text-label-base {
+  font-family: var(--font-family);
+  font-size: var(--label-base-size);
+  font-weight: var(--label-base-weight);
+  line-height: var(--label-base-height);
+  letter-spacing: var(--label-base-spacing);
+  word-wrap: break-word;
+}
+
+.text-label-sm {
+  font-family: var(--font-family);
+  font-size: var(--label-sm-size);
+  font-weight: var(--label-sm-weight);
+  line-height: var(--label-sm-height);
+  letter-spacing: var(--label-sm-spacing);
+  word-wrap: break-word;
+}
+
+.text-label-xs {
+  font-family: var(--font-family);
+  font-size: var(--label-xs-size);
+  font-weight: var(--label-xs-weight);
+  line-height: var(--label-xs-height);
+  letter-spacing: var(--label-xs-spacing);
+  word-wrap: break-word;
+  text-transform: uppercase;
+}
+
+/* ============================================ */
+/* TYPOGRAPHY CLASSES - BUTTONS */
+/* ============================================ */
+.text-button-lg {
+  font-family: var(--font-family);
+  font-size: var(--button-lg-size);
+  font-weight: var(--button-lg-weight);
+  line-height: var(--button-lg-height);
+  letter-spacing: var(--button-lg-spacing);
+  word-wrap: break-word;
+}
+
+.text-button-base {
+  font-family: var(--font-family);
+  font-size: var(--button-base-size);
+  font-weight: var(--button-base-weight);
+  line-height: var(--button-base-height);
+  letter-spacing: var(--button-base-spacing);
+  word-wrap: break-word;
+}
+
+.text-button-md {
+  font-family: var(--font-family);
+  font-size: var(--button-md-size);
+  font-weight: var(--button-md-weight);
+  line-height: var(--button-md-height);
+  letter-spacing: var(--button-md-spacing);
+  word-wrap: break-word;
+}
+
+.text-button-sm {
+  font-family: var(--font-family);
+  font-size: var(--button-sm-size);
+  font-weight: var(--button-sm-weight);
+  line-height: var(--button-sm-height);
+  letter-spacing: var(--button-sm-spacing);
+  word-wrap: break-word;
+}
+
+/* ============================================ */
+/* TYPOGRAPHY CLASSES - LINKS */
+/* ============================================ */
+.text-link-base {
+  font-family: var(--font-family);
+  font-size: var(--link-base-size);
+  font-weight: var(--link-base-weight);
+  line-height: var(--link-base-height);
+  letter-spacing: var(--link-base-spacing);
+  text-decoration: underline;
+}
+
+.text-link-sm {
+  font-family: var(--font-family);
+  font-size: var(--link-sm-size);
+  font-weight: var(--link-sm-weight);
+  line-height: var(--link-sm-height);
+  letter-spacing: var(--link-sm-spacing);
+  text-decoration: underline;
+}
+
+/* ============================================ */
+/* COLOR UTILITIES - PRIMARY */
+/* ============================================ */
+.text-primary-50 { color: var(--color-primary-50); }
+.text-primary-100 { color: var(--color-primary-100); }
+.text-primary-200 { color: var(--color-primary-200); }
+.text-primary-300 { color: var(--color-primary-300); }
+.text-primary-400 { color: var(--color-primary-400); }
+.text-primary-500 { color: var(--color-primary-500); }
+.text-primary-600 { color: var(--color-primary-600); }
+.text-primary-700 { color: var(--color-primary-700); }
+.text-primary-800 { color: var(--color-primary-800); }
+.text-primary-900 { color: var(--color-primary-900); }
+.text-primary-950 { color: var(--color-primary-950); }
+
+.bg-primary-50 { background-color: var(--color-primary-50); }
+.bg-primary-100 { background-color: var(--color-primary-100); }
+.bg-primary-200 { background-color: var(--color-primary-200); }
+.bg-primary-300 { background-color: var(--color-primary-300); }
+.bg-primary-400 { background-color: var(--color-primary-400); }
+.bg-primary-500 { background-color: var(--color-primary-500); }
+.bg-primary-600 { background-color: var(--color-primary-600); }
+.bg-primary-700 { background-color: var(--color-primary-700); }
+.bg-primary-800 { background-color: var(--color-primary-800); }
+.bg-primary-900 { background-color: var(--color-primary-900); }
+.bg-primary-950 { background-color: var(--color-primary-950); }
+
+/* ============================================ */
+/* COLOR UTILITIES - NEUTRAL */
+/* ============================================ */
+.text-neutral-black { color: var(--color-neutral-black); }
+.text-neutral-white { color: var(--color-neutral-white); }
+.bg-neutral-black { background-color: var(--color-neutral-black); }
+.bg-neutral-white { background-color: var(--color-neutral-white); }
+
+/* ============================================ */
+/* COLOR UTILITIES - STATE */
+/* ============================================ */
+.text-success { color: var(--color-success); }
+.text-warning { color: var(--color-warning); }
+.text-error { color: var(--color-error); }
+.text-info { color: var(--color-info); }
+
+.bg-success { background-color: var(--color-success); }
+.bg-warning { background-color: var(--color-warning); }
+.bg-error { background-color: var(--color-error); }
+.bg-info { background-color: var(--color-info); }
