@@ -2,8 +2,8 @@
   import { onMounted, onUnmounted, ref } from 'vue';
   import { isAuth, ws, users, allMsg } from '@/store/app.js';
   import { connectToChat } from '@/store/app.js';
-
-
+import Button from './components/Button.vue';
+import './style.css';
   // ws.on('close', () => {
   //   if (isAuth.value) {
   //     $q.notify({
@@ -37,7 +37,7 @@
 </script>
 
 <template>
-  <h1>Pawfect Match </h1>
+  <router-view />
 </template>
 
 <style scoped>
