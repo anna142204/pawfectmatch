@@ -13,7 +13,7 @@ body {
   overscroll-behavior-y: contain;
   touch-action: pan-y;
   font-family: var(--font-family);
-  background-color: var(--color-neutral-100);
+  background: linear-gradient(180deg, var(--color-primary-700) 0%, var(--color-secondary-700) 100%);
 }
 
 #app {
@@ -98,6 +98,11 @@ button, .btn {
   --color-warning: #FBBF24;
   --color-error: #EF4444;
   --color-info: #3B82F6;
+
+  /* ============================================ */
+  /* GRADIENTS */
+  /* ============================================ */
+  --gradient-primary-secondary: linear-gradient(180deg, var(--color-primary-700) 0%, var(--color-secondary-700) 100%);
 
   /* ============================================ */
   /* TYPOGRAPHY - FONT FAMILIES & WEIGHTS */
