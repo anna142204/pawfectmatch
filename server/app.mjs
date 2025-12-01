@@ -29,7 +29,7 @@ app.use('/api', apiRouter);
 app.use(express.static(path.join(__dirname, '../dist')));
 
 // SPA fallback: redirect all non-API routes to index.html
-app.get('*', (req, res) => {
+app.use((req, res) => {
   res.sendFile(path.join(__dirname, '../dist', 'index.html'));
 });
 
