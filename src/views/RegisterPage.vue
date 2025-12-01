@@ -382,7 +382,7 @@ const handleRegister = async () => {
               v-else
               type="button"
               variant="primary"
-              size="lg"
+              size="base"
               :disabled="loading"
               @click="handleRegister"
               class="btn-next"
@@ -406,31 +406,31 @@ const handleRegister = async () => {
 
 <style scoped>
 .register-page {
-  min-height: 100vh;
-  height: 100%;
+  height: 100vh;
+  height: 100dvh;
   display: flex;
   align-items: flex-start;
   justify-content: flex-start;
   background: var(--gradient-primary-secondary);
   padding: 0;
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 .register-container {
   width: 100%;
-  min-height: 100vh;
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: var(--spacing-6);
-  padding-top: var(--spacing-8);
+  padding: 0 var(--spacing-6);
+  padding-top: var(--spacing-10);
 }
 
 /* En-tête */
 .register-header {
   width: 100%;
   text-align: center;
-  margin-bottom: var(--spacing-8);
+  margin-bottom: var(--spacing-12);
 }
 
 .register-title {
@@ -448,34 +448,37 @@ const handleRegister = async () => {
 .register-form-wrapper {
   width: 100%;
   background: var(--color-neutral-white);
-  border-radius: var(--radius-2xl);
-  padding: var(--spacing-8);
+  border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+  padding: var(--spacing-6);
   box-shadow: var(--shadow-2xl);
   flex: 1;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
 }
 
 .register-form {
   width: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Sélecteur de type d'utilisateur */
 .user-type-selector {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--spacing-3);
-  margin-bottom: var(--spacing-6);
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-4);
 }
 
 .type-btn {
-  padding: var(--spacing-3) var(--spacing-4);
+  padding: var(--spacing-2) var(--spacing-3);
   border: 2px solid var(--color-neutral-300);
   border-radius: var(--radius-full);
   background: var(--color-neutral-white);
   color: var(--color-neutral-700);
   font-family: var(--font-family);
-  font-size: var(--body-base-size);
+  font-size: var(--body-sm-size);
   font-weight: var(--font-weight-medium);
   cursor: pointer;
   transition: all 0.3s ease;
@@ -489,13 +492,13 @@ const handleRegister = async () => {
 
 /* Groupes d'input */
 .input-group {
-  margin-bottom: var(--spacing-4);
+  margin-bottom: var(--spacing-3);
 }
 
 .field-label {
   display: block;
   font-family: var(--font-family);
-  font-size: var(--body-base-size);
+  font-size: var(--body-sm-size);
   font-weight: var(--font-weight-medium);
   color: var(--color-neutral-700);
   margin-bottom: var(--spacing-2);
@@ -511,34 +514,51 @@ const handleRegister = async () => {
   display: flex;
   align-items: center;
   gap: var(--spacing-2);
-  padding: var(--spacing-2);
+  padding: var(--spacing-3);
   cursor: pointer;
+  border: 2px solid var(--color-neutral-200);
+  border-radius: var(--radius-lg);
+  background: var(--color-neutral-50, #f9f9f9);
+  transition: all 0.2s ease;
+}
+
+.checkbox-item:hover {
+  border-color: var(--color-primary-400);
+  background: var(--color-primary-50, #f5f0ff);
 }
 
 .checkbox-item input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   cursor: pointer;
   accent-color: var(--color-primary-600);
+  flex-shrink: 0;
+}
+
+.checkbox-item input[type="checkbox"]:checked + span {
+  color: var(--color-primary-600);
+  font-weight: var(--font-weight-semibold);
 }
 
 .checkbox-item span {
   font-family: var(--font-family);
   font-size: var(--body-sm-size);
   color: var(--color-neutral-700);
+  transition: all 0.2s ease;
 }
 
 /* Textarea */
 .textarea-input {
   width: 100%;
-  padding: var(--spacing-4);
+  padding: var(--spacing-3);
   border: 1px solid var(--color-neutral-300);
   border-radius: var(--radius-lg);
   font-family: var(--font-family);
-  font-size: var(--body-base-size);
+  font-size: var(--body-sm-size);
   color: var(--color-neutral-900);
-  resize: vertical;
+  resize: none;
   transition: border-color 0.2s ease;
+  box-sizing: border-box;
 }
 
 .textarea-input:focus {
@@ -554,10 +574,10 @@ const handleRegister = async () => {
 .error-message {
   background: var(--color-error);
   color: var(--color-neutral-white);
-  padding: var(--spacing-3) var(--spacing-4);
+  padding: var(--spacing-2) var(--spacing-3);
   border-radius: var(--radius-base);
   font-size: var(--body-sm-size);
-  margin-bottom: var(--spacing-4);
+  margin-bottom: var(--spacing-3);
   text-align: center;
 }
 
@@ -566,19 +586,20 @@ const handleRegister = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-top: var(--spacing-4);
   margin-bottom: var(--spacing-8);
   gap: var(--spacing-2);
 }
 
 .step-dot {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: var(--font-family);
-  font-size: var(--body-base-size);
+  font-size: var(--body-sm-size);
   font-weight: var(--font-weight-semibold);
   background: var(--color-neutral-200);
   color: var(--color-neutral-500);
@@ -595,7 +616,7 @@ const handleRegister = async () => {
 }
 
 .step-line {
-  width: 40px;
+  width: 30px;
   height: 2px;
   background: var(--color-neutral-200);
   transition: all 0.3s ease;
@@ -608,8 +629,9 @@ const handleRegister = async () => {
 /* Boutons de navigation */
 .form-actions {
   display: flex;
-  gap: var(--spacing-4);
-  margin-top: var(--spacing-4);
+  gap: var(--spacing-3);
+  margin-top: auto;
+  padding-top: var(--spacing-4);
 }
 
 .form-actions :deep(.btn-back) {
@@ -638,7 +660,8 @@ const handleRegister = async () => {
 /* Lien vers connexion */
 .login-container-link {
   text-align: center;
-  margin-top: var(--spacing-6);
+  margin-top: var(--spacing-3);
+  padding-bottom: var(--spacing-4);
   width: 100%;
 }
 
@@ -648,11 +671,54 @@ const handleRegister = async () => {
   font-size: var(--body-base-size);
   color: var(--color-primary-600);
   text-decoration: underline;
-  padding: var(--spacing-3);
+  padding: var(--spacing-2);
   transition: color 0.2s ease;
 }
 
 .login-link-text:hover {
   color: var(--color-primary-700);
+}
+
+/* ========== RESPONSIVE ========== */
+
+/* Petits écrans uniquement (iPhone SE) */
+@media (max-height: 670px) {
+  .register-container {
+    padding-top: var(--spacing-6);
+  }
+
+  .register-header {
+    margin-bottom: var(--spacing-3);
+  }
+
+  .register-title {
+    font-size: var(--heading-h2-size);
+  }
+
+  .register-form-wrapper {
+    padding: var(--spacing-6);
+  }
+
+  .steps-indicator {
+    margin-bottom: var(--spacing-3);
+  }
+
+  .step-dot {
+    width: 28px;
+    height: 28px;
+    font-size: var(--body-xs-size);
+  }
+
+  .step-line {
+    width: 24px;
+  }
+
+  .input-group {
+    margin-bottom: var(--spacing-2);
+  }
+
+  .user-type-selector {
+    margin-bottom: var(--spacing-3);
+  }
 }
 </style>

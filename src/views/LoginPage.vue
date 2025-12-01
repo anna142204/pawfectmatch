@@ -117,14 +117,14 @@ const handleLogin = async () => {
             <span v-if="loading" class="loader"></span>
             <span v-else>Connexion</span>
           </Button>
-        </form>
 
-        <!-- Lien inscription -->
-        <div class="signup-container">
-          <router-link to="/register" class="signup-link-text">
-            Je n'ai pas encore de compte
-          </router-link>
-        </div>
+          <!-- Lien inscription -->
+          <div class="signup-container">
+            <router-link to="/register" class="signup-link-text">
+              Je n'ai pas encore de compte
+            </router-link>
+          </div>
+        </form>
       </div>
     </div>
   </div>
@@ -132,23 +132,23 @@ const handleLogin = async () => {
 
 <style scoped>
 .login-page {
-  min-height: 100vh;
-  height: 100%;
+  height: 100vh;
+  height: 100dvh; /* Dynamic viewport height pour mobile */
   display: flex;
   align-items: flex-start;
   justify-content: flex-start;
   background: var(--gradient-primary-secondary);
   padding: 0;
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 .login-container {
   width: 100%;
-  min-height: 100vh;
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: var(--spacing-8) var(--spacing-6);
+  padding: 0 var(--spacing-6);
   padding-top: var(--spacing-12);
 }
 
@@ -156,7 +156,7 @@ const handleLogin = async () => {
 .login-header {
   width: 100%;
   text-align: center;
-  margin-bottom: var(--spacing-10);
+  margin-bottom: var(--spacing-6);
 }
 
 .login-title {
@@ -175,14 +175,14 @@ const handleLogin = async () => {
   width: 100%;
   display: flex;
   justify-content: center;
-  margin-bottom: -60px;
+  margin-bottom: -50px;
   position: relative;
   z-index: 2;
 }
 
 .cat-image {
-  width: 240px;
-  height: 240px;
+  width: 200px;
+  height: 200px;
   object-fit: cover;
   object-position: top;
   filter: drop-shadow(var(--shadow-md));
@@ -193,12 +193,13 @@ const handleLogin = async () => {
   width: 100%;
   background: var(--color-neutral-white);
   border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
-  padding: var(--spacing-10) var(--spacing-8);
+  padding: var(--spacing-6);
   padding-top: var(--spacing-20);
   box-shadow: var(--shadow-2xl);
   flex: 1;
   display: flex;
   flex-direction: column;
+  justify-content: flex-start;
 }
 
 .login-form {
@@ -213,8 +214,8 @@ const handleLogin = async () => {
 /* Mot de passe oublié */
 .forgot-password-container {
   text-align: right;
-  margin-bottom: var(--spacing-10);
-  margin-top: var(--spacing-2);
+  margin-bottom: var(--spacing-4);
+  margin-top: var(--spacing-1);
 }
 
 .forgot-password-link {
@@ -268,7 +269,7 @@ const handleLogin = async () => {
 /* Lien inscription */
 .signup-container {
   text-align: center;
-  margin-top: var(--spacing-8);
+  margin-top: var(--spacing-4);
   width: 100%;
 }
 
@@ -292,6 +293,89 @@ const handleLogin = async () => {
   height: 1px;
   background: var(--color-neutral-200);
   margin: var(--spacing-10) 0;
+}
+
+/* ========== RESPONSIVE MOBILE ========== */
+
+/* Très petits écrans (iPhone SE, Galaxy S8) - hauteur < 700px */
+@media (max-height: 700px) {
+  .login-container {
+    padding-top: var(--spacing-4);
+  }
+
+  .login-header {
+    margin-bottom: var(--spacing-2);
+  }
+
+  .login-title {
+    font-size: var(--heading-h2-size);
+  }
+
+  .cat-container {
+    margin-bottom: -35px;
+  }
+
+  .cat-image {
+    width: 140px;
+    height: 140px;
+  }
+
+  .login-form-wrapper {
+    padding-top: var(--spacing-12);
+    padding-left: var(--spacing-4);
+    padding-right: var(--spacing-4);
+  }
+
+  .input-group {
+    margin-bottom: var(--spacing-3);
+  }
+
+  .forgot-password-container {
+    margin-bottom: var(--spacing-2);
+    margin-top: 0;
+  }
+
+  .forgot-password-link {
+    font-size: var(--body-sm-size);
+    padding: var(--spacing-1);
+    min-height: 36px;
+  }
+
+  .signup-container {
+    margin-top: var(--spacing-3);
+  }
+}
+
+/* Écrans moyens (iPhone X/11/12/13/14) - hauteur 700-850px */
+@media (min-height: 701px) and (max-height: 850px) {
+  .login-container {
+    padding-top: var(--spacing-8);
+  }
+
+  .cat-image {
+    width: 180px;
+    height: 180px;
+  }
+
+  .login-form-wrapper {
+    padding-top: var(--spacing-16);
+  }
+}
+
+/* Grands téléphones (iPhone Plus/Max, grands Android) - hauteur > 850px */
+@media (min-height: 851px) {
+  .login-container {
+    padding-top: var(--spacing-12);
+  }
+
+  .cat-image {
+    width: 200px;
+    height: 200px;
+  }
+
+  .login-form-wrapper {
+    padding-top: var(--spacing-18);
+  }
 }
 
 </style>
