@@ -108,6 +108,7 @@ describe("POST /api/animals", function () {
   });
 });
 
+beforeEach(cleanUpDatabase);
 describe("GET /api/animals", function () {
   test("should retrieve the list of animals", async function () {
     // create an animal using the same payload

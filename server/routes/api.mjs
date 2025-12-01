@@ -56,7 +56,7 @@ router.put('/adopters/:id', updateAdopter);
 router.delete('/adopters/:id', deleteAdopter);
 
 // Owner routes
-router.get('c', getOwners);
+router.get('/owners', getOwners);
 router.get('/owners/:id', getOwnerById);
 router.put('/owners/:id', updateOwner);
 router.delete('/owners/:id', deleteOwner);
