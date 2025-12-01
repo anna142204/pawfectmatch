@@ -2,11 +2,15 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { ChevronLeft, Trash2 } from 'lucide-vue-next';
+import { ref, onMounted } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+import { ChevronLeft, Plus } from 'lucide-vue-next';
 import ProgressSteps from '@/components/ProgressSteps.vue';
 import Button from '@/components/Button.vue';
 import ImageUploader from '@/components/ImageUploader.vue';
 
 const router = useRouter();
+const route = useRoute();
 
 const STEPS = ['Infos générales', 'Médias', 'Affinités', 'Détails & besoins', 'Résumé'];
 const CURRENT_STEP = 1;
@@ -48,7 +52,11 @@ const saveData = () => {
 };
 
 const goBack = () => {
-  router.push('/owner/animal/add');
+  if (route.query.from === 'resume') {
+    router.push('/owner/animal/add/resume');
+  } else {
+    router.push('/owner/animal/add');
+  }
 };
 
 const handleFilesSelected = (files) => {

@@ -10,7 +10,9 @@ onMounted(async () => {
   try {
     const response = await fetch('/api/owners');
     if (response.ok) {
-      owners.value = await response.json();
+      const data = await response.json();
+      // L'API retourne { owners, pagination }
+      owners.value = data.owners || data;
     }
   } catch (error) {
     console.error('Erreur lors du chargement des propriétaires:', error);
@@ -53,7 +55,7 @@ const goToPage = (page) => {
             <h3 class="owner-name">{{ owner.firstName }} {{ owner.lastName }}</h3>
             <span class="owner-animals">{{ owner.animals?.length || 0 }} 🐾</span>
           </div>
-          <p class="owner-location">📍 {{ owner.city || 'Localisation inconnue' }}</p>
+          <p class="owner-location">📍 {{ owner.address?.city || 'Localisation inconnue' }}</p>
           <p class="owner-contact">{{ owner.email }}</p>
           <router-link :to="`/adopter/profile-owner/${owner._id}`" class="view-btn">
             Voir les animaux
@@ -67,17 +69,27 @@ const goToPage = (page) => {
           @click="goToPage(currentPage - 1)"
           :disabled="currentPage === 1"
           class="pagination-btn"
+          title="Page précédente"
         >
           ←
         </button>
-        <span class="page-info">Page {{ currentPage }} / {{ totalPages }}</span>
+        <span class="page-info">
+          <strong>Page {{ currentPage }} / {{ totalPages }}</strong>
+          <span class="items-info">({{ paginatedOwners.length }} / {{ owners.length }} propriétaires)</span>
+        </span>
         <button
           @click="goToPage(currentPage + 1)"
           :disabled="currentPage === totalPages"
           class="pagination-btn"
+          title="Page suivante"
         >
           →
         </button>
+      </div>
+      <div v-else-if="owners.length > 0" class="pagination">
+        <span class="page-info">
+          <strong>Page 1 / 1</strong>
+        </span>
       </div>
     </div>
   </div>
@@ -174,22 +186,27 @@ const goToPage = (page) => {
   align-items: center;
   gap: 16px;
   margin-top: 20px;
-  padding-top: 16px;
-  border-top: 1px solid #E8E8E8;
+  padding: 16px;
+  background: #F9F9F9;
+  border-radius: 12px;
+  border: 1px solid #E8E8E8;
 }
 
 .pagination-btn {
-  padding: 8px 12px;
-  background: #F0F0F0;
-  border: 1px solid #D0D0D0;
-  border-radius: 6px;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, #2196F3 0%, #64B5F6 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 16px;
+  font-weight: 600;
   transition: all 0.2s ease;
 }
 
 .pagination-btn:hover:not(:disabled) {
-  background: #E0E0E0;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
 }
 
 .pagination-btn:disabled {
@@ -198,8 +215,18 @@ const goToPage = (page) => {
 }
 
 .page-info {
-  font-size: 14px;
-  color: #666;
-  font-weight: 500;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 15px;
+  color: #333;
+  font-weight: 600;
+}
+
+.items-info {
+  font-size: 12px;
+  color: #888;
+  font-weight: 400;
 }
 </style>
