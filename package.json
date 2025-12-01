@@ -11,6 +11,7 @@
     "test": "cross-env DATABASE_URL=mongodb://127.0.0.1/pawfectmatch-test DOTENV_CONFIG_QUIET=true node --experimental-vm-modules --disable-warning=ExperimentalWarning node_modules/.bin/jest --detectOpenHandles"
   },
   "dependencies": {
+    "@vitejs/plugin-vue": "^6.0.1",
     "bcryptjs": "^3.0.3",
     "cloudinary": "^2.8.0",
     "dotenv": "^17.2.3",
@@ -19,18 +20,17 @@
     "lucide-vue-next": "^0.554.0",
     "mongoose": "^8.20.0",
     "multer": "^2.0.2",
+    "vite": "^7.1.2",
     "vue": "^3.5.18",
     "vue-router": "^4.6.3",
     "wsmini": "^1.2.0"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^6.0.1",
     "cross-env": "^10.1.0",
     "jest": "^30.2.0",
     "jest-extended": "^6.0.0",
     "nodemon": "^3.1.11",
-    "supertest": "^7.1.4",
-    "vite": "^7.1.2"
+    "supertest": "^7.1.4"
   },
   "jest": {
     "setupFilesAfterEnv": [
