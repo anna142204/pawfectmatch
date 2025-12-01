@@ -28,6 +28,10 @@ app.use('/api', apiRouter);
 // Express serve static files from the 'dist' directory (Vite build)
 app.use(express.static(path.join(__dirname, '../dist')));
 
+// SPA fallback: redirect all non-API routes to index.html
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../dist', 'index.html'));
+});
 
 // Start HTTP server and WebSocket server
 const port = process.env.BACKEND_PORT ? parseInt(process.env.BACKEND_PORT, 10) : 8989;
