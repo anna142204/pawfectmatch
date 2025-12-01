@@ -1,26 +1,15 @@
 <script setup>
-import { ref, onMounted } from 'vue';
 import Menu from '@/components/Menu.vue';
-
-const userType = ref('owner');
-
-onMounted(() => {
-  // Récupérer le type d'utilisateur depuis localStorage
-  const storedUserType = localStorage.getItem('user_type');
-  if (storedUserType) {
-    userType.value = storedUserType;
-  }
-});
 </script>
 
 <template>
   <div class="owner-home">
     <div class="content">
       <h1>Bienvenue sur votre page Owner</h1>
-      <p>Vous êtes connecté en tant que : {{ userType }}</p>
+      <p>Gérez vos animaux et vos demandes d'adoption</p>
     </div>
     
-    <Menu :userType="userType" />
+    <Menu />
   </div>
 </template>
 

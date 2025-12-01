@@ -1,20 +1,31 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { Home, Layers, MessageCircle, Paperclip, User, PawPrint, ClipboardList, GalleryHorizontalEnd } from 'lucide-vue-next'
 
 const props = defineProps({
     userType: {
         type: String,
-        required: true,
-        validator: (value) => ['adopter', 'owner'].includes(value)
+        required: false,
+        default: null,
+        validator: (value) => value === null || ['adopter', 'owner'].includes(value)
     }
 })
 
 const route = useRoute()
+const currentUserType = ref(props.userType || 'adopter')
+
+onMounted(() => {
+    if (!props.userType) {
+        const storedUserType = localStorage.getItem('user_type')
+        if (storedUserType) {
+            currentUserType.value = storedUserType
+        }
+    }
+})
 
 const menuItems = computed(() => {
-    if (props.userType === 'adopter') {
+    if (currentUserType.value === 'adopter') {
         return [
             { name: 'accueil', icon: Home, route: '/adopter' },
             { name: 'swipe', icon: GalleryHorizontalEnd, route: '/adopter/swipe' },
@@ -34,6 +45,11 @@ const menuItems = computed(() => {
 })
 
 const isActive = (routePath) => {
+    // Pour la page d'accueil, vérifier l'égalité exacte
+    if (routePath === '/adopter' || routePath === '/owner') {
+        return route.path === routePath
+    }
+    // Pour les autres pages, vérifier si le path commence par la route
     return route.path.startsWith(routePath)
 }
 </script>

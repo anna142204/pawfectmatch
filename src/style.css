@@ -1,4 +1,3 @@
-/* src/styles/index.css */
 /* Système de design tokens CSS complet - PawfectMatch */
 
 * {
@@ -117,7 +116,7 @@ button, .btn {
   /* ============================================ */
   /* TYPOGRAPHY - HEADINGS */
   /* ============================================ */
-  --heading-h1-size: 48px;
+  --heading-h1-size: 40px;
   --heading-h1-weight: 700;
   --heading-h1-height: 54px;
   --heading-h1-spacing: -0.5px;
@@ -191,12 +190,12 @@ button, .btn {
   /* ============================================ */
   /* TYPOGRAPHY - BUTTONS */
   /* ============================================ */
-  --button-lg-size: 36px;
+  --button-lg-size: 32px;
   --button-lg-weight: 700;
   --button-lg-height: 42px;
   --button-lg-spacing: 0px;
 
-  --button-base-size: 24px;
+  --button-base-size: 22px;
   --button-base-weight: 700;
   --button-base-height: 28px;
   --button-base-spacing: 0px;

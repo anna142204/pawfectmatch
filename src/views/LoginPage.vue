@@ -1,7 +1,10 @@
 <script setup>
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 import Button from '@/components/Button.vue';
 import Input from '@/components/Input.vue';
+
+const router = useRouter();
 
 const email = ref('');
 const password = ref('');
@@ -18,68 +21,36 @@ const handleLogin = async () => {
   error.value = '';
 
   try {
-    console.log('Tentative de connexion avec:', email.value);
-    
     const response = await fetch('/api/auth/login', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         email: email.value,
         password: password.value
       }),
+      credentials: 'include' // Important pour les cookies
     });
-
-    console.log('Réponse status:', response.status);
-    const contentType = response.headers.get('content-type');
     
-    if (response.ok) {
-      if (contentType && contentType.includes('application/json')) {
-        const data = await response.json();
-        
-        // Stocker les informations utilisateur (le token est dans le cookie httpOnly)
-        localStorage.setItem('user_type', data.type);
-        localStorage.setItem('user_id', data.user._id);
-        
-        // Redirection selon le type d'utilisateur
-        if (data.type === 'adopter') {
-          window.location.href = '/adopter';
-        } else if (data.type === 'owner') {
-          window.location.href = '/owner';
-        }
-      } else {
-        error.value = 'Réponse invalide du serveur';
-      }
-    } else {
-      if (contentType && contentType.includes('application/json')) {
-        const errorData = await response.json();
-        error.value = errorData.error || 'Email ou mot de passe incorrect';
-      } else {
-        error.value = `Erreur de connexion (${response.status})`;
-      }
+    if (!response.ok) {
+      const errorData = await response.json();
+      error.value = errorData.error || 'Email ou mot de passe incorrect';
+      return;
     }
+
+    const data = await response.json();
+    
+    // Stocker les informations utilisateur
+    localStorage.setItem('user_type', data.type);
+    localStorage.setItem('user_id', data.user._id);
+    
+    // Redirection selon le type d'utilisateur
+    router.push(data.type === 'adopter' ? '/adopter' : '/owner');
   } catch (err) {
     error.value = 'Une erreur est survenue. Veuillez réessayer.';
     console.error('Erreur de connexion:', err);
   } finally {
     loading.value = false;
   }
-};
-
-const handleGoogleLogin = () => {
-  // Logique de connexion Google à implémenter
-  window.location.href = '/api/auth/google';
-};
-
-const handleFacebookLogin = () => {
-  // Logique de connexion Facebook à implémenter
-  window.location.href = '/api/auth/facebook';
-};
-
-const goToSignup = () => {
-  // Navigation vers la page d'inscription
-  window.location.href = '/register';
 };
 </script>
 
@@ -144,43 +115,15 @@ const goToSignup = () => {
             class="btn-login"
           >
             <span v-if="loading" class="loader"></span>
-            <span v-else>connexion</span>
+            <span v-else>Connexion</span>
           </Button>
         </form>
 
         <!-- Lien inscription -->
         <div class="signup-container">
-          <Button 
-            @click="goToSignup" 
-            variant="secondary"
-            size="base"
-            class="signup-link"
-          >
+          <router-link to="/register" class="signup-link-text">
             Je n'ai pas encore de compte
-          </Button>
-        </div>
-
-        <!-- Séparateur -->
-        <div class="divider"></div>
-
-        <!-- Boutons de connexion sociale -->
-        <div class="social-login">
-          <Button 
-            @click="handleGoogleLogin" 
-            variant="primary"
-            size="base"
-            class="btn-google"
-          >
-            Google
-          </Button>
-          <Button 
-            @click="handleFacebookLogin" 
-            variant="primary"
-            size="base"
-            class="btn-facebook"
-          >
-            Facebook
-          </Button>
+          </router-link>
         </div>
       </div>
     </div>
@@ -250,7 +193,7 @@ const goToSignup = () => {
   width: 100%;
   background: var(--color-neutral-white);
   border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
-  padding: var(--spacing-16) var(--spacing-8);
+  padding: var(--spacing-10) var(--spacing-8);
   padding-top: var(--spacing-20);
   box-shadow: var(--shadow-2xl);
   flex: 1;
@@ -305,12 +248,6 @@ const goToSignup = () => {
 /* Bouton de connexion */
 .login-form :deep(.btn-login) {
   width: 100%;
-  text-transform: lowercase;
-  min-height: 60px;
-  border-radius: var(--radius-full);
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 /* Loader */
@@ -335,11 +272,18 @@ const goToSignup = () => {
   width: 100%;
 }
 
-.signup-container :deep(.signup-link) {
-  width: 100%;
+.signup-link-text {
+  display: inline-block;
+  font-family: var(--font-family);
+  font-size: var(--body-base-size);
+  color: var(--color-primary-600);
   text-decoration: underline;
-  border-radius: var(--radius-full);
-  min-height: 48px;
+  padding: var(--spacing-3);
+  transition: color 0.2s ease;
+}
+
+.signup-link-text:hover {
+  color: var(--color-primary-700);
 }
 
 /* Séparateur */
@@ -350,43 +294,4 @@ const goToSignup = () => {
   margin: var(--spacing-10) 0;
 }
 
-/* Boutons de connexion sociale */
-.social-login {
-  display: flex;
-  gap: var(--spacing-4);
-  width: 100%;
-}
-
-.social-login :deep(.btn-google),
-.social-login :deep(.btn-facebook) {
-  flex: 1;
-  border-radius: var(--radius-full);
-  min-height: 56px;
-}
-
-.social-login :deep(.btn-google) {
-  background-color: var(--color-secondary-600);
-  border-color: var(--color-secondary-600);
-  color: var(--color-neutral-white);
-  box-shadow: var(--shadow-sm);
-}
-
-.social-login :deep(.btn-google):active {
-  background-color: var(--color-secondary-700);
-  border-color: var(--color-secondary-700);
-  transform: scale(0.98);
-}
-
-.social-login :deep(.btn-facebook) {
-  background-color: var(--color-secondary-500);
-  border-color: var(--color-secondary-500);
-  color: var(--color-neutral-white);
-  box-shadow: var(--shadow-sm);
-}
-
-.social-login :deep(.btn-facebook):active {
-  background-color: var(--color-secondary-600);
-  border-color: var(--color-secondary-600);
-  transform: scale(0.98);
-}
 </style>

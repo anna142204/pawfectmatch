@@ -6,6 +6,7 @@ import Input from '@/components/Input.vue';
 
 const router = useRouter();
 
+const step = ref(1); // Étape actuelle
 const userType = ref('adopter'); // 'adopter' ou 'owner'
 const firstName = ref('');
 const lastName = ref('');
@@ -27,28 +28,58 @@ const preferences = ref({
 const loading = ref(false);
 const error = ref('');
 
+const handleNextStep = () => {
+  error.value = '';
+
+  if (step.value === 1) {
+    // Validation étape 1
+    if (!firstName.value || !lastName.value || !email.value || !password.value || !confirmPassword.value) {
+      error.value = 'Veuillez remplir tous les champs obligatoires';
+      return;
+    }
+
+    if (password.value !== confirmPassword.value) {
+      error.value = 'Les mots de passe ne correspondent pas';
+      return;
+    }
+
+    // Passer à l'étape 2
+    step.value = 2;
+  } else if (step.value === 2) {
+    // Validation étape 2
+    if (!zip.value || !city.value) {
+      error.value = 'Veuillez remplir tous les champs obligatoires';
+      return;
+    }
+
+    if (userType.value === 'adopter' && !age.value) {
+      error.value = 'L\'âge est requis pour les adoptants';
+      return;
+    }
+
+    if (userType.value === 'adopter' && parseInt(age.value) < 18) {
+      error.value = 'Vous devez avoir au moins 18 ans pour adopter';
+      return;
+    }
+
+    // Si owner, finaliser l'inscription
+    if (userType.value === 'owner') {
+      handleRegister();
+    } else {
+      // Si adopter, passer à l'étape 3 (préférences)
+      step.value = 3;
+    }
+  }
+};
+
+const handlePreviousStep = () => {
+  error.value = '';
+  if (step.value > 1) {
+    step.value--;
+  }
+};
+
 const handleRegister = async () => {
-  // Validation
-  if (!firstName.value || !lastName.value || !email.value || !password.value || !confirmPassword.value || !zip.value || !city.value) {
-    error.value = 'Veuillez remplir tous les champs obligatoires';
-    return;
-  }
-
-  if (password.value !== confirmPassword.value) {
-    error.value = 'Les mots de passe ne correspondent pas';
-    return;
-  }
-
-  if (userType.value === 'adopter' && !age.value) {
-    error.value = 'L\'âge est requis pour les adoptants';
-    return;
-  }
-
-  if (userType.value === 'adopter' && parseInt(age.value) < 18) {
-    error.value = 'Vous devez avoir au moins 18 ans pour adopter';
-    return;
-  }
-
   loading.value = true;
   error.value = '';
 
@@ -82,6 +113,7 @@ const handleRegister = async () => {
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include',
       body: JSON.stringify(body),
     });
 
@@ -93,11 +125,7 @@ const handleRegister = async () => {
       localStorage.setItem('user_id', data.user._id);
 
       // Redirection selon le type d'utilisateur
-      if (userType.value === 'adopter') {
-        router.push('/adopter');
-      } else {
-        router.push('/owner');
-      }
+      router.push(userType.value === 'adopter' ? '/adopter' : '/owner');
     } else {
       error.value = data.error || 'Erreur lors de l\'inscription';
     }
@@ -109,9 +137,6 @@ const handleRegister = async () => {
   }
 };
 
-const goToLogin = () => {
-  router.push('/login');
-};
 </script>
 
 <template>
@@ -124,26 +149,39 @@ const goToLogin = () => {
 
       <!-- Formulaire -->
       <div class="register-form-wrapper">
-        <form @submit.prevent="handleRegister" class="register-form">
-          <!-- Choix du type d'utilisateur -->
-          <div class="user-type-selector">
-            <button 
-              type="button"
-              :class="['type-btn', { active: userType === 'adopter' }]"
-              @click="userType = 'adopter'"
-            >
-              Adoptant
-            </button>
-            <button 
-              type="button"
-              :class="['type-btn', { active: userType === 'owner' }]"
-              @click="userType = 'owner'"
-            >
-              Propriétaire
-            </button>
-          </div>
+        <!-- Indicateur d'étapes -->
+        <div class="steps-indicator">
+          <div :class="['step-dot', { active: step >= 1, completed: step > 1 }]">1</div>
+          <div class="step-line" :class="{ active: step > 1 }"></div>
+          <div :class="['step-dot', { active: step >= 2, completed: step > 2 }]">2</div>
+          <template v-if="userType === 'adopter'">
+            <div class="step-line" :class="{ active: step > 2 }"></div>
+            <div :class="['step-dot', { active: step >= 3 }]">3</div>
+          </template>
+        </div>
 
-          <!-- Champs communs -->
+        <form @submit.prevent="handleNextStep" class="register-form">
+          <!-- Étape 1: Informations de base -->
+          <template v-if="step === 1">
+            <!-- Choix du type d'utilisateur -->
+            <div class="user-type-selector">
+              <button 
+                type="button"
+                :class="['type-btn', { active: userType === 'adopter' }]"
+                @click="userType = 'adopter'"
+              >
+                Adoptant
+              </button>
+              <button 
+                type="button"
+                :class="['type-btn', { active: userType === 'owner' }]"
+                @click="userType = 'owner'"
+              >
+                Propriétaire
+              </button>
+            </div>
+
+            <!-- Champs communs -->
           <div class="input-group">
             <Input
               v-model="firstName"
@@ -191,7 +229,10 @@ const goToLogin = () => {
               required
             />
           </div>
+          </template>
 
+          <!-- Étape 2: Adresse et informations spécifiques -->
+          <template v-if="step === 2">
           <div class="input-group">
             <Input
               v-model="zip"
@@ -221,7 +262,40 @@ const goToLogin = () => {
                 min="18"
               />
             </div>
+          </template>
 
+          <!-- Champs spécifiques propriétaire -->
+          <template v-if="userType === 'owner'">
+            <div class="input-group">
+              <Input
+                v-model="societyName"
+                type="text"
+                placeholder="Nom de la société (optionnel)"
+              />
+            </div>
+
+            <div class="input-group">
+              <Input
+                v-model="phoneNumber"
+                type="tel"
+                placeholder="Numéro de téléphone"
+              />
+            </div>
+          </template>
+
+          <!-- Champ À propos (commun) -->
+          <div class="input-group">
+            <textarea
+              v-model="about"
+              placeholder="À propos de vous (optionnel)"
+              class="textarea-input"
+              rows="4"
+            ></textarea>
+          </div>
+          </template>
+
+          <!-- Étape 3: Préférences (adoptant uniquement) -->
+          <template v-if="step === 3">
             <div class="input-group">
               <label class="field-label">Environnement</label>
               <div class="checkbox-group">
@@ -271,63 +345,54 @@ const goToLogin = () => {
             </div>
           </template>
 
-          <!-- Champs spécifiques propriétaire -->
-          <template v-if="userType === 'owner'">
-            <div class="input-group">
-              <Input
-                v-model="societyName"
-                type="text"
-                placeholder="Nom de la société (optionnel)"
-              />
-            </div>
-
-            <div class="input-group">
-              <Input
-                v-model="phoneNumber"
-                type="tel"
-                placeholder="Numéro de téléphone"
-              />
-            </div>
-          </template>
-
-          <!-- Champ À propos (commun) -->
-          <div class="input-group">
-            <textarea
-              v-model="about"
-              placeholder="À propos de vous"
-              class="textarea-input"
-              rows="4"
-            ></textarea>
-          </div>
-
           <!-- Message d'erreur -->
           <div v-if="error" class="error-message">
             {{ error }}
           </div>
 
-          <!-- Bouton d'inscription -->
-          <Button 
-            type="submit"
-            variant="primary"
-            size="lg"
-            :disabled="loading"
-            class="btn-register"
-          >
-            <span v-if="loading" class="loader"></span>
-            <span v-else>S'inscrire</span>
-          </Button>
+          <!-- Boutons de navigation -->
+          <div class="form-actions">
+            <Button 
+              v-if="step > 1"
+              type="button"
+              variant="secondary"
+              size="base"
+              @click="handlePreviousStep"
+              class="btn-back"
+            >
+              Retour
+            </Button>
+            
+            <Button 
+              v-if="step < 3"
+              type="submit"
+              variant="primary"
+              size="base"
+              class="btn-next"
+            >
+              Suivant
+            </Button>
+
+            <Button 
+              v-else
+              type="button"
+              variant="primary"
+              size="lg"
+              :disabled="loading"
+              @click="handleRegister"
+              class="btn-next"
+            >
+              <span v-if="loading" class="loader"></span>
+              <span v-else>S'inscrire</span>
+            </Button>
+          </div>
         </form>
 
         <!-- Lien vers connexion -->
         <div class="login-container-link">
-          <Button 
-            @click="goToLogin" 
-            variant="secondary"
-            size="base"
-            class="login-link"
-          >
+          <router-link to="/login" class="login-link-text">
             J'ai déjà un compte
-          </Button>
+          </router-link>
         </div>
       </div>
     </div>
@@ -491,16 +556,63 @@ const goToLogin = () => {
   text-align: center;
 }
 
-/* Bouton d'inscription */
-.register-form :deep(.btn-register) {
-  width: 100%;
-  text-transform: lowercase;
-  min-height: 60px;
-  border-radius: var(--radius-full);
+/* Indicateur d'étapes */
+.steps-indicator {
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-bottom: var(--spacing-8);
+  gap: var(--spacing-2);
+}
+
+.step-dot {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-family);
+  font-size: var(--body-base-size);
+  font-weight: var(--font-weight-semibold);
+  background: var(--color-neutral-200);
+  color: var(--color-neutral-500);
+  transition: all 0.3s ease;
+}
+
+.step-dot.active {
+  background: var(--color-primary-600);
+  color: var(--color-neutral-white);
+}
+
+.step-dot.completed {
+  background: var(--color-primary-700);
+}
+
+.step-line {
+  width: 40px;
+  height: 2px;
+  background: var(--color-neutral-200);
+  transition: all 0.3s ease;
+}
+
+.step-line.active {
+  background: var(--color-primary-600);
+}
+
+/* Boutons de navigation */
+.form-actions {
+  display: flex;
+  gap: var(--spacing-4);
   margin-top: var(--spacing-4);
+}
+
+.form-actions :deep(.btn-back) {
+  flex: 1;
+}
+
+.form-actions :deep(.btn-next) {
+  flex: 2;
 }
 
 /* Loader */
@@ -525,10 +637,17 @@ const goToLogin = () => {
   width: 100%;
 }
 
-.login-container-link :deep(.login-link) {
-  width: 100%;
+.login-link-text {
+  display: inline-block;
+  font-family: var(--font-family);
+  font-size: var(--body-base-size);
+  color: var(--color-primary-600);
   text-decoration: underline;
-  border-radius: var(--radius-full);
-  min-height: 48px;
+  padding: var(--spacing-3);
+  transition: color 0.2s ease;
+}
+
+.login-link-text:hover {
+  color: var(--color-primary-700);
 }
 </style>

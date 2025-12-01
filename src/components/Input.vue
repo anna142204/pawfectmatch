@@ -111,12 +111,12 @@ const handleBlur = (event) => {
   display: flex;
   align-items: center;
   background: var(--color-neutral-white);
-  border-radius: var(--radius-full);
-  padding: var(--spacing-3) var(--spacing-5);
+  border-radius: var(--radius-base);
+  padding: var(--spacing-1) var(--spacing-5);
   transition: all 0.2s ease;
   box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.08);
-  min-height: 56px;
-  border: 2px solid transparent;
+  min-height: 50px;
+  border: 1px solid var(--color-neutral-200);
 }
 
 .input-wrapper:focus-within {
@@ -144,7 +144,7 @@ const handleBlur = (event) => {
 .input-icon {
   width: 28px;
   height: 28px;
-  color: var(--color-neutral-300);
+  color: var(--color-neutral-400);
   margin-right: var(--spacing-3);
   flex-shrink: 0;
   stroke-width: 1.5;
@@ -173,7 +173,7 @@ const handleBlur = (event) => {
 }
 
 .input-field::placeholder {
-  color: var(--color-neutral-300);
+  color: var(--color-neutral-400);
   font-weight: var(--font-weight-light);
 }
 
