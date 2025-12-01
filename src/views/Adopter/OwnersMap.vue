@@ -137,7 +137,7 @@ const closeDetails = () => {
             <p><strong>📍 Localisation:</strong> {{ selectedOwner.address?.city || 'Non spécifiée' }}</p>
             <p><strong>✉️ Email:</strong> {{ selectedOwner.email }}</p>
             <p><strong>🐾 Animaux:</strong> {{ selectedOwner.animals?.length || 0 }}</p>
-            <router-link :to="`/adopter/profile-owner/${selectedOwner._id}`" class="profile-btn">
+            <router-link :to="`/adopter/owner/${selectedOwner._id}`" class="profile-btn">
               Voir le profil complet
             </router-link>
           </div>

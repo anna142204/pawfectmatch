@@ -57,7 +57,7 @@ const goToPage = (page) => {
           </div>
           <p class="owner-location">📍 {{ owner.address?.city || 'Localisation inconnue' }}</p>
           <p class="owner-contact">{{ owner.email }}</p>
-          <router-link :to="`/adopter/profile-owner/${owner._id}`" class="view-btn">
+          <router-link :to="`/adopter/owner/${owner._id}`" class="view-btn">
             Voir les animaux
           </router-link>
         </div>
