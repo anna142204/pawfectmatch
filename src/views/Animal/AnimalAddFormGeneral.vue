@@ -1,6 +1,6 @@
 <script setup>
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, onMounted } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import { ChevronLeft } from 'lucide-vue-next';
 import ProgressSteps from '@/components/ProgressSteps.vue';
 import Input from '@/components/Input.vue';
@@ -8,6 +8,7 @@ import Dropdown from '@/components/Dropdown.vue';
 import Button from '@/components/Button.vue';
 
 const router = useRouter();
+const route = useRoute();
 
 // Étapes du formulaire
 const steps = ['Infos générales', 'Médias', 'Affinités', 'Détails & besoins', 'Résumé'];
@@ -21,6 +22,14 @@ const formData = ref({
   sex: '',
   size: '',
   weight: ''
+});
+
+// Charger les données existantes
+onMounted(() => {
+  const savedData = localStorage.getItem('animalFormData');
+  if (savedData) {
+    formData.value = JSON.parse(savedData);
+  }
 });
 
 // Options pour les selects
@@ -60,7 +69,12 @@ const weightOptions = [
 ];
 
 const goBack = () => {
-  router.push('/owner/animals');
+  // Si on vient du résumé, retourner au résumé
+  if (route.query.from === 'resume') {
+    router.push('/owner/animal/add/resume');
+  } else {
+    router.push('/owner/animals');
+  }
 };
 
 const handleNext = () => {
@@ -70,9 +84,15 @@ const handleNext = () => {
     return;
   }
   
-  // Sauvegarder les données et passer à l'étape suivante
+  // Sauvegarder les données
   localStorage.setItem('animalFormData', JSON.stringify(formData.value));
-  router.push('/owner/animal/add/media');
+  
+  // Si on vient du résumé, retourner au résumé, sinon aller à l'étape suivante
+  if (route.query.from === 'resume') {
+    router.push('/owner/animal/add/resume');
+  } else {
+    router.push('/owner/animal/add/media');
+  }
 };
 </script>
 

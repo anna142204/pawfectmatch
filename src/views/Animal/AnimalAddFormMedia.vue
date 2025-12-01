@@ -1,11 +1,12 @@
 <script setup>
 import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { ChevronLeft, Plus } from 'lucide-vue-next';
 import ProgressSteps from '@/components/ProgressSteps.vue';
 import Button from '@/components/Button.vue';
 
 const router = useRouter();
+const route = useRoute();
 
 // Étapes du formulaire
 const steps = ['Infos générales', 'Médias', 'Affinités', 'Détails & besoins', 'Résumé'];
@@ -26,7 +27,11 @@ onMounted(() => {
 });
 
 const goBack = () => {
-  router.push('/owner/animal/add');
+  if (route.query.from === 'resume') {
+    router.push('/owner/animal/add/resume');
+  } else {
+    router.push('/owner/animal/add');
+  }
 };
 
 const handleMainImageClick = () => {
@@ -75,8 +80,12 @@ const handleNext = () => {
   };
   localStorage.setItem('animalFormMediaData', JSON.stringify(mediaData));
   
-  // Passer à l'étape suivante
-  router.push('/owner/animal/add/affinity');
+  // Si on vient du résumé, retourner au résumé, sinon aller à l'étape suivante
+  if (route.query.from === 'resume') {
+    router.push('/owner/animal/add/resume');
+  } else {
+    router.push('/owner/animal/add/affinity');
+  }
 };
 </script>
 
