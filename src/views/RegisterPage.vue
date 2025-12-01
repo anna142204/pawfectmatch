@@ -38,6 +38,11 @@ const handleNextStep = () => {
       return;
     }
 
+    if (password.value.length < 6) {
+      error.value = 'Le mot de passe doit contenir au moins 6 caractères';
+      return;
+    }
+
     if (password.value !== confirmPassword.value) {
       error.value = 'Les mots de passe ne correspondent pas';
       return;

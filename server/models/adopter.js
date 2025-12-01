@@ -57,20 +57,20 @@ const adopterSchema = new Schema({
                 enum: ['appartement', 'voiture', 'enfant', 'chien', 'chat', 'autre animaux'],
             }],
             required: false,
-            validate: {
-                validator: v => Array.isArray(v) && v.length > 0,
-                message: 'Le tableau environment doit contenir au moins un élément valide.',
-            },
+            default: [],
         },
         species: {
             type: [String],
             required: false,
-            trim: true,
+            default: [],
         },
         sizePreference: {
-            type: [String],
+            type: [{
+                type: String,
+                enum: ['petit', 'moyen', 'grand'],
+            }],
             required: false,
-            enum: ['petit', 'moyen', 'grand'],
+            default: [],
         },
     },
 }, {

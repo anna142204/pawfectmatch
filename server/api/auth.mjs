@@ -10,9 +10,9 @@ export async function registerAdopter(req, res) {
   try {
     const { firstName, lastName, email, password, address, age, about, preferences } = req.body;
 
-    // Validate required fields
-    if (!firstName || !lastName || !email || !password || !address || !age || !about || !preferences) {
-      return res.status(400).json({ error: 'All fields are required' });
+    // Validate required fields only
+    if (!firstName || !lastName || !email || !password || !address || !age) {
+      return res.status(400).json({ error: 'All required fields must be provided' });
     }
 
     // Check if email already exists
@@ -21,7 +21,7 @@ export async function registerAdopter(req, res) {
       return res.status(409).json({ error: 'Email already registered' });
     }
 
-    // Create new adopter
+    // Create new adopter (about and preferences are optional)
     const adopter = new Adopter({
       firstName,
       lastName,
@@ -29,8 +29,8 @@ export async function registerAdopter(req, res) {
       password,
       address,
       age,
-      about,
-      preferences,
+      ...(about && { about }),
+      ...(preferences && { preferences }),
     });
 
     await adopter.save();
