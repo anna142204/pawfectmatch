@@ -115,7 +115,7 @@ const handleBlur = (event) => {
   padding: var(--spacing-1) var(--spacing-5);
   transition: all 0.2s ease;
   box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.08);
-  min-height: 50px;
+  min-height: 40px;
   border: 1px solid var(--color-neutral-200);
 }
 

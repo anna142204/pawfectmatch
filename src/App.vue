@@ -1,9 +1,16 @@
   <script setup>
-  import { onMounted, onUnmounted, ref } from 'vue';
+  import { onMounted, onUnmounted, ref, computed } from 'vue';
+  import { useRoute } from 'vue-router';
   import { isAuth, ws, users, allMsg } from '@/store/app.js';
   import { connectToChat } from '@/store/app.js';
 import Button from './components/Button.vue';
+import Toast from './components/Toast.vue';
 import './style.css';
+
+const route = useRoute();
+const isAuthPage = computed(() => {
+  return route.path === '/login' || route.path === '/register';
+});
   // ws.on('close', () => {
   //   if (isAuth.value) {
   //     $q.notify({
@@ -37,9 +44,14 @@ import './style.css';
 </script>
 
 <template>
-  <router-view />
+  <Toast />
+  <div :class="{ 'app-content': !isAuthPage }">
+    <router-view />
+  </div>
 </template>
 
 <style scoped>
-  
+.app-content {
+  padding: 0 var(--spacing-7);
+}
 </style>

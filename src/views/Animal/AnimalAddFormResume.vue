@@ -1,14 +1,18 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
-import { ChevronLeft, Edit2 } from 'lucide-vue-next';
+import { Edit2 } from 'lucide-vue-next';
 import ProgressSteps from '@/components/ProgressSteps.vue';
 import Button from '@/components/Button.vue';
+import BackButton from '@/components/BackButton.vue';
+import { useToast } from '@/composables/useToast';
+
+const { success, error } = useToast();
 
 const router = useRouter();
 
 // Étapes du formulaire
-const steps = ['Infos générales', 'Médias', 'Affinités', 'Détails & besoins', 'Résumé'];
+const steps = ['Infos générales', 'Médias', 'Affinités', 'Détails', 'Résumé'];
 const currentStep = ref(4);
 
 // Données consolidées
@@ -55,33 +59,11 @@ const weightLabels = {
   '30+': '30+ kg'
 };
 
-const affinityLabels = {
-  environment: {
-    'appartement': 'appartement',
-    'voiture': 'voiture',
-    'enfants': 'enfants',
-    'chiens': 'chiens',
-    'chats': 'chats',
-    'autres_animaux': 'autres animaux'
-  },
-  training: {
-    'eduque': 'éduqué',
-    'facile_dresser': 'facile à dresser',
-    'habitue_laisse': 'habitué à la laisse',
-    'tetu': 'têtu'
-  },
-  personality: {
-    'calme': 'calme',
-    'energique': 'énergique',
-    'independant': 'indépendant',
-    'affectueux': 'affectueux',
-    'curieux': 'curieux',
-    'joueur': 'joueur',
-    'bavard': 'bavard',
-    'explorateur': 'explorateur',
-    'protecteur': 'protecteur',
-    'gourmand': 'gourmand'
-  }
+const AGE_MAPPING = {
+  '0-1': 0,
+  '1-3': 1,
+  '3-7': 3,
+  '7+': 7
 };
 
 // Charger toutes les données sauvegardées
@@ -93,17 +75,9 @@ onMounted(() => {
 });
 
 // Computed pour afficher les affinités
-const environmentList = computed(() => {
-  return (formData.value.affinity.environment || []).map(val => affinityLabels.environment[val] || val);
-});
-
-const trainingList = computed(() => {
-  return (formData.value.affinity.training || []).map(val => affinityLabels.training[val] || val);
-});
-
-const personalityList = computed(() => {
-  return (formData.value.affinity.personality || []).map(val => affinityLabels.personality[val] || val);
-});
+const environmentList = computed(() => formData.value.affinity.environment || []);
+const trainingList = computed(() => formData.value.affinity.training || []);
+const personalityList = computed(() => formData.value.affinity.personality || []);
 
 const goBack = () => {
   router.push('/owner/animal/add/details');
@@ -124,53 +98,71 @@ const handleSubmit = async () => {
   try {
     // Validation
     if (!formData.value.general.name || !formData.value.general.species) {
-      alert('Données manquantes dans les informations générales');
+      error('Données manquantes dans les informations générales');
+      return;
+    }
+
+    if (!formData.value.media.images || formData.value.media.images.length === 0) {
+      error('Au moins une image est requise');
+      return;
+    }
+
+    const ownerId = localStorage.getItem('user_id');
+    if (!ownerId) {
+      error('Utilisateur non identifié');
       return;
     }
 
     // Préparer les données pour l'API
+    const firstImage = formData.value.media.images[0];
+    const imageUrl = typeof firstImage === 'string' ? firstImage : firstImage.url;
+    const ageValue = AGE_MAPPING[formData.value.general.age] ?? 1;
+
     const animalData = {
       name: formData.value.general.name,
       species: formData.value.general.species,
-      age: formData.value.general.age,
+      race: formData.value.general.race || '',
+      age: ageValue,
       sex: formData.value.general.sex,
-      size: formData.value.general.size,
-      weight: formData.value.general.weight,
-      images: formData.value.media.images || [],
-      characteristics: {
-        environment: formData.value.affinity.environment || [],
-        dressage: formData.value.affinity.training || [],
-        personality: formData.value.affinity.personality || []
+      address: {
+        city: formData.value.general.city || '',
+        zip: formData.value.general.zip || ''
       },
-      description: formData.value.details.description || ''
+      image: imageUrl,
+      price: parseFloat(formData.value.general.price) || 0,
+      ownerId,
+      availability: true,
+      description: formData.value.details.description || '',
+      characteristics: {
+        environment: [...(formData.value.affinity.environment || [])],
+        dressage: [...(formData.value.affinity.training || [])],
+        personality: [...(formData.value.affinity.personality || [])]
+      }
     };
 
     // Appeler l'API pour créer l'animal
     const response = await fetch('/api/animals', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify(animalData)
     });
 
+    const responseData = await response.json();
+
     if (!response.ok) {
-      throw new Error('Erreur lors de la création de l\'animal');
+      throw new Error(responseData.error || 'Erreur lors de la création de l\'animal');
     }
 
     // Nettoyer le localStorage
-    localStorage.removeItem('animalFormData');
-    localStorage.removeItem('animalFormMediaData');
-    localStorage.removeItem('animalFormAffinityData');
-    localStorage.removeItem('animalFormDetailsData');
+    ['animalFormData', 'animalFormMediaData', 'animalFormAffinityData', 'animalFormDetailsData']
+      .forEach(key => localStorage.removeItem(key));
 
-    // Rediriger vers la liste des animaux
-    router.push('/owner/animals');
-    
-  } catch (error) {
-    console.error('Erreur:', error);
-    alert('Une erreur est survenue lors de la création de l\'animal');
+    // Message de succès et redirection
+    success('Animal créé avec succès !');
+    setTimeout(() => router.push('/owner/animals'), 1500);
+  } catch (err) {
+    error(err.message || 'Une erreur est survenue lors de la création de l\'animal');
   }
 };
 </script>
@@ -179,10 +171,8 @@ const handleSubmit = async () => {
   <div class="add-animal-page">
     <!-- Header avec bouton retour et titre -->
     <div class="page-header">
-      <button class="back-button" @click="goBack" type="button">
-        <ChevronLeft :size="32" :stroke-width="2" />
-      </button>
-      <h1 class="page-title">Ajouter un animal</h1>
+      <BackButton @click="goBack" />
+      <h1 class="page-title text-h2 text-primary-700">Ajouter un animal</h1>
     </div>
 
     <!-- Barre de progression -->
@@ -194,35 +184,35 @@ const handleSubmit = async () => {
         <!-- Informations générales -->
         <div class="resume-section">
           <div class="section-header">
-            <h2 class="section-title">Informations générales</h2>
+            <h2 class="section-title text-h4 text-neutral-black">Informations générales</h2>
             <button class="edit-button" @click="editSection('general')" type="button">
               <Edit2 :size="20" :stroke-width="2" />
             </button>
           </div>
           <div class="section-content">
             <div class="info-row">
-              <span class="info-label">Nom :</span>
-              <span class="info-value">{{ formData.general.name || '-' }}</span>
+              <span class="info-label text-body-base text-neutral-700">Nom :</span>
+              <span class="info-value text-body-base text-neutral-black">{{ formData.general.name || '-' }}</span>
             </div>
             <div class="info-row">
-              <span class="info-label">Espèce :</span>
-              <span class="info-value">{{ speciesLabels[formData.general.species] || '-' }}</span>
+              <span class="info-label text-body-base text-neutral-700">Espèce :</span>
+              <span class="info-value text-body-base text-neutral-black">{{ speciesLabels[formData.general.species] || '-' }}</span>
             </div>
             <div class="info-row">
-              <span class="info-label">Âge :</span>
-              <span class="info-value">{{ ageLabels[formData.general.age] || '-' }}</span>
+              <span class="info-label text-body-base text-neutral-700">Âge :</span>
+              <span class="info-value text-body-base text-neutral-black">{{ ageLabels[formData.general.age] || '-' }}</span>
             </div>
             <div class="info-row">
-              <span class="info-label">Genre :</span>
-              <span class="info-value">{{ sexLabels[formData.general.sex] || '-' }}</span>
+              <span class="info-label text-body-base text-neutral-700">Genre :</span>
+              <span class="info-value text-body-base text-neutral-black">{{ sexLabels[formData.general.sex] || '-' }}</span>
             </div>
             <div class="info-row">
-              <span class="info-label">Taille :</span>
-              <span class="info-value">{{ sizeLabels[formData.general.size] || '-' }}</span>
+              <span class="info-label text-body-base text-neutral-700">Taille :</span>
+              <span class="info-value text-body-base text-neutral-black">{{ sizeLabels[formData.general.size] || '-' }}</span>
             </div>
             <div class="info-row">
-              <span class="info-label">Poids :</span>
-              <span class="info-value">{{ weightLabels[formData.general.weight] || '-' }}</span>
+              <span class="info-label text-body-base text-neutral-700">Poids :</span>
+              <span class="info-value text-body-base text-neutral-black">{{ weightLabels[formData.general.weight] || '-' }}</span>
             </div>
           </div>
         </div>
@@ -230,7 +220,7 @@ const handleSubmit = async () => {
         <!-- Médias -->
         <div class="resume-section">
           <div class="section-header">
-            <h2 class="section-title">Médias</h2>
+            <h2 class="section-title text-h4 text-neutral-black">Médias</h2>
             <button class="edit-button" @click="editSection('media')" type="button">
               <Edit2 :size="20" :stroke-width="2" />
             </button>
@@ -245,21 +235,21 @@ const handleSubmit = async () => {
                 class="media-thumbnail"
               />
             </div>
-            <p v-else class="empty-message">Aucun média ajouté</p>
+            <p v-else class="empty-message text-body-base text-neutral-500">Àucun média ajouté</p>
           </div>
         </div>
 
         <!-- Affinités -->
         <div class="resume-section">
           <div class="section-header">
-            <h2 class="section-title">Affinités</h2>
+            <h2 class="section-title text-h4 text-neutral-black">Affinités</h2>
             <button class="edit-button" @click="editSection('affinity')" type="button">
               <Edit2 :size="20" :stroke-width="2" />
             </button>
           </div>
           <div class="section-content">
             <div class="affinity-group" v-if="environmentList.length > 0">
-              <span class="affinity-label">Environnement :</span>
+              <span class="affinity-label text-body-base text-neutral-700">Environnement :</span>
               <div class="tags-list">
                 <span v-for="(item, index) in environmentList" :key="index" class="tag">
                   {{ item }}
@@ -267,7 +257,7 @@ const handleSubmit = async () => {
               </div>
             </div>
             <div class="affinity-group" v-if="trainingList.length > 0">
-              <span class="affinity-label">Dressage :</span>
+              <span class="affinity-label text-body-base text-neutral-700">Dressage :</span>
               <div class="tags-list">
                 <span v-for="(item, index) in trainingList" :key="index" class="tag">
                   {{ item }}
@@ -275,14 +265,14 @@ const handleSubmit = async () => {
               </div>
             </div>
             <div class="affinity-group" v-if="personalityList.length > 0">
-              <span class="affinity-label">Personnalité :</span>
+              <span class="affinity-label text-body-base text-neutral-700">Personnalité :</span>
               <div class="tags-list">
                 <span v-for="(item, index) in personalityList" :key="index" class="tag">
                   {{ item }}
                 </span>
               </div>
             </div>
-            <p v-if="environmentList.length === 0 && trainingList.length === 0 && personalityList.length === 0" class="empty-message">
+            <p v-if="environmentList.length === 0 && trainingList.length === 0 && personalityList.length === 0" class="empty-message text-body-base text-neutral-500">
               Aucune affinité sélectionnée
             </p>
           </div>
@@ -291,13 +281,13 @@ const handleSubmit = async () => {
         <!-- Détails & besoins -->
         <div class="resume-section">
           <div class="section-header">
-            <h2 class="section-title">Description</h2>
+            <h2 class="section-title text-h4 text-neutral-black">Description</h2>
             <button class="edit-button" @click="editSection('details')" type="button">
               <Edit2 :size="20" :stroke-width="2" />
             </button>
           </div>
           <div class="section-content">
-            <p class="description-text">
+            <p class="description-text text-body-base text-neutral-black">
               {{ formData.details.description || 'Aucune description' }}
             </p>
           </div>
@@ -310,11 +300,11 @@ const handleSubmit = async () => {
       <Button 
         type="button"
         variant="primary"
-        size="lg"
+        size="base"
         class="btn-submit"
         @click="handleSubmit"
       >
-        terminer
+        Terminer
       </Button>
     </div>
   </div>
@@ -333,35 +323,12 @@ const handleSubmit = async () => {
 .page-header {
   display: flex;
   align-items: center;
-  padding: var(--spacing-8) var(--spacing-6);
-  padding-top: var(--spacing-12);
-  padding-bottom: var(--spacing-4);
+  padding: var(--spacing-12) 0 var(--spacing-4);
   gap: var(--spacing-4);
   background-color: var(--color-neutral-100);
 }
 
-.back-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: none;
-  color: var(--color-neutral-black);
-  cursor: pointer;
-  padding: var(--spacing-2);
-  margin-left: calc(var(--spacing-2) * -1);
-}
-
-.back-button:active {
-  opacity: 0.6;
-}
-
 .page-title {
-  font-family: var(--font-family);
-  font-size: var(--heading-h2-size);
-  font-weight: var(--heading-h2-weight);
-  line-height: var(--heading-h2-height);
-  color: var(--color-primary-700);
   margin: 0;
   text-align: center;
   flex: 1;
@@ -370,8 +337,7 @@ const handleSubmit = async () => {
 
 .form-container {
   flex: 1;
-  padding: var(--spacing-6);
-  padding-top: var(--spacing-4);
+  padding: var(--spacing-4) 0;
   overflow-y: auto;
 }
 
@@ -396,11 +362,6 @@ const handleSubmit = async () => {
 }
 
 .section-title {
-  font-family: var(--font-family);
-  font-size: var(--heading-h3-size);
-  font-weight: var(--heading-h3-weight);
-  line-height: var(--heading-h3-height);
-  color: var(--color-primary-700);
   margin: 0;
 }
 
@@ -437,19 +398,10 @@ const handleSubmit = async () => {
 }
 
 .info-label {
-  font-family: var(--font-family);
-  font-size: var(--body-md-size);
   font-weight: var(--font-weight-semibold);
-  color: var(--color-neutral-700);
   min-width: 80px;
 }
 
-.info-value {
-  font-family: var(--font-family);
-  font-size: var(--body-md-size);
-  font-weight: var(--font-weight-normal);
-  color: var(--color-neutral-black);
-}
 
 .media-grid {
   display: grid;
@@ -471,10 +423,7 @@ const handleSubmit = async () => {
 }
 
 .affinity-label {
-  font-family: var(--font-family);
-  font-size: var(--body-md-size);
   font-weight: var(--font-weight-semibold);
-  color: var(--color-neutral-700);
 }
 
 .tags-list {
@@ -495,18 +444,11 @@ const handleSubmit = async () => {
 }
 
 .description-text {
-  font-family: var(--font-family);
-  font-size: var(--body-md-size);
-  line-height: var(--body-md-height);
-  color: var(--color-neutral-black);
   margin: 0;
   white-space: pre-wrap;
 }
 
 .empty-message {
-  font-family: var(--font-family);
-  font-size: var(--body-md-size);
-  color: var(--color-neutral-500);
   font-style: italic;
   margin: 0;
 }
@@ -514,20 +456,9 @@ const handleSubmit = async () => {
 .fixed-footer {
   position: fixed;
   bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: calc(100% - var(--spacing-12));
-  max-width: calc(430px - var(--spacing-12));
-  padding: var(--spacing-5) 0;
-  padding-bottom: var(--spacing-6);
-  background-color: transparent;
+  left: var(--spacing-6);
+  right: var(--spacing-6);
   z-index: 10;
-}
-
-.fixed-footer :deep(.btn-submit) {
-  width: 100%;
-  border-radius: var(--radius-full);
-  min-height: 60px;
-  text-transform: lowercase;
+  padding-bottom: var(--spacing-6);
 }
 </style>

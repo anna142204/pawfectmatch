@@ -44,8 +44,9 @@ const props = defineProps({
 <style scoped>
 .progress-steps {
   display: flex;
+  align-items: center;
   flex-direction: column;
-  padding: var(--spacing-6) var(--spacing-4);
+  padding: var(--spacing-6) 0;
   gap: var(--spacing-3);
 }
 
@@ -53,6 +54,7 @@ const props = defineProps({
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
+  gap: 25px;
   width: 100%;
 }
 
@@ -62,9 +64,8 @@ const props = defineProps({
   font-size: 11px;
   font-weight: var(--font-weight-normal);
   color: var(--color-neutral-400);
-  text-align: center;
+  text-align: start;
   line-height: 1.3;
-  max-width: 80px;
 }
 
 .step-label.step-active {
@@ -77,7 +78,7 @@ const props = defineProps({
   display: flex;
   justify-content: space-between;
   align-items: center;
-  width: 100%;
+  width: 95%;
 }
 
 .progress-line {

@@ -12,8 +12,16 @@ const loading = ref(false);
 const error = ref('');
 
 const handleLogin = async () => {
+  // Validation des champs requis
   if (!email.value || !password.value) {
     error.value = 'Veuillez remplir tous les champs';
+    return;
+  }
+
+  // Validation du format email
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email.value)) {
+    error.value = 'Format d\'email invalide';
     return;
   }
 
@@ -33,7 +41,7 @@ const handleLogin = async () => {
     
     if (!response.ok) {
       const errorData = await response.json();
-      error.value = errorData.error || 'Email ou mot de passe incorrect';
+      error.value = errorData.error || 'Email ou mot de passe invalide';
       return;
     }
 
@@ -138,7 +146,7 @@ const handleLogin = async () => {
   align-items: flex-start;
   justify-content: flex-start;
   background: var(--gradient-primary-secondary);
-  padding: 0;
+  padding: 0 !important;
   overflow: hidden;
 }
 

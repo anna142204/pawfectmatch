@@ -1,15 +1,17 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { ChevronLeft } from 'lucide-vue-next';
 import ProgressSteps from '@/components/ProgressSteps.vue';
 import Button from '@/components/Button.vue';
+import BackButton from '@/components/BackButton.vue';
+import { useToast } from '@/composables/useToast';
 
 const router = useRouter();
 const route = useRoute();
+const { error } = useToast();
 
 // Étapes du formulaire
-const steps = ['Infos générales', 'Médias', 'Affinités', 'Détails & besoins', 'Résumé'];
+const steps = ['Infos générales', 'Médias', 'Affinités', 'Détails', 'Résumé'];
 const currentStep = ref(3);
 
 // Description de l'animal
@@ -33,9 +35,9 @@ const goBack = () => {
 };
 
 const handleNext = () => {
-  // Validation basique
+  // Validation
   if (!description.value.trim()) {
-    alert('Veuillez entrer une description de l\'animal');
+    error('Veuillez entrer une description de l\'animal');
     return;
   }
 
@@ -54,10 +56,8 @@ const handleNext = () => {
   <div class="add-animal-page">
     <!-- Header avec bouton retour et titre -->
     <div class="page-header">
-      <button class="back-button" @click="goBack" type="button">
-        <ChevronLeft :size="32" :stroke-width="2" />
-      </button>
-      <h1 class="page-title">Ajouter un animal</h1>
+      <BackButton @click="goBack" />
+      <h1 class="page-title text-h2 text-primary-700">Ajouter un animal</h1>
     </div>
 
     <!-- Barre de progression -->
@@ -68,7 +68,7 @@ const handleNext = () => {
       <form @submit.prevent="handleNext" class="details-form">
         <!-- Description -->
         <div class="form-group">
-          <label class="form-label">Description</label>
+          <label class="form-label text-body-lg text-neutral-black">Description</label>
           <textarea
             v-model="description"
             class="textarea-field"
@@ -83,10 +83,10 @@ const handleNext = () => {
           <Button 
             type="submit"
             variant="primary"
-            size="lg"
+            size="base"
             class="btn-next"
           >
-            suivant
+            Suivant
           </Button>
         </div>
       </form>
@@ -106,35 +106,12 @@ const handleNext = () => {
 .page-header {
   display: flex;
   align-items: center;
-  padding: var(--spacing-8) var(--spacing-6);
-  padding-top: var(--spacing-12);
-  padding-bottom: var(--spacing-4);
+  padding: var(--spacing-12) 0 var(--spacing-4);
   gap: var(--spacing-4);
   background-color: var(--color-neutral-100);
 }
 
-.back-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: none;
-  color: var(--color-neutral-black);
-  cursor: pointer;
-  padding: var(--spacing-2);
-  margin-left: calc(var(--spacing-2) * -1);
-}
-
-.back-button:active {
-  opacity: 0.6;
-}
-
 .page-title {
-  font-family: var(--font-family);
-  font-size: var(--heading-h2-size);
-  font-weight: var(--heading-h2-weight);
-  line-height: var(--heading-h2-height);
-  color: var(--color-primary-700);
   margin: 0;
   text-align: center;
   flex: 1;
@@ -143,8 +120,7 @@ const handleNext = () => {
 
 .form-container {
   flex: 1;
-  padding: var(--spacing-6);
-  padding-top: var(--spacing-4);
+  padding: var(--spacing-4) 0;
 }
 
 .details-form {
@@ -162,11 +138,7 @@ const handleNext = () => {
 }
 
 .form-label {
-  font-family: var(--font-family);
-  font-size: var(--body-lg-size);
   font-weight: var(--font-weight-semibold);
-  color: var(--color-neutral-black);
-  line-height: var(--body-lg-height);
 }
 
 .textarea-field {
@@ -200,12 +172,5 @@ const handleNext = () => {
 
 .form-actions {
   margin-top: var(--spacing-6);
-}
-
-.form-actions :deep(.btn-next) {
-  width: 100%;
-  border-radius: var(--radius-full);
-  min-height: 60px;
-  text-transform: lowercase;
 }
 </style>

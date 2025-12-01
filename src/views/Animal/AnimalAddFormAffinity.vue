@@ -1,16 +1,17 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { ChevronLeft, Home, Car, Baby, Dog, Cat, Rat } from 'lucide-vue-next';
+import { Home, Car, Baby, Dog, Cat, Rat } from 'lucide-vue-next';
 import ProgressSteps from '@/components/ProgressSteps.vue';
 import TagButton from '@/components/TagButton.vue';
 import Button from '@/components/Button.vue';
+import BackButton from '@/components/BackButton.vue';
 
 const router = useRouter();
 const route = useRoute();
 
 // Étapes du formulaire
-const steps = ['Infos générales', 'Médias', 'Affinités', 'Détails & besoins', 'Résumé'];
+const steps = ['Infos générales', 'Médias', 'Affinités', 'Détails', 'Résumé'];
 const currentStep = ref(2);
 
 // Affinités sélectionnées
@@ -24,32 +25,36 @@ const selectedAffinities = ref({
 const environmentOptions = [
   { value: 'appartement', label: 'appartement', icon: Home },
   { value: 'voiture', label: 'voiture', icon: Car },
-  { value: 'enfants', label: 'enfants', icon: Baby },
-  { value: 'chiens', label: 'chiens', icon: Dog },
-  { value: 'chats', label: 'chats', icon: Cat },
-  { value: 'autres_animaux', label: 'autres animaux', icon: Rat }
+  { value: 'enfant', label: 'enfant', icon: Baby },
+  { value: 'chien', label: 'chien', icon: Dog },
+  { value: 'chat', label: 'chat', icon: Cat },
+  { value: 'autre animaux', label: 'autre animaux', icon: Rat }
 ];
 
 // Options de dressage
 const trainingOptions = [
-  { value: 'eduque', label: 'éduqué' },
-  { value: 'facile_dresser', label: 'facile à dresser' },
-  { value: 'habitue_laisse', label: 'habitué à la laisse' },
-  { value: 'tetu', label: 'têtu' }
+  { value: 'éduqué', label: 'éduqué' },
+  { value: 'facile à dresser', label: 'facile à dresser' },
+  { value: 'habitué à la laisse', label: 'habitué à la laisse' },
+  { value: 'têtu', label: 'têtu' }
 ];
 
 // Options de personnalité
 const personalityOptions = [
   { value: 'calme', label: 'calme' },
-  { value: 'energique', label: 'énergique' },
-  { value: 'independant', label: 'indépendant' },
+  { value: 'énergique', label: 'énergique' },
+  { value: 'indépendant', label: 'indépendant' },
   { value: 'affectueux', label: 'affectueux' },
   { value: 'curieux', label: 'curieux' },
   { value: 'joueur', label: 'joueur' },
   { value: 'bavard', label: 'bavard' },
   { value: 'explorateur', label: 'explorateur' },
+  { value: 'câlin', label: 'câlin' },
   { value: 'protecteur', label: 'protecteur' },
-  { value: 'gourmand', label: 'gourmand' }
+  { value: 'territorial', label: 'territorial' },
+  { value: 'sociable', label: 'sociable' },
+  { value: 'timide', label: 'timide' },
+  { value: 'peureux', label: 'peureux' }
 ];
 
 // Charger les données existantes si disponibles
@@ -98,10 +103,8 @@ const handleNext = () => {
   <div class="add-animal-page">
     <!-- Header avec bouton retour et titre -->
     <div class="page-header">
-      <button class="back-button" @click="goBack" type="button">
-        <ChevronLeft :size="32" :stroke-width="2" />
-      </button>
-      <h1 class="page-title">Ajouter un animal</h1>
+      <BackButton @click="goBack" />
+      <h1 class="page-title text-h2 text-primary-700">Ajouter un animal</h1>
     </div>
 
     <!-- Barre de progression -->
@@ -111,17 +114,17 @@ const handleNext = () => {
     <div class="form-container">
       <!-- Description -->
       <div class="affinity-description">
-        <p class="description-text">
+        <p class="description-text text-body-base text-neutral-black">
           Veuillez sélectionner les compatibilités que l'animal devrait avoir avec son futur propriétaire
         </p>
-        <p class="description-subtext">
+        <p class="description-subtext text-body-sm text-neutral-600">
           (Vous pouvez en sélectionner plusieurs)
         </p>
       </div>
 
       <!-- Environnement -->
       <div class="affinity-section">
-        <h2 class="section-title">Environnement</h2>
+        <h2 class="section-title  text-body-lg text-neutral-black">Environnement</h2>
         <div class="tags-container">
           <TagButton
             v-for="option in environmentOptions"
@@ -136,7 +139,7 @@ const handleNext = () => {
 
       <!-- Dressage -->
       <div class="affinity-section">
-        <h2 class="section-title">Dressage</h2>
+        <h2 class="section-title text-body-lg text-neutral-black">Dressage</h2>
         <div class="tags-container">
           <TagButton
             v-for="option in trainingOptions"
@@ -150,7 +153,7 @@ const handleNext = () => {
 
       <!-- Personnalité -->
       <div class="affinity-section">
-        <h2 class="section-title">Personnalité</h2>
+        <h2 class="section-title text-body-lg text-neutral-black">Personnalité</h2>
         <div class="tags-container">
           <TagButton
             v-for="option in personalityOptions"
@@ -168,11 +171,11 @@ const handleNext = () => {
       <Button 
         type="button"
         variant="primary"
-        size="lg"
+        size="base"
         class="btn-next"
         @click="handleNext"
       >
-        suivant
+        Suivant
       </Button>
     </div>
   </div>
@@ -191,35 +194,12 @@ const handleNext = () => {
 .page-header {
   display: flex;
   align-items: center;
-  padding: var(--spacing-8) var(--spacing-6);
-  padding-top: var(--spacing-12);
-  padding-bottom: var(--spacing-4);
+  padding: var(--spacing-12) 0 var(--spacing-4);
   gap: var(--spacing-4);
   background-color: var(--color-neutral-100);
 }
 
-.back-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: none;
-  color: var(--color-neutral-black);
-  cursor: pointer;
-  padding: var(--spacing-2);
-  margin-left: calc(var(--spacing-2) * -1);
-}
-
-.back-button:active {
-  opacity: 0.6;
-}
-
 .page-title {
-  font-family: var(--font-family);
-  font-size: var(--heading-h2-size);
-  font-weight: var(--heading-h2-weight);
-  line-height: var(--heading-h2-height);
-  color: var(--color-primary-700);
   margin: 0;
   text-align: center;
   flex: 1;
@@ -228,8 +208,7 @@ const handleNext = () => {
 
 .form-container {
   flex: 1;
-  padding: var(--spacing-6);
-  padding-top: var(--spacing-4);
+  padding: var(--spacing-4) 0;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -242,18 +221,10 @@ const handleNext = () => {
 }
 
 .description-text {
-  font-family: var(--font-family);
-  font-size: var(--body-md-size);
-  line-height: var(--body-md-height);
-  color: var(--color-neutral-black);
   margin: 0 0 var(--spacing-2) 0;
 }
 
 .description-subtext {
-  font-family: var(--font-family);
-  font-size: var(--body-sm-size);
-  line-height: var(--body-sm-height);
-  color: var(--color-neutral-600);
   margin: 0;
 }
 
@@ -264,12 +235,8 @@ const handleNext = () => {
 }
 
 .section-title {
-  font-family: var(--font-family);
-  font-size: var(--heading-h3-size);
-  font-weight: var(--heading-h3-weight);
-  line-height: var(--heading-h3-height);
-  color: var(--color-neutral-black);
   margin: 0;
+  font-weight: var(--font-weight-semibold);
 }
 
 .tags-container {
@@ -281,20 +248,11 @@ const handleNext = () => {
 .fixed-footer {
   position: fixed;
   bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: calc(100% - var(--spacing-12));
-  max-width: calc(430px - var(--spacing-12));
-  padding: var(--spacing-5) 0;
-  padding-bottom: var(--spacing-6);
-  background-color: transparent;
+  left: var(--spacing-6);
+  right: var(--spacing-6);
   z-index: 10;
+  padding-bottom: var(--spacing-6);
 }
 
-.fixed-footer :deep(.btn-next) {
-  width: 100%;
-  border-radius: var(--radius-full);
-  min-height: 60px;
-  text-transform: lowercase;
-}
+
 </style>

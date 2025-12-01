@@ -1,15 +1,18 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { ChevronLeft, Trash2 } from 'lucide-vue-next';
+import { Trash2 } from 'lucide-vue-next';
 import ProgressSteps from '@/components/ProgressSteps.vue';
 import Button from '@/components/Button.vue';
 import ImageUploader from '@/components/ImageUploader.vue';
+import BackButton from '@/components/BackButton.vue';
+import { useToast } from '@/composables/useToast';
 
 const router = useRouter();
 const route = useRoute();
+const { error: showError, success } = useToast();
 
-const STEPS = ['Infos générales', 'Médias', 'Affinités', 'Détails & besoins', 'Résumé'];
+const STEPS = ['Infos générales', 'Médias', 'Affinités', 'Détails', 'Résumé'];
 const CURRENT_STEP = 1;
 const STORAGE_KEY = 'animalFormMediaData';
 
@@ -111,10 +114,9 @@ const uploadImages = async () => {
     // Tout s'est bien passé, on vide les fichiers sélectionnés
     selectedFiles.value = [];
     saveData();
-  } catch (error) {
-    console.error('Erreur upload:', error);
-    alert(error.message || 'Erreur lors de l\'upload des images');
-    throw error;
+  } catch (err) {
+    showError(err.message || 'Erreur lors de l\'upload des images');
+    throw err;
   } finally {
     isUploading.value = false;
     uploadProgress.value = { current: 0, total: 0 };
@@ -123,18 +125,23 @@ const uploadImages = async () => {
 
 const handleNext = async () => {
   if (!hasFiles.value && !hasUploadedImages.value) {
-    alert('Veuillez ajouter au moins une image');
+    showError('Veuillez ajouter au moins une image');
     return;
   }
 
   // Upload les images sélectionnées si nécessaire
   if (hasFiles.value) {
-    await uploadImages();
+    try {
+      await uploadImages();
+      success(`${uploadedImages.value.length} image(s) uploadée(s) avec succès`);
+    } catch (err) {
+      return; // L'erreur est déjà affichée dans uploadImages
+    }
   }
 
   // Vérifier qu'on a bien des images uploadées
   if (!hasUploadedImages.value) {
-    alert('Aucune image n\'a été uploadée avec succès');
+    showError('Aucune image n\'a été uploadée avec succès');
     return;
   }
 
@@ -147,10 +154,8 @@ const handleNext = async () => {
   <div class="add-animal-page">
     <!-- Header avec bouton retour et titre -->
     <div class="page-header">
-      <button class="back-button" @click="goBack" type="button">
-        <ChevronLeft :size="32" :stroke-width="2" />
-      </button>
-      <h1 class="page-title">Ajouter un animal</h1>
+      <BackButton @click="goBack" />
+      <h1 class="page-title text-h2 text-primary-700">Ajouter un animal</h1>
     </div>
 
     <!-- Barre de progression -->
@@ -160,11 +165,11 @@ const handleNext = async () => {
     <div class="form-container">
       <!-- Description -->
       <div class="media-description">
-        <h2 class="section-title">Ajoutez des photos</h2>
-        <p class="description-text">
+        <h2 class="section-title text-h3 text-primary-700">Ajoutez des photos</h2>
+        <p class="description-text text-body-base text-neutral-900">
           Ajoutez des photos de l'animal afin que le futur propriétaire tombe sous son charme
         </p>
-        <p class="description-subtext">
+        <p class="description-subtext text-body-sm text-neutral-600">
           Vous pouvez en sélectionner plusieurs
         </p>
       </div>
@@ -175,7 +180,7 @@ const handleNext = async () => {
       <!-- Images déjà uploadées -->
       <div v-if="hasUploadedImages" class="uploaded-images">
         <div class="uploaded-header">
-          <h3 class="uploaded-title">Images sauvegardées</h3>
+          <h3 class="uploaded-title text-body-lg text-neutral-black">Images sauvegardées</h3>
           <span class="image-count">{{ uploadedImages.length }}</span>
         </div>
         <div class="images-grid">
@@ -236,36 +241,13 @@ const handleNext = async () => {
 .page-header {
   display: flex;
   align-items: center;
-  padding: var(--spacing-6) var(--spacing-5);
-  padding-top: var(--spacing-10);
-  padding-bottom: var(--spacing-3);
+  padding: var(--spacing-10) 0 var(--spacing-3);
   gap: var(--spacing-4);
   background-color: var(--color-neutral-100);
   flex-shrink: 0;
 }
 
-.back-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: none;
-  color: var(--color-neutral-black);
-  cursor: pointer;
-  padding: var(--spacing-2);
-  margin-left: calc(var(--spacing-2) * -1);
-}
-
-.back-button:active {
-  opacity: 0.6;
-}
-
 .page-title {
-  font-family: var(--font-family);
-  font-size: var(--heading-h2-size);
-  font-weight: var(--heading-h2-weight);
-  line-height: var(--heading-h2-height);
-  color: var(--color-primary-700);
   margin: 0;
   text-align: center;
   flex: 1;
@@ -274,8 +256,7 @@ const handleNext = async () => {
 
 .form-container {
   flex: 1;
-  padding: var(--spacing-5);
-  padding-top: var(--spacing-4);
+  padding: var(--spacing-4) 0;
   display: flex;
   flex-direction: column;
   gap: var(--spacing-4);
@@ -288,27 +269,18 @@ const handleNext = async () => {
 }
 
 .section-title {
-  font-family: var(--font-family);
-  font-size: var(--heading-h4-size);
   font-weight: var(--heading-h4-weight);
   line-height: 1.2;
-  color: var(--color-primary-700);
   margin: 0 0 var(--spacing-2) 0;
 }
 
 .description-text {
-  font-family: var(--font-family);
-  font-size: var(--body-sm-size);
   line-height: 1.3;
-  color: var(--color-neutral-900);
   margin: 0 0 var(--spacing-1) 0;
 }
 
 .description-subtext {
-  font-family: var(--font-family);
-  font-size: var(--body-xs-size);
   line-height: 1.2;
-  color: var(--color-neutral-600);
   margin: 0;
 }
 
@@ -435,18 +407,5 @@ const handleNext = async () => {
   padding-top: var(--spacing-4);
   padding-bottom: var(--spacing-2);
   flex-shrink: 0;
-}
-
-.form-actions :deep(.btn-next) {
-  width: 100%;
-  border-radius: var(--radius-full);
-  min-height: 50px;
-  text-transform: lowercase;
-  font-size: var(--body-base-size);
-}
-
-.form-actions :deep(.btn-next:disabled) {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 </style>

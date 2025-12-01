@@ -127,8 +127,20 @@ export async function createAnimal(req, res) {
     } = req.body;
 
     // Validate required fields
-    if (!species || !name || !age || !sex || !address || !image || price === undefined || !ownerId || !description || !characteristics) {
-      return res.status(400).json({ error: 'All required fields must be provided' });
+    if (!species || !name || age === undefined || !sex || !address || !image || price === undefined || !ownerId || !description || !characteristics) {
+      console.log('Champs manquants:', {
+        species: !species,
+        name: !name,
+        age: age === undefined,
+        sex: !sex,
+        address: !address,
+        image: !image,
+        price: price === undefined,
+        ownerId: !ownerId,
+        description: !description,
+        characteristics: !characteristics
+      });
+      return res.status(400).json({ error: 'Tous les champs requis doivent être remplis' });
     }
 
     const animal = new Animal({
@@ -148,13 +160,23 @@ export async function createAnimal(req, res) {
 
     await animal.save();
 
+    console.log('Animal créé avec succès:', animal._id);
+
     res.status(201).json({
-      message: 'Animal created successfully',
+      message: 'Animal créé avec succès',
       animal
     });
   } catch (error) {
     console.error('Create animal error:', error);
-    res.status(500).json({ error: 'Failed to create animal' });
+    console.error('Error details:', error.message);
+    if (error.errors) {
+      console.error('Validation errors:', Object.keys(error.errors).map(key => ({
+        field: key,
+        message: error.errors[key].message,
+        value: error.errors[key].value
+      })));
+    }
+    res.status(500).json({ error: 'Échec de la création de l\'animal', details: error.message });
   }
 }
 

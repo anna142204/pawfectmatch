@@ -80,10 +80,10 @@ const handleChange = (event) => {
   align-items: center;
   background: var(--color-neutral-white);
   border-radius: var(--radius-full);
-  padding: var(--spacing-2) var(--spacing-5);
+  padding: var(--spacing-2) var(--spacing-4);
   transition: all 0.2s ease;
   box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.08);
-  min-height: 48px;
+  min-height: 30px;
   border: 2px solid transparent;
 }
 
@@ -136,7 +136,7 @@ const handleChange = (event) => {
 
 .select-icon {
   position: absolute;
-  right: var(--spacing-5);
+  right: var(--spacing-4);
   color: var(--color-accent-800);
   pointer-events: none;
 }

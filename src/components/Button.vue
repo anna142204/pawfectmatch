@@ -29,11 +29,8 @@ const getTextClass = (size) => {
 </script>
 
 <template>
-  <button 
-    :class="['btn', `btn-${variant}`, `btn-${size}`, getTextClass(size)]"
-    :disabled="disabled"
-    @click="$emit('click')"
-  >
+  <button :class="['btn', `btn-${variant}`, `btn-${size}`, getTextClass(size)]" :disabled="disabled"
+    @click="$emit('click')">
     <slot></slot>
   </button>
 </template>
@@ -55,16 +52,19 @@ const getTextClass = (size) => {
 .btn-sm {
   padding: var(--spacing-2) var(--spacing-4);
   border-radius: var(--radius-sm);
+  width: 100%;
 }
 
 .btn-base {
   padding: var(--spacing-3) var(--spacing-6);
   border-radius: var(--radius-base);
+  width: 100%;
 }
 
 .btn-lg {
   padding: var(--spacing-4) var(--spacing-8);
   border-radius: var(--radius-lg);
+  width: 100%;
 }
 
 /* Primary variant */

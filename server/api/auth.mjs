@@ -12,13 +12,13 @@ export async function registerAdopter(req, res) {
 
     // Validate required fields only
     if (!firstName || !lastName || !email || !password || !address || !age) {
-      return res.status(400).json({ error: 'All required fields must be provided' });
+      return res.status(400).json({ error: 'Tous les champs requis doivent être remplis' });
     }
 
     // Check if email already exists
     const existingAdopter = await Adopter.findOne({ email });
     if (existingAdopter) {
-      return res.status(409).json({ error: 'Email already registered' });
+      return res.status(409).json({ error: 'Cet email est déjà enregistré' });
     }
 
     // Create new adopter (about and preferences are optional)
@@ -53,7 +53,7 @@ export async function registerAdopter(req, res) {
 
   } catch (error) {
     console.error('Register adopter error:', error);
-    res.status(500).json({ error: 'Failed to register adopter' });
+    res.status(500).json({ error: 'Échec de l\'inscription' });
   }
 }
 
@@ -63,13 +63,13 @@ export async function registerOwner(req, res) {
 
     // Validate required fields
     if (!firstName || !lastName || !email || !password || !address) {
-      return res.status(400).json({ error: 'All required fields must be provided' });
+      return res.status(400).json({ error: 'Tous les champs requis doivent être remplis' });
     }
 
     // Check if email already exists
     const existingOwner = await Owner.findOne({ email });
     if (existingOwner) {
-      return res.status(409).json({ error: 'Email already registered' });
+      return res.status(409).json({ error: 'Cet email est déjà enregistré' });
     }
 
     // Create new owner
@@ -102,7 +102,7 @@ export async function registerOwner(req, res) {
     });
   } catch (error) {
     console.error('Register owner error:', error);
-    res.status(500).json({ error: 'Failed to register owner' });
+    res.status(500).json({ error: 'Échec de l\'inscription' });
   }
 }
 
@@ -111,7 +111,7 @@ export async function login(req, res) {
     const { email, password } = req.body;
     
     if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' });
+      return res.status(400).json({ error: 'Email et mot de passe requis' });
     }
 
     // Search for user in both collections in parallel
@@ -124,13 +124,13 @@ export async function login(req, res) {
     const type = adopter ? 'adopter' : 'owner';
 
     if (!user) {
-      return res.status(401).json({ error: 'Invalid email or password' });
+      return res.status(401).json({ error: 'Email ou mot de passe invalide' });
     }
 
     // Verify password
     const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
-      return res.status(401).json({ error: 'Invalid email or password' });
+      return res.status(401).json({ error: 'Email ou mot de passe invalide' });
     }
 
     // Generate JWT token
@@ -158,7 +158,7 @@ export async function login(req, res) {
     });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ error: 'Login failed' });
+    res.status(500).json({ error: 'Échec de la connexion' });
   }
 }
 
