@@ -33,6 +33,12 @@ import {
   addMessage,
   getMatchDiscussion
 } from '../api/matches.mjs';
+import {
+  uploadImage,
+  uploadMultipleImages,
+  deleteImage,
+  upload
+} from '../api/images.mjs';
 
 const router = express.Router();
 
@@ -41,6 +47,11 @@ router.post('/auth/register/adopter', registerAdopter);
 router.post('/auth/register/owner', registerOwner);
 router.post('/auth/login', login);
 router.post('/auth/logout', logout);
+
+// Image upload routes
+router.post('/upload/image', upload.single('image'), uploadImage);
+router.post('/upload/images', upload.array('images', 10), uploadMultipleImages);
+router.delete('/upload/image', deleteImage);
 
 // Animal routes
 router.get('/animals', getAnimals);

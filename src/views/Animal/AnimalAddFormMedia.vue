@@ -1,81 +1,139 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { ChevronLeft, Plus } from 'lucide-vue-next';
+import { ChevronLeft, Trash2 } from 'lucide-vue-next';
 import ProgressSteps from '@/components/ProgressSteps.vue';
 import Button from '@/components/Button.vue';
+import ImageUploader from '@/components/ImageUploader.vue';
 
 const router = useRouter();
 
-// Étapes du formulaire
-const steps = ['Infos générales', 'Médias', 'Affinités', 'Détails & besoins', 'Résumé'];
-const currentStep = ref(1);
+const STEPS = ['Infos générales', 'Médias', 'Affinités', 'Détails & besoins', 'Résumé'];
+const CURRENT_STEP = 1;
+const STORAGE_KEY = 'animalFormMediaData';
 
-// Images sélectionnées
-const selectedImages = ref([]);
-const mainImageInput = ref(null);
-const additionalImagesInput = ref([null, null, null, null]);
+const selectedFiles = ref([]);
+const uploadedImages = ref([]);
+const isUploading = ref(false);
+const uploadProgress = ref({ current: 0, total: 0 });
 
-// Charger les données existantes si disponibles
+const hasFiles = computed(() => selectedFiles.value.length > 0);
+const hasUploadedImages = computed(() => uploadedImages.value.length > 0);
+const totalImagesCount = computed(() => uploadedImages.value.length + selectedFiles.value.length);
+const canProceed = computed(() => !isUploading.value && (hasFiles.value || hasUploadedImages.value));
+
 onMounted(() => {
-  const savedData = localStorage.getItem('animalFormMediaData');
-  if (savedData) {
-    const data = JSON.parse(savedData);
-    selectedImages.value = data.images || [];
-  }
+  loadSavedData();
 });
+
+const loadSavedData = () => {
+  try {
+    const savedData = localStorage.getItem(STORAGE_KEY);
+    if (savedData) {
+      const data = JSON.parse(savedData);
+      uploadedImages.value = data.images || [];
+    }
+  } catch (error) {
+    console.error('Erreur lors du chargement des données:', error);
+  }
+};
+
+const saveData = () => {
+  try {
+    const mediaData = { images: uploadedImages.value };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(mediaData));
+  } catch (error) {
+    console.error('Erreur lors de la sauvegarde des données:', error);
+  }
+};
 
 const goBack = () => {
   router.push('/owner/animal/add');
 };
 
-const handleMainImageClick = () => {
-  mainImageInput.value.click();
+const handleFilesSelected = (files) => {
+  selectedFiles.value = files;
 };
 
-const handleAdditionalImageClick = (index) => {
-  additionalImagesInput.value[index].click();
+const removeUploadedImage = (index) => {
+  uploadedImages.value.splice(index, 1);
+  saveData();
 };
 
-const handleMainImageChange = (event) => {
-  const file = event.target.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      if (selectedImages.value.length === 0) {
-        selectedImages.value.push(e.target.result);
-      } else {
-        selectedImages.value[0] = e.target.result;
+const uploadImages = async () => {
+  if (selectedFiles.value.length === 0) return;
+
+  isUploading.value = true;
+  uploadProgress.value = { current: 0, total: selectedFiles.value.length };
+
+  try {
+    for (let i = 0; i < selectedFiles.value.length; i++) {
+      const fileItem = selectedFiles.value[i];
+      uploadProgress.value.current = i + 1;
+
+      const formData = new FormData();
+      formData.append('image', fileItem.file);
+
+      const response = await fetch('/api/upload/image', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        const contentType = response.headers.get('content-type');
+        let errorMessage = `Erreur ${response.status}`;
+        
+        if (contentType && contentType.includes('application/json')) {
+          const data = await response.json();
+          errorMessage = data.error || errorMessage;
+        } else {
+          const text = await response.text();
+          console.error('Réponse HTML du serveur:', text.substring(0, 500));
+          errorMessage = `Le serveur a renvoyé une erreur (${response.status}). Vérifiez que le backend est démarré.`;
+        }
+        
+        throw new Error(errorMessage);
       }
-    };
-    reader.readAsDataURL(file);
+
+      const data = await response.json();
+      uploadedImages.value.push({
+        url: data.url,
+        publicId: data.publicId
+      });
+    }
+
+    // Tout s'est bien passé, on vide les fichiers sélectionnés
+    selectedFiles.value = [];
+    saveData();
+  } catch (error) {
+    console.error('Erreur upload:', error);
+    alert(error.message || 'Erreur lors de l\'upload des images');
+    throw error;
+  } finally {
+    isUploading.value = false;
+    uploadProgress.value = { current: 0, total: 0 };
   }
 };
 
-const handleAdditionalImageChange = (event, index) => {
-  const file = event.target.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const actualIndex = index + 1;
-      if (selectedImages.value[actualIndex]) {
-        selectedImages.value[actualIndex] = e.target.result;
-      } else {
-        selectedImages.value.push(e.target.result);
-      }
-    };
-    reader.readAsDataURL(file);
+const handleNext = async () => {
+  if (!hasFiles.value && !hasUploadedImages.value) {
+    alert('Veuillez ajouter au moins une image');
+    return;
   }
-};
 
-const handleNext = () => {
-  // Sauvegarder les données
-  const mediaData = {
-    images: selectedImages.value
-  };
-  localStorage.setItem('animalFormMediaData', JSON.stringify(mediaData));
-  
-  // Passer à l'étape suivante
+  // Upload les images sélectionnées si nécessaire
+  if (hasFiles.value) {
+    await uploadImages();
+  }
+
+  // Vérifier qu'on a bien des images uploadées
+  if (!hasUploadedImages.value) {
+    alert('Aucune image n\'a été uploadée avec succès');
+    return;
+  }
+
+  saveData();
   router.push('/owner/animal/add/affinity');
 };
 </script>
@@ -91,72 +149,55 @@ const handleNext = () => {
     </div>
 
     <!-- Barre de progression -->
-    <ProgressSteps :steps="steps" :current-step="currentStep" />
+    <ProgressSteps :steps="STEPS" :current-step="CURRENT_STEP" />
 
     <!-- Contenu du formulaire -->
     <div class="form-container">
       <!-- Description -->
       <div class="media-description">
+        <h2 class="section-title">Ajoutez des photos</h2>
         <p class="description-text">
-          Ajoutez des photos et/ou vidéos de l'animal afin que le futur propriétaire tombe sous son charme
+          Ajoutez des photos de l'animal afin que le futur propriétaire tombe sous son charme
         </p>
         <p class="description-subtext">
-          (Vous pouvez en sélectionner plusieurs)
+          Vous pouvez en sélectionner plusieurs
         </p>
       </div>
 
-      <!-- Image principale -->
-      <div class="main-image-container">
-        <input
-          ref="mainImageInput"
-          type="file"
-          accept="image/*,video/*"
-          class="file-input"
-          @change="handleMainImageChange"
-        />
-        <div 
-          class="main-image-box"
-          :class="{ 'has-image': selectedImages[0] }"
-          @click="handleMainImageClick"
-        >
-          <img 
-            v-if="selectedImages[0]" 
-            :src="selectedImages[0]" 
-            alt="Image principale"
-            class="preview-image"
-          />
-          <div v-else class="import-placeholder">
-            <span class="import-text">Importer</span>
+      <!-- Image uploader -->
+      <ImageUploader @filesSelected="handleFilesSelected" />
+
+      <!-- Images déjà uploadées -->
+      <div v-if="hasUploadedImages" class="uploaded-images">
+        <div class="uploaded-header">
+          <h3 class="uploaded-title">Images sauvegardées</h3>
+          <span class="image-count">{{ uploadedImages.length }}</span>
+        </div>
+        <div class="images-grid">
+          <div v-for="(image, index) in uploadedImages" :key="image.publicId" class="image-item">
+            <img 
+              :src="image.url" 
+              :alt="`Image de l'animal ${index + 1}`" 
+              class="image-preview" 
+            />
+            <button 
+              type="button"
+              @click="removeUploadedImage(index)"
+              class="remove-image-btn"
+              :aria-label="`Supprimer l'image ${index + 1}`"
+            >
+              <Trash2 :size="16" />
+            </button>
           </div>
         </div>
       </div>
 
-      <!-- Images additionnelles -->
-      <div class="additional-images-container">
-        <div 
-          v-for="index in 4" 
-          :key="index"
-          class="additional-image-box"
-          :class="{ 'has-image': selectedImages[index] }"
-          @click="handleAdditionalImageClick(index - 1)"
-        >
-          <input
-            :ref="el => additionalImagesInput[index - 1] = el"
-            type="file"
-            accept="image/*,video/*"
-            class="file-input"
-            @change="(e) => handleAdditionalImageChange(e, index - 1)"
-          />
-          <img 
-            v-if="selectedImages[index]" 
-            :src="selectedImages[index]" 
-            alt="Image additionnelle"
-            class="preview-image"
-          />
-          <div v-else class="add-icon">
-            <Plus :size="32" :stroke-width="2.5" />
-          </div>
-        </div>
+      <!-- Indicateur d'upload -->
+      <div v-if="isUploading" class="upload-progress">
+        <div class="progress-spinner"></div>
+        <p class="progress-text">
+          Upload en cours... {{ uploadProgress.current }} / {{ uploadProgress.total }}
+        </p>
       </div>
 
       <!-- Bouton suivant -->
@@ -164,11 +205,14 @@ const handleNext = () => {
         <Button 
           type="button"
           variant="primary"
-          size="lg"
+          size="base"
           class="btn-next"
           @click="handleNext"
+          :disabled="!canProceed"
         >
-          suivant
+          <span v-if="isUploading">Upload en cours...</span>
+          <span v-else-if="hasFiles">Valider et uploader ({{ totalImagesCount }})</span>
+          <span v-else>Suivant</span>
         </Button>
       </div>
     </div>
@@ -177,21 +221,22 @@ const handleNext = () => {
 
 <style scoped>
 .add-animal-page {
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   background-color: var(--color-neutral-100);
-  padding-bottom: var(--spacing-8);
+  overflow: hidden;
 }
 
 .page-header {
   display: flex;
   align-items: center;
-  padding: var(--spacing-8) var(--spacing-6);
-  padding-top: var(--spacing-12);
-  padding-bottom: var(--spacing-4);
+  padding: var(--spacing-6) var(--spacing-5);
+  padding-top: var(--spacing-10);
+  padding-bottom: var(--spacing-3);
   gap: var(--spacing-4);
   background-color: var(--color-neutral-100);
+  flex-shrink: 0;
 }
 
 .back-button {
@@ -224,139 +269,179 @@ const handleNext = () => {
 
 .form-container {
   flex: 1;
-  padding: var(--spacing-6);
-  padding-top: var(--spacing-8);
+  padding: var(--spacing-5);
+  padding-top: var(--spacing-4);
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-6);
+  gap: var(--spacing-4);
+  overflow-y: auto;
 }
 
 .media-description {
   text-align: center;
-  padding: 0 var(--spacing-4);
+  padding: 0;
+}
+
+.section-title {
+  font-family: var(--font-family);
+  font-size: var(--heading-h4-size);
+  font-weight: var(--heading-h4-weight);
+  line-height: 1.2;
+  color: var(--color-primary-700);
+  margin: 0 0 var(--spacing-2) 0;
 }
 
 .description-text {
   font-family: var(--font-family);
-  font-size: var(--body-md-size);
-  line-height: var(--body-md-height);
-  color: var(--color-neutral-black);
-  margin: 0 0 var(--spacing-2) 0;
+  font-size: var(--body-sm-size);
+  line-height: 1.3;
+  color: var(--color-neutral-900);
+  margin: 0 0 var(--spacing-1) 0;
 }
 
 .description-subtext {
   font-family: var(--font-family);
-  font-size: var(--body-sm-size);
-  line-height: var(--body-sm-height);
+  font-size: var(--body-xs-size);
+  line-height: 1.2;
   color: var(--color-neutral-600);
   margin: 0;
 }
 
-.file-input {
-  display: none;
-}
-
-.main-image-container {
+.uploaded-images {
   display: flex;
-  justify-content: center;
-  margin-top: var(--spacing-4);
+  flex-direction: column;
+  gap: var(--spacing-3);
 }
 
-.main-image-box {
-  width: 100%;
-  max-width: 340px;
-  aspect-ratio: 4/3;
-  border: 2px dashed var(--color-secondary-500);
-  border-radius: var(--radius-lg);
+.uploaded-header {
   display: flex;
   align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  overflow: hidden;
-  background-color: var(--color-neutral-white);
-  transition: all 0.2s ease;
+  justify-content: space-between;
 }
 
-.main-image-box:hover {
-  border-color: var(--color-secondary-600);
-  background-color: var(--color-secondary-50);
-}
-
-.main-image-box.has-image {
-  border-style: solid;
-  padding: 0;
-}
-
-.import-placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-}
-
-.import-text {
+.uploaded-title {
   font-family: var(--font-family);
-  font-size: var(--body-lg-size);
+  font-size: var(--body-base-size);
   font-weight: var(--font-weight-semibold);
-  color: var(--color-neutral-white);
-  background-color: var(--color-secondary-500);
-  padding: var(--spacing-3) var(--spacing-8);
+  color: var(--color-neutral-900);
+  margin: 0;
+}
+
+.image-count {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 var(--spacing-2);
+  background-color: var(--color-primary-100);
+  color: var(--color-primary-700);
+  font-family: var(--font-family);
+  font-size: var(--body-xs-size);
+  font-weight: var(--font-weight-semibold);
   border-radius: var(--radius-full);
-  text-transform: capitalize;
 }
 
-.preview-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.additional-images-container {
+.images-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: var(--spacing-4);
-  margin-top: var(--spacing-2);
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: var(--spacing-3);
 }
 
-.additional-image-box {
-  aspect-ratio: 1;
-  border: 2px dashed var(--color-secondary-500);
-  border-radius: var(--radius-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
+.image-item {
+  position: relative;
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  background-color: var(--color-neutral-white);
-  transition: all 0.2s ease;
+  background-color: var(--color-neutral-200);
+  transition: transform 0.2s ease;
 }
 
-.additional-image-box:hover {
-  border-color: var(--color-secondary-600);
-  background-color: var(--color-secondary-50);
+.image-item:active {
+  transform: scale(0.98);
 }
 
-.additional-image-box.has-image {
-  border-style: solid;
-  padding: 0;
+.image-preview {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: var(--radius-lg);
+  display: block;
 }
 
-.add-icon {
-  color: var(--color-secondary-500);
+.remove-image-btn {
+  position: absolute;
+  top: var(--spacing-2);
+  right: var(--spacing-2);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  border: none;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(4px);
+}
+
+.remove-image-btn:hover {
+  background: rgba(220, 38, 38, 0.9);
+  transform: scale(1.1);
+}
+
+.remove-image-btn:active {
+  transform: scale(0.95);
+}
+
+.upload-progress {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3);
+  background: var(--color-primary-50);
+  border-radius: var(--radius-lg);
+}
+
+.progress-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--color-primary-200);
+  border-top-color: var(--color-primary-600);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+.progress-text {
+  font-size: var(--body-sm-size);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-primary-700);
+  margin: 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 .form-actions {
-  margin-top: var(--spacing-6);
+  margin-top: auto;
+  padding-top: var(--spacing-4);
+  padding-bottom: var(--spacing-2);
+  flex-shrink: 0;
 }
 
 .form-actions :deep(.btn-next) {
   width: 100%;
   border-radius: var(--radius-full);
-  min-height: 60px;
+  min-height: 50px;
   text-transform: lowercase;
+  font-size: var(--body-base-size);
+}
+
+.form-actions :deep(.btn-next:disabled) {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 </style>
