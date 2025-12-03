@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "backend": "nodemon --env-file=.env server/app.mjs",
-    "test": "cross-env DATABASE_URL=mongodb://127.0.0.1/pawfectmatch-test DOTENV_CONFIG_QUIET=true node --env-file=.env --experimental-vm-modules --disable-warning=ExperimentalWarning node_modules/.bin/jest --detectOpenHandles"
+    "test": "cross-env DATABASE_URL=mongodb://127.0.0.1/pawfectmatch-test DOTENV_CONFIG_QUIET=true node --env-file=.env --experimental-vm-modules --disable-warning=ExperimentalWarning node_modules/.bin/jest --detectOpenHandles",
+    "create-admin": "node --env-file=.env server/create-admin.mjs"
   },
   "dependencies": {
     "@vitejs/plugin-vue": "^6.0.1",

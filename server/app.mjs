@@ -6,13 +6,35 @@ import { fileURLToPath } from 'url';
 import { wsServer } from './store/wsStore.mjs';
 import apiRouter from './routes/api.mjs';
 import mongoose from 'mongoose';
+import Admin from './models/admin.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // MongoDB connection
 mongoose.connect(process.env.DATABASE_URL || 'mongodb://127.0.0.1:27017/pawfect_match')
-  .then(() => console.log('Connected to MongoDB'))
+  .then(async () => {
+    console.log('Connected to MongoDB');
+    
+    // Créer l'admin automatiquement si les variables d'env sont définies
+    if (process.env.ADMIN_EMAIL && process.env.ADMIN_PASSWORD) {
+      try {
+        const existingAdmin = await Admin.findOne({ email: process.env.ADMIN_EMAIL });
+        if (!existingAdmin) {
+          const admin = new Admin({
+            email: process.env.ADMIN_EMAIL,
+            password: process.env.ADMIN_PASSWORD,
+            name: process.env.ADMIN_NAME || 'Administrator',
+            role: 'admin'
+          });
+          await admin.save();
+          console.log('Admin créé automatiquement');
+        }
+      } catch (err) {
+        console.error('Erreur création admin:', err.message);
+      }
+    }
+  })
   .catch(err => console.error("MongoDB connection error:", err));
 
   

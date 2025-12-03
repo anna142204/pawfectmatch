@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import Adopter from '../models/adopter.js';
 import Owner from '../models/owner.js';
+import Admin from '../models/admin.js';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '15m';
@@ -114,14 +115,15 @@ export async function login(req, res) {
       return res.status(400).json({ error: 'Email et mot de passe requis' });
     }
 
-    // Search for user in both collections in parallel
-    const [adopter, owner] = await Promise.all([
+    // Search for user in all collections in parallel
+    const [adopter, owner, admin] = await Promise.all([
       Adopter.findOne({ email }),
-      Owner.findOne({ email })
+      Owner.findOne({ email }),
+      Admin.findOne({ email })
     ]);
 
-    const user = adopter || owner;
-    const type = adopter ? 'adopter' : 'owner';
+    const user = adopter || owner || admin;
+    const type = adopter ? 'adopter' : owner ? 'owner' : admin ? 'admin' : null;
 
     if (!user) {
       return res.status(401).json({ error: 'Email ou mot de passe invalide' });
@@ -129,6 +131,7 @@ export async function login(req, res) {
 
     // Verify password
     const isPasswordValid = await user.comparePassword(password);
+    
     if (!isPasswordValid) {
       return res.status(401).json({ error: 'Email ou mot de passe invalide' });
     }
@@ -147,7 +150,7 @@ export async function login(req, res) {
     const maxAge = parseExpirationTime(JWT_EXPIRES_IN);
     res.cookie('auth_token', token, {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === 'production', // true seulement en production
       sameSite: 'strict',
       maxAge
     });

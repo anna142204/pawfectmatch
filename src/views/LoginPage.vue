@@ -52,7 +52,13 @@ const handleLogin = async () => {
     localStorage.setItem('user_id', data.user._id);
     
     // Redirection selon le type d'utilisateur
-    router.push(data.type === 'adopter' ? '/adopter' : '/owner');
+    if (data.type === 'admin') {
+      router.push('/admin');
+    } else if (data.type === 'adopter') {
+      router.push('/adopter');
+    } else {
+      router.push('/owner');
+    }
   } catch (err) {
     error.value = 'Une erreur est survenue. Veuillez réessayer.';
     console.error('Erreur de connexion:', err);

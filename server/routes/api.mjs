@@ -39,6 +39,9 @@ import {
   deleteImage,
   upload
 } from '../api/images.mjs';
+import {
+  getStats
+} from '../api/admin.mjs';
 
 const router = express.Router();
 
@@ -80,5 +83,8 @@ router.put('/matches/:id', updateMatch);
 router.delete('/matches/:id', deleteMatch);
 router.post('/matches/:id/messages', addMessage);
 router.get('/matches/:id/discussion', getMatchDiscussion);
+
+// Admin routes
+router.get('/admin/stats', getStats);
 
 export default router;

@@ -12,6 +12,7 @@ const { success, error } = useToast();
 const animals = ref([]);
 const loading = ref(true);
 const ownerId = ref(null);
+const selectedCategory = ref(null);
 
 const hasAnimals = computed(() => animals.value.length > 0);
 
@@ -23,6 +24,23 @@ const speciesEmojis = {
   'rongeur': '🐹',
   'autre': '🦎'
 };
+
+const categories = [
+  { id: 'chien', label: 'Chiens', icon: '🐶' },
+  { id: 'chat', label: 'Chats', icon: '🐱' },
+  { id: 'oiseau', label: 'Oiseaux', icon: '🐦' },
+  { id: 'rongeur', label: 'Rongeurs', icon: '🐹' },
+  { id: 'autre', label: 'Autres', icon: '🦎' }
+];
+
+const filteredAnimals = computed(() => {
+  if (!selectedCategory.value) {
+    return animals.value;
+  }
+  return animals.value.filter(animal => animal.species === selectedCategory.value);
+});
+
+const hasFilteredAnimals = computed(() => filteredAnimals.value.length > 0);
 
 onMounted(async () => {
   ownerId.value = localStorage.getItem('user_id');
@@ -92,6 +110,18 @@ const getSpeciesEmoji = (species) => speciesEmojis[species] || '🐾';
 const getAvailabilityText = (available) => available ? 'Disponible' : 'Adopté';
 
 const getAvailabilityClass = (available) => available ? 'available' : 'adopted';
+
+const selectCategory = (categoryId) => {
+  if (selectedCategory.value === categoryId) {
+    selectedCategory.value = null;
+  } else {
+    selectedCategory.value = categoryId;
+  }
+};
+
+const isCategorySelected = (categoryId) => {
+  return selectedCategory.value === categoryId;
+};
 </script>
 
 <template>
@@ -108,21 +138,15 @@ const getAvailabilityClass = (available) => available ? 'available' : 'adopted';
       <section class="categories-section">
         <h4 class="section-title text-h4 text-primary-700">Catégories</h4>
         <div class="categories-grid">
-          <div class="category-item">
-            <div class="category-icon">🐶</div>
-            <p class="category-label text-body-sm text-neutral-black">Chiens</p>
-          </div>
-          <div class="category-item">
-            <div class="category-icon">🐱</div>
-            <p class="category-label text-body-sm text-neutral-black">Chats</p>
-          </div>
-          <div class="category-item">
-            <div class="category-icon">🐦</div>
-            <p class="category-label text-body-sm text-neutral-black">Oiseaux</p>
-          </div>
-          <div class="category-item">
-            <div class="category-icon">🐰</div>
-            <p class="category-label text-body-sm text-neutral-black">Rongeurs</p>
+          <div 
+            v-for="category in categories" 
+            :key="category.id"
+            class="category-item"
+            :class="{ 'category-active': isCategorySelected(category.id) }"
+            @click="selectCategory(category.id)"
+          >
+            <div class="category-icon">{{ category.icon }}</div>
+            <p class="category-label text-body-sm text-neutral-black">{{ category.label }}</p>
           </div>
         </div>
       </section>
@@ -140,9 +164,9 @@ const getAvailabilityClass = (available) => available ? 'available' : 'adopted';
         </div>
 
         <!-- Liste des animaux -->
-        <div v-else-if="hasAnimals" class="animals-grid">
+        <div v-else-if="hasFilteredAnimals" class="animals-grid">
           <div 
-            v-for="animal in animals" 
+            v-for="animal in filteredAnimals" 
             :key="animal._id" 
             class="animal-card"
           >
@@ -164,29 +188,23 @@ const getAvailabilityClass = (available) => available ? 'available' : 'adopted';
 
         <!-- État vide -->
         <div v-else class="empty-message">
-          <p class="text-body-base text-neutral-500">Aucune annonce pour le moment</p>
+          <p class="text-body-base text-neutral-500">
+            {{ selectedCategory ? 'Aucun animal de cette catégorie' : 'Aucune annonce pour le moment' }}
+          </p>
         </div>
       </section>
+    </div>
 
-      <!-- Bouton ajouter -->
-      <div 
-        class="add-button-container"
-        style="
-          position: sticky;
-          top: var(--spacing-4);
-          z-index: 10;
-          margin-bottom: var(--spacing-6);
-        "
+    <!-- Bouton ajouter flottant -->
+    <div class="floating-add-button">
+      <Button 
+        variant="primary"
+        size="base"
+        @click="goToAddAnimal"
+        class="btn-add-animal"
       >
-              <Button 
-          variant="primary"
-          size="base"
-          @click="goToAddAnimal"
-          class="btn-add-animal"
-        >
-          Ajouter un animal
-        </Button>
-      </div>
+        Ajouter un animal
+      </Button>
     </div>
 
     <!-- Menu de navigation -->
@@ -227,12 +245,21 @@ const getAvailabilityClass = (available) => available ? 'available' : 'adopted';
 /* Catégories */
 .categories-section {
   margin-bottom: var(--spacing-3);
+  overflow: hidden;
 }
 
 .categories-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  display: flex;
   gap: var(--spacing-4);
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: var(--spacing-2);
+}
+
+.categories-grid::-webkit-scrollbar {
+  display: none;
 }
 
 .category-item {
@@ -242,10 +269,22 @@ const getAvailabilityClass = (available) => available ? 'available' : 'adopted';
   gap: var(--spacing-2);
   cursor: pointer;
   transition: transform 0.2s ease;
+  flex-shrink: 0;
+  min-width: 80px;
 }
 
 .category-item:active {
   transform: scale(0.95);
+}
+
+.category-active .category-icon {
+  background: var(--color-primary-600);
+  box-shadow: 0 4px 12px rgba(255, 100, 46, 0.3);
+}
+
+.category-active .category-label {
+  color: var(--color-primary-600);
+  font-weight: var(--font-weight-semibold);
 }
 
 .category-icon {
@@ -258,6 +297,7 @@ const getAvailabilityClass = (available) => available ? 'available' : 'adopted';
   justify-content: center;
   font-size: 40px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
 }
 
 .category-label {
@@ -368,7 +408,22 @@ const getAvailabilityClass = (available) => available ? 'available' : 'adopted';
   margin: 0;
 }
 
+/* Bouton flottant */
+.floating-add-button {
+  position: fixed;
+  bottom: 96px;
+  left: 0;
+  right: 0;
+  padding: var(--spacing-4) var(--spacing-6);
+  z-index: 100;
+  pointer-events: none;
+}
 
+.btn-add-animal {
+  width: 100%;
+  pointer-events: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
 
 /* Responsive */
 @media (max-width: 380px) {
