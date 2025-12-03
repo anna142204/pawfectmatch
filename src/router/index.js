@@ -31,6 +31,7 @@ import AnimalAddFormAffinity from '../views/Animal/AnimalAddFormAffinity.vue'
 import AnimalAddFormMedia from '../views/Animal/AnimalAddFormMedia.vue'
 import AnimalAddFormDetails from '../views/Animal/AnimalAddFormDetails.vue'
 import AnimalAddFormResume from '../views/Animal/AnimalAddFormResume.vue'
+import AnimalEditLoader from '../views/Animal/AnimalEditLoader.vue'
 
 // Admin
 import AdminDashboard from '../views/Admin/AdminDashboard.vue'
@@ -174,6 +175,14 @@ const routes = [
     path: '/owner/adopter/:id',
     name: 'OwnerProfileAdopter',
     component: OwnerProfileAdopter,
+    meta: { requiresAuth: true, userType: 'owner' }
+  },
+
+  // Animal Edit
+  {
+    path: '/owner/animal/edit/:id',
+    name: 'AnimalEdit',
+    component: AnimalEditLoader,
     meta: { requiresAuth: true, userType: 'owner' }
   },
 

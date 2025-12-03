@@ -10,6 +10,8 @@ const animalPayload = {
   name: "Buddy",
   age: 3,
   sex: "male",
+  size: "grand",
+  weight: "20-30",
   address: { city: "Lausanne", zip: "1004" },
   image: "https://example.com/images/buddy.jpg",
   price: 150,
@@ -48,6 +50,15 @@ describe("POST /api/animals", function () {
     expect(created.age).toBeNumber();
     expect(created.age).toEqual(animalPayload.age);
     expect(created.sex).toBeOneOf(["male", "female"]);
+    
+    if (animalPayload.size) {
+      expect(created.size).toBeString();
+      expect(created.size).toEqual(animalPayload.size);
+    }
+    if (animalPayload.weight) {
+      expect(created.weight).toBeString();
+      expect(created.weight).toEqual(animalPayload.weight);
+    }
 
     expect(created.address).toBeObject();
     expect(created.address).toContainAllKeys(["city", "zip"]);
@@ -134,6 +145,15 @@ describe("GET /api/animals", function () {
     expect(first.age).toBeNumber();
     expect(first.age).toEqual(animalPayload.age);
     expect(first.sex).toBeOneOf(["male", "female"]);
+    
+    if (animalPayload.size) {
+      expect(first.size).toBeString();
+      expect(first.size).toEqual(animalPayload.size);
+    }
+    if (animalPayload.weight) {
+      expect(first.weight).toBeString();
+      expect(first.weight).toEqual(animalPayload.weight);
+    }
 
     expect(first.address).toBeObject();
     expect(first.address.city).toEqual(animalPayload.address.city);

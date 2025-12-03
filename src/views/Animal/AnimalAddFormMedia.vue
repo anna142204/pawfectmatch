@@ -12,6 +12,8 @@ const router = useRouter();
 const route = useRoute();
 const { error: showError, success } = useToast();
 
+const isEditMode = ref(false);
+
 const STEPS = ['Infos générales', 'Médias', 'Affinités', 'Détails', 'Résumé'];
 const CURRENT_STEP = 1;
 const STORAGE_KEY = 'animalFormMediaData';
@@ -36,6 +38,11 @@ const loadSavedData = () => {
     if (savedData) {
       const data = JSON.parse(savedData);
       uploadedImages.value = data.images || [];
+    }
+    
+    const animalId = localStorage.getItem('editingAnimalId');
+    if (animalId) {
+      isEditMode.value = true;
     }
   } catch (error) {
     console.error('Erreur lors du chargement des données:', error);
@@ -155,7 +162,7 @@ const handleNext = async () => {
     <!-- Header avec bouton retour et titre -->
     <div class="page-header">
       <BackButton @click="goBack" />
-      <h1 class="page-title text-h2 text-primary-700">Ajouter un animal</h1>
+      <h1 class="page-title text-h2 text-primary-700">{{ isEditMode ? 'Modifier un animal' : 'Ajouter un animal' }}</h1>
     </div>
 
     <!-- Barre de progression -->
@@ -403,9 +410,20 @@ const handleNext = async () => {
 }
 
 .form-actions {
-  margin-top: auto;
-  padding-top: var(--spacing-4);
-  padding-bottom: var(--spacing-2);
-  flex-shrink: 0;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-width: 100vw;
+  padding: var(--spacing-4) var(--spacing-6) var(--spacing-6);
+  background-color: var(--color-neutral-100);
+  z-index: 10;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+}
+
+.btn-next {
+  width: 100%;
+  max-width: 100%;
 }
 </style>

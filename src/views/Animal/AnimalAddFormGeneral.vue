@@ -12,6 +12,9 @@ const router = useRouter();
 const route = useRoute();
 const { error } = useToast();
 
+// Mode édition
+const isEditMode = ref(false);
+
 // Étapes du formulaire
 const steps = ['Infos générales', 'Médias', 'Affinités', 'Détails', 'Résumé'];
 const currentStep = ref(0);
@@ -35,6 +38,12 @@ onMounted(() => {
   const savedData = localStorage.getItem('animalFormData');
   if (savedData) {
     formData.value = JSON.parse(savedData);
+  }
+  
+  // Vérifier si on est en mode édition
+  const animalId = localStorage.getItem('editingAnimalId');
+  if (animalId) {
+    isEditMode.value = true;
   }
 });
 
@@ -107,7 +116,7 @@ const handleNext = () => {
     <!-- Header avec bouton retour et titre -->
     <div class="page-header">
       <BackButton @click="goBack" />
-      <h1 class="page-title text-h2 text-primary-700">Ajouter un animal</h1>
+      <h1 class="page-title text-h2 text-primary-700">{{ isEditMode ? 'Modifier un animal' : 'Ajouter un animal' }}</h1>
     </div>
 
     <!-- Barre de progression -->
@@ -250,7 +259,8 @@ const handleNext = () => {
   display: flex;
   flex-direction: column;
   background-color: var(--color-neutral-100);
-  padding-bottom: var(--spacing-8);
+  position: relative;
+  padding-bottom: 100px;
 }
 
 .page-header {
@@ -300,6 +310,20 @@ const handleNext = () => {
 }
 
 .form-actions {
-  margin-top: var(--spacing-6);
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-width: 100vw;
+  padding: var(--spacing-4) var(--spacing-6) var(--spacing-6);
+  background-color: var(--color-neutral-100);
+  z-index: 10;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+}
+
+.btn-next {
+  width: 100%;
+  max-width: 100%;
 }
 </style>

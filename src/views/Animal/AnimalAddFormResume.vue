@@ -15,6 +15,10 @@ const router = useRouter();
 const steps = ['Infos générales', 'Médias', 'Affinités', 'Détails', 'Résumé'];
 const currentStep = ref(4);
 
+// Mode édition
+const isEditMode = ref(false);
+const editingAnimalId = ref(null);
+
 // Données consolidées
 const formData = ref({
   general: {},
@@ -72,6 +76,13 @@ onMounted(() => {
   formData.value.media = JSON.parse(localStorage.getItem('animalFormMediaData') || '{}');
   formData.value.affinity = JSON.parse(localStorage.getItem('animalFormAffinityData') || '{}');
   formData.value.details = JSON.parse(localStorage.getItem('animalFormDetailsData') || '{}');
+  
+  // Vérifier si on est en mode édition
+  const animalId = localStorage.getItem('editingAnimalId');
+  if (animalId) {
+    isEditMode.value = true;
+    editingAnimalId.value = animalId;
+  }
 });
 
 // Computed pour afficher les affinités
@@ -124,6 +135,8 @@ const handleSubmit = async () => {
       race: formData.value.general.race || '',
       age: ageValue,
       sex: formData.value.general.sex,
+      size: formData.value.general.size || undefined,
+      weight: formData.value.general.weight || undefined,
       address: {
         city: formData.value.general.city || '',
         zip: formData.value.general.zip || ''
@@ -140,9 +153,13 @@ const handleSubmit = async () => {
       }
     };
 
-    // Appeler l'API pour créer l'animal
-    const response = await fetch('/api/animals', {
-      method: 'POST',
+    // Appeler l'API pour créer ou modifier l'animal
+    const isEditing = isEditMode.value && editingAnimalId.value;
+    const url = isEditing ? `/api/animals/${editingAnimalId.value}` : '/api/animals';
+    const method = isEditing ? 'PUT' : 'POST';
+    
+    const response = await fetch(url, {
+      method,
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify(animalData)
@@ -151,15 +168,15 @@ const handleSubmit = async () => {
     const responseData = await response.json();
 
     if (!response.ok) {
-      throw new Error(responseData.error || 'Erreur lors de la création de l\'animal');
+      throw new Error(responseData.error || `Erreur lors de ${isEditing ? 'la modification' : 'la création'} de l'animal`);
     }
 
     // Nettoyer le localStorage
-    ['animalFormData', 'animalFormMediaData', 'animalFormAffinityData', 'animalFormDetailsData']
+    ['animalFormData', 'animalFormMediaData', 'animalFormAffinityData', 'animalFormDetailsData', 'editingAnimalId']
       .forEach(key => localStorage.removeItem(key));
 
     // Message de succès et redirection
-    success('Animal créé avec succès !');
+    success(`Animal ${isEditing ? 'modifié' : 'créé'} avec succès !`);
     setTimeout(() => router.push('/owner/animals'), 1500);
   } catch (err) {
     error(err.message || 'Une erreur est survenue lors de la création de l\'animal');
@@ -172,7 +189,7 @@ const handleSubmit = async () => {
     <!-- Header avec bouton retour et titre -->
     <div class="page-header">
       <BackButton @click="goBack" />
-      <h1 class="page-title text-h2 text-primary-700">Ajouter un animal</h1>
+      <h1 class="page-title text-h2 text-primary-700">{{ isEditMode ? 'Modifier un animal' : 'Ajouter un animal' }}</h1>
     </div>
 
     <!-- Barre de progression -->
@@ -456,9 +473,18 @@ const handleSubmit = async () => {
 .fixed-footer {
   position: fixed;
   bottom: 0;
-  left: var(--spacing-6);
-  right: var(--spacing-6);
+  left: 0;
+  right: 0;
+  max-width: 100vw;
+  padding: var(--spacing-4) var(--spacing-6) var(--spacing-6);
+  background-color: var(--color-neutral-100);
   z-index: 10;
-  padding-bottom: var(--spacing-6);
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+}
+
+.btn-submit {
+  width: 100%;
+  max-width: 100%;
 }
 </style>

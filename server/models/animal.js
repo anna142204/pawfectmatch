@@ -27,6 +27,16 @@ const animalSchema = new Schema({
         enum: ['male', 'female'],
         required: true,
     },
+    size: {
+        type: String,
+        enum: ['petit', 'moyen', 'grand'],
+        required: false,
+    },
+    weight: {
+        type: String,
+        enum: ['0-5', '5-10', '10-20', '20-30', '30+'],
+        required: false,
+    },
     address: {
         city: {
             type: String,

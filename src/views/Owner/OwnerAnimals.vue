@@ -55,6 +55,9 @@ const fetchAnimals = async () => {
 };
 
 const goToAddAnimal = () => {
+  // Nettoyer le localStorage pour être en mode création
+  ['animalFormData', 'animalFormMediaData', 'animalFormAffinityData', 'animalFormDetailsData', 'editingAnimalId']
+    .forEach(key => localStorage.removeItem(key));
   router.push('/owner/animal/add');
 };
 
@@ -177,7 +180,7 @@ const getAvailabilityClass = (available) => available ? 'available' : 'adopted';
       >
               <Button 
           variant="primary"
-          size="sm"
+          size="base"
           @click="goToAddAnimal"
           class="btn-add-animal"
         >
