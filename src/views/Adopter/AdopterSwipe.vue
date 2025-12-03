@@ -1,40 +1,59 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import Menu from '@/components/Menu.vue';
 import SwipeCard from '@/components/SwipeCard.vue';
 
-// Données d'exemple - à remplacer par un fetch API
-const animals = ref([
-  {
-    id: 1,
-    name: 'Plumo',
-    description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-    image: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=400&h=400&fit=crop',
-    distance: '9 km',
-    urgent: true,
-    tags: ['élément', 'élément', 'élément', 'élément']
-  },
-  {
-    id: 2,
-    name: 'Bibble',
-    description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-    image: 'https://images.unsplash.com/photo-1425082661705-1834bfd09dca?w=400&h=400&fit=crop',
-    distance: '9 km',
-    urgent: true,
-    tags: ['élément', 'élément', 'élément', 'élément']
-  },
-  {
-    id: 3,
-    name: 'Iko',
-    description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-    image: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&h=400&fit=crop',
-    distance: '9 km',
-    urgent: true,
-    tags: ['élément', 'élément', 'élément', 'élément']
-  }
-]);
-
+const animals = ref([]);
 const currentIndex = ref(0);
+const loading = ref(true);
+const error = ref(null);
+
+// Charger les animaux depuis l'API
+const fetchAnimals = async () => {
+  try {
+    loading.value = true;
+    error.value = null;
+    
+    const response = await fetch('/api/animals?availability=true', {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Erreur lors du chargement des animaux');
+    }
+
+    const data = await response.json();
+    
+    // Adapter les données de l'API au format attendu par SwipeCard
+    animals.value = data.animals.map(animal => ({
+      id: animal._id,
+      name: animal.name,
+      description: animal.description,
+      image: animal.image,
+      distance: '9 km', // À calculer avec la géolocalisation
+      urgent: false, // À définir selon vos critères
+      tags: [
+        ...(animal.characteristics?.environment || []),
+        ...(animal.characteristics?.personality || []).slice(0, 2)
+      ].slice(0, 4)
+    }));
+    
+  } catch (err) {
+    console.error('Erreur:', err);
+    error.value = err.message;
+  } finally {
+    loading.value = false;
+  }
+};
+
+// Charger les animaux au montage du composant
+onMounted(() => {
+  fetchAnimals();
+});
 
 const currentAnimal = computed(() => {
   return animals.value[currentIndex.value];
@@ -72,7 +91,19 @@ const nextAnimal = () => {
 
     <!-- Zone de swipe -->
     <div class="swipe-container">
-      <div class="cards-stack">
+      <!-- Loader pendant le chargement -->
+      <div v-if="loading" class="loading-container">
+        <p>Chargement des animaux...</p>
+      </div>
+
+      <!-- Message d'erreur -->
+      <div v-else-if="error" class="error-container">
+        <p>{{ error }}</p>
+        <button @click="fetchAnimals" class="retry-button">Réessayer</button>
+      </div>
+
+      <!-- Cards stack -->
+      <div v-else class="cards-stack">
         <!-- Message si plus d'animaux -->
         <div v-if="!hasMoreAnimals" class="no-more-cards">
           <p>Plus d'animaux à découvrir pour le moment</p>
@@ -135,14 +166,45 @@ const nextAnimal = () => {
   position: relative;
 }
 
+.loading-container,
+.error-container,
 .no-more-cards {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 100%;
   text-align: center;
+  gap: var(--spacing-4);
+}
+
+.loading-container p,
+.error-container p,
+.no-more-cards p {
   font-family: var(--font-family);
   font-size: var(--body-lg-size);
-  color: var(--color-neutral-500);
+  color: var(--color-neutral-600);
+  margin: 0;
+}
+
+.retry-button {
+  padding: var(--spacing-3) var(--spacing-6);
+  background-color: var(--color-primary-600);
+  color: var(--color-neutral-white);
+  border: none;
+  border-radius: var(--radius-full);
+  font-family: var(--font-family);
+  font-size: var(--body-md-size);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.retry-button:hover {
+  background-color: var(--color-primary-700);
+}
+
+.retry-button:active {
+  transform: scale(0.95);
 }
 </style>
