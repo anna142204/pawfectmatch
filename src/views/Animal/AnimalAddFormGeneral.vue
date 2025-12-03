@@ -6,11 +6,15 @@ import Input from '@/components/Input.vue';
 import Dropdown from '@/components/Dropdown.vue';
 import Button from '@/components/Button.vue';
 import BackButton from '@/components/BackButton.vue';
+import ConfirmModal from '@/components/ConfirmModal.vue';
 import { useToast } from '@/composables/useToast';
 
 const router = useRouter();
 const route = useRoute();
 const { error } = useToast();
+
+// Modale de confirmation
+const showConfirmModal = ref(false);
 
 // Mode édition
 const isEditMode = ref(false);
@@ -84,12 +88,23 @@ const weightOptions = [
 ];
 
 const goBack = () => {
-  // Si on vient du résumé, retourner au résumé
-  if (route.query.from === 'resume') {
-    router.push('/owner/animal/add/resume');
-  } else {
-    router.push('/owner/animals');
-  }
+  showConfirmModal.value = true;
+};
+
+const handleConfirmQuit = () => {
+  // Nettoyer le localStorage
+  ['animalFormData', 'animalFormMediaData', 'animalFormAffinityData', 'animalFormDetailsData', 'editingAnimalId']
+    .forEach(key => localStorage.removeItem(key));
+  router.push('/owner/animals');
+};
+
+const handleCancelQuit = () => {
+  showConfirmModal.value = false;
+};
+
+const handlePrevious = () => {
+  // Première étape, pas de retour dans le formulaire
+  error('Vous êtes déjà à la première étape');
 };
 
 const handleNext = () => {
@@ -237,7 +252,7 @@ const handleNext = () => {
           />
         </div>
 
-        <!-- Bouton suivant -->
+        <!-- Boutons -->
         <div class="form-actions">
           <Button 
             type="submit"
@@ -250,6 +265,18 @@ const handleNext = () => {
         </div>
       </form>
     </div>
+    
+    <!-- Modale de confirmation -->
+    <ConfirmModal
+      :show="showConfirmModal"
+      title="Quitter le formulaire"
+      message="Voulez-vous quitter le formulaire ? Les données non sauvegardées seront perdues."
+      confirmText="Quitter"
+      cancelText="Annuler"
+      type="warning"
+      @confirm="handleConfirmQuit"
+      @cancel="handleCancelQuit"
+    />
   </div>
 </template>
 
@@ -320,10 +347,13 @@ const handleNext = () => {
   z-index: 10;
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
   box-sizing: border-box;
+  display: flex;
+  gap: var(--spacing-3);
 }
 
+.btn-back,
 .btn-next {
-  width: 100%;
+  flex: 1;
   max-width: 100%;
 }
 </style>

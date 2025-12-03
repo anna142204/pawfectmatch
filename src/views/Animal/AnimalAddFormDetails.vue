@@ -4,6 +4,7 @@ import { useRouter, useRoute } from 'vue-router';
 import ProgressSteps from '@/components/ProgressSteps.vue';
 import Button from '@/components/Button.vue';
 import BackButton from '@/components/BackButton.vue';
+import ConfirmModal from '@/components/ConfirmModal.vue';
 import { useToast } from '@/composables/useToast';
 
 const router = useRouter();
@@ -11,6 +12,9 @@ const route = useRoute();
 const { error } = useToast();
 
 const isEditMode = ref(false);
+
+// Modale de confirmation
+const showConfirmModal = ref(false);
 
 // Étapes du formulaire
 const steps = ['Infos générales', 'Médias', 'Affinités', 'Détails', 'Résumé'];
@@ -34,6 +38,21 @@ onMounted(() => {
 });
 
 const goBack = () => {
+  showConfirmModal.value = true;
+};
+
+const handleConfirmQuit = () => {
+  // Nettoyer le localStorage
+  ['animalFormData', 'animalFormMediaData', 'animalFormAffinityData', 'animalFormDetailsData', 'editingAnimalId']
+    .forEach(key => localStorage.removeItem(key));
+  router.push('/owner/animals');
+};
+
+const handleCancelQuit = () => {
+  showConfirmModal.value = false;
+};
+
+const handlePrevious = () => {
   if (route.query.from === 'resume') {
     router.push('/owner/animal/add/resume');
   } else {
@@ -85,8 +104,17 @@ const handleNext = () => {
           />
         </div>
 
-        <!-- Bouton suivant -->
+        <!-- Boutons -->
         <div class="form-actions">
+          <Button 
+            type="button"
+            variant="secondary"
+            size="base"
+            class="btn-back"
+            @click="handlePrevious"
+          >
+            Retour
+          </Button>
           <Button 
             type="submit"
             variant="primary"
@@ -98,6 +126,18 @@ const handleNext = () => {
         </div>
       </form>
     </div>
+    
+    <!-- Modale de confirmation -->
+    <ConfirmModal
+      :show="showConfirmModal"
+      title="Quitter le formulaire"
+      message="Voulez-vous quitter le formulaire ? Les données non sauvegardées seront perdues."
+      confirmText="Quitter"
+      cancelText="Annuler"
+      type="warning"
+      @confirm="handleConfirmQuit"
+      @cancel="handleCancelQuit"
+    />
   </div>
 </template>
 
@@ -189,10 +229,13 @@ const handleNext = () => {
   z-index: 10;
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
   box-sizing: border-box;
+  display: flex;
+  gap: var(--spacing-3);
 }
 
+.btn-back,
 .btn-next {
-  width: 100%;
+  flex: 1;
   max-width: 100%;
 }
 </style>
