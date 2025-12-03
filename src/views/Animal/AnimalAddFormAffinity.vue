@@ -6,11 +6,15 @@ import ProgressSteps from '@/components/ProgressSteps.vue';
 import TagButton from '@/components/TagButton.vue';
 import Button from '@/components/Button.vue';
 import BackButton from '@/components/BackButton.vue';
+import ConfirmModal from '@/components/ConfirmModal.vue';
 
 const router = useRouter();
 const route = useRoute();
 
 const isEditMode = ref(false);
+
+// Modale de confirmation
+const showConfirmModal = ref(false);
 
 // Étapes du formulaire
 const steps = ['Infos générales', 'Médias', 'Affinités', 'Détails', 'Résumé'];
@@ -73,12 +77,18 @@ onMounted(() => {
 });
 
 const goBack = () => {
-  if (confirm('Voulez-vous quitter le formulaire ? Les données non sauvegardées seront perdues.')) {
-    // Nettoyer le localStorage
-    ['animalFormData', 'animalFormMediaData', 'animalFormAffinityData', 'animalFormDetailsData', 'editingAnimalId']
-      .forEach(key => localStorage.removeItem(key));
-    router.push('/owner/animals');
-  }
+  showConfirmModal.value = true;
+};
+
+const handleConfirmQuit = () => {
+  // Nettoyer le localStorage
+  ['animalFormData', 'animalFormMediaData', 'animalFormAffinityData', 'animalFormDetailsData', 'editingAnimalId']
+    .forEach(key => localStorage.removeItem(key));
+  router.push('/owner/animals');
+};
+
+const handleCancelQuit = () => {
+  showConfirmModal.value = false;
 };
 
 const handlePrevious = () => {
@@ -203,6 +213,18 @@ const handleNext = () => {
         Suivant
       </Button>
     </div>
+    
+    <!-- Modale de confirmation -->
+    <ConfirmModal
+      :show="showConfirmModal"
+      title="Quitter le formulaire"
+      message="Voulez-vous quitter le formulaire ? Les données non sauvegardées seront perdues."
+      confirmText="Quitter"
+      cancelText="Annuler"
+      type="warning"
+      @confirm="handleConfirmQuit"
+      @cancel="handleCancelQuit"
+    />
   </div>
 </template>
 

@@ -5,6 +5,7 @@ import { Edit2 } from 'lucide-vue-next';
 import ProgressSteps from '@/components/ProgressSteps.vue';
 import Button from '@/components/Button.vue';
 import BackButton from '@/components/BackButton.vue';
+import ConfirmModal from '@/components/ConfirmModal.vue';
 import { useToast } from '@/composables/useToast';
 
 const { success, error } = useToast();
@@ -18,6 +19,15 @@ const currentStep = ref(4);
 // Mode édition
 const isEditMode = ref(false);
 const editingAnimalId = ref(null);
+
+// Modale de confirmation
+const showConfirmModal = ref(false);
+const confirmModalConfig = ref({
+  title: 'Confirmation',
+  message: '',
+  type: 'warning',
+  action: null
+});
 
 // Données consolidées
 const formData = ref({
@@ -91,12 +101,13 @@ const trainingList = computed(() => formData.value.affinity.training || []);
 const personalityList = computed(() => formData.value.affinity.personality || []);
 
 const goBack = () => {
-  if (confirm('Voulez-vous quitter le formulaire ? Les données non sauvegardées seront perdues.')) {
-    // Nettoyer le localStorage
-    ['animalFormData', 'animalFormMediaData', 'animalFormAffinityData', 'animalFormDetailsData', 'editingAnimalId']
-      .forEach(key => localStorage.removeItem(key));
-    router.push('/owner/animals');
-  }
+  confirmModalConfig.value = {
+    title: 'Quitter le formulaire',
+    message: 'Voulez-vous quitter le formulaire ? Les données non sauvegardées seront perdues.',
+    type: 'warning',
+    action: 'quit'
+  };
+  showConfirmModal.value = true;
 };
 
 const handlePrevious = () => {
@@ -120,10 +131,16 @@ const handleDelete = async () => {
     return;
   }
 
-  if (!confirm(`Êtes-vous sûr de vouloir supprimer ${formData.value.general.name} ?`)) {
-    return;
-  }
+  confirmModalConfig.value = {
+    title: 'Supprimer l\'animal',
+    message: `Êtes-vous sûr de vouloir supprimer ${formData.value.general.name} ?`,
+    type: 'danger',
+    action: 'delete'
+  };
+  showConfirmModal.value = true;
+};
 
+const executeDelete = async () => {
   try {
     const response = await fetch(`/api/animals/${editingAnimalId.value}`, {
       method: 'DELETE',
@@ -143,6 +160,23 @@ const handleDelete = async () => {
   } catch (err) {
     error(err.message || 'Impossible de supprimer l\'animal');
   }
+};
+
+const handleConfirm = () => {
+  showConfirmModal.value = false;
+  
+  if (confirmModalConfig.value.action === 'quit') {
+    // Nettoyer le localStorage
+    ['animalFormData', 'animalFormMediaData', 'animalFormAffinityData', 'animalFormDetailsData', 'editingAnimalId']
+      .forEach(key => localStorage.removeItem(key));
+    router.push('/owner/animals');
+  } else if (confirmModalConfig.value.action === 'delete') {
+    executeDelete();
+  }
+};
+
+const handleCancel = () => {
+  showConfirmModal.value = false;
 };
 
 const handleSubmit = async () => {
@@ -386,6 +420,18 @@ const handleSubmit = async () => {
         {{ isEditMode ? 'Enregistrer' : 'Terminer' }}
       </Button>
     </div>
+    
+    <!-- Modale de confirmation -->
+    <ConfirmModal
+      :show="showConfirmModal"
+      :title="confirmModalConfig.title"
+      :message="confirmModalConfig.message"
+      :type="confirmModalConfig.type"
+      confirmText="Confirmer"
+      cancelText="Annuler"
+      @confirm="handleConfirm"
+      @cancel="handleCancel"
+    />
   </div>
 </template>
 
