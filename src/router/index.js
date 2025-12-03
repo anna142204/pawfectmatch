@@ -226,7 +226,7 @@ const router = createRouter({
 // Navigation guard pour vérifier l'authentification
 router.beforeEach((to, from, next) => {
   const userType = localStorage.getItem('user_type')
-  
+
   if (to.meta.requiresAuth && !userType) {
     // Rediriger vers login si authentification requise
     next('/login')
