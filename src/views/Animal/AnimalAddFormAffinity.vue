@@ -73,6 +73,15 @@ onMounted(() => {
 });
 
 const goBack = () => {
+  if (confirm('Voulez-vous quitter le formulaire ? Les données non sauvegardées seront perdues.')) {
+    // Nettoyer le localStorage
+    ['animalFormData', 'animalFormMediaData', 'animalFormAffinityData', 'animalFormDetailsData', 'editingAnimalId']
+      .forEach(key => localStorage.removeItem(key));
+    router.push('/owner/animals');
+  }
+};
+
+const handlePrevious = () => {
   if (route.query.from === 'resume') {
     router.push('/owner/animal/add/resume');
   } else {
@@ -173,8 +182,17 @@ const handleNext = () => {
       </div>
     </div>
 
-    <!-- Bouton fixe en bas -->
+    <!-- Boutons fixes en bas -->
     <div class="fixed-footer">
+      <Button 
+        type="button"
+        variant="secondary"
+        size="base"
+        class="btn-back"
+        @click="handlePrevious"
+      >
+        Retour
+      </Button>
       <Button 
         type="button"
         variant="primary"
@@ -263,10 +281,13 @@ const handleNext = () => {
   z-index: 10;
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
   box-sizing: border-box;
+  display: flex;
+  gap: var(--spacing-3);
 }
 
+.btn-back,
 .btn-next {
-  width: 100%;
+  flex: 1;
   max-width: 100%;
 }
 

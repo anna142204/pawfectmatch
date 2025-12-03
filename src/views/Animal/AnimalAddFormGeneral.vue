@@ -84,12 +84,17 @@ const weightOptions = [
 ];
 
 const goBack = () => {
-  // Si on vient du résumé, retourner au résumé
-  if (route.query.from === 'resume') {
-    router.push('/owner/animal/add/resume');
-  } else {
+  if (confirm('Voulez-vous quitter le formulaire ? Les données non sauvegardées seront perdues.')) {
+    // Nettoyer le localStorage
+    ['animalFormData', 'animalFormMediaData', 'animalFormAffinityData', 'animalFormDetailsData', 'editingAnimalId']
+      .forEach(key => localStorage.removeItem(key));
     router.push('/owner/animals');
   }
+};
+
+const handlePrevious = () => {
+  // Première étape, pas de retour dans le formulaire
+  error('Vous êtes déjà à la première étape');
 };
 
 const handleNext = () => {
@@ -237,7 +242,7 @@ const handleNext = () => {
           />
         </div>
 
-        <!-- Bouton suivant -->
+        <!-- Boutons -->
         <div class="form-actions">
           <Button 
             type="submit"
@@ -320,10 +325,13 @@ const handleNext = () => {
   z-index: 10;
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
   box-sizing: border-box;
+  display: flex;
+  gap: var(--spacing-3);
 }
 
+.btn-back,
 .btn-next {
-  width: 100%;
+  flex: 1;
   max-width: 100%;
 }
 </style>

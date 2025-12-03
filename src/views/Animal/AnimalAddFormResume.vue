@@ -91,6 +91,15 @@ const trainingList = computed(() => formData.value.affinity.training || []);
 const personalityList = computed(() => formData.value.affinity.personality || []);
 
 const goBack = () => {
+  if (confirm('Voulez-vous quitter le formulaire ? Les données non sauvegardées seront perdues.')) {
+    // Nettoyer le localStorage
+    ['animalFormData', 'animalFormMediaData', 'animalFormAffinityData', 'animalFormDetailsData', 'editingAnimalId']
+      .forEach(key => localStorage.removeItem(key));
+    router.push('/owner/animals');
+  }
+};
+
+const handlePrevious = () => {
   router.push('/owner/animal/add/details');
 };
 
@@ -103,6 +112,37 @@ const editSection = (section) => {
   };
   // Ajouter le paramètre from=resume pour indiquer qu'on vient du résumé
   router.push({ path: routes[section], query: { from: 'resume' } });
+};
+
+const handleDelete = async () => {
+  if (!editingAnimalId.value) {
+    error('Aucun animal à supprimer');
+    return;
+  }
+
+  if (!confirm(`Êtes-vous sûr de vouloir supprimer ${formData.value.general.name} ?`)) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/animals/${editingAnimalId.value}`, {
+      method: 'DELETE',
+      credentials: 'include'
+    });
+
+    if (!response.ok) {
+      throw new Error('Erreur lors de la suppression');
+    }
+
+    // Nettoyer le localStorage
+    ['animalFormData', 'animalFormMediaData', 'animalFormAffinityData', 'animalFormDetailsData', 'editingAnimalId']
+      .forEach(key => localStorage.removeItem(key));
+
+    success(`${formData.value.general.name} a été supprimé avec succès`);
+    setTimeout(() => router.push('/owner/animals'), 1500);
+  } catch (err) {
+    error(err.message || 'Impossible de supprimer l\'animal');
+  }
 };
 
 const handleSubmit = async () => {
@@ -309,11 +349,33 @@ const handleSubmit = async () => {
             </p>
           </div>
         </div>
+
+        <!-- Bouton Supprimer (en mode édition uniquement) -->
+        <div v-if="isEditMode" class="delete-section">
+          <Button 
+            type="button"
+            variant="danger"
+            size="base"
+            class="btn-delete-full"
+            @click="handleDelete"
+          >
+            Supprimer cet animal
+          </Button>
+        </div>
       </div>
     </div>
 
-    <!-- Bouton fixe en bas -->
+    <!-- Boutons fixes en bas -->
     <div class="fixed-footer">
+      <Button 
+        type="button"
+        variant="secondary"
+        size="base"
+        class="btn-back"
+        @click="handlePrevious"
+      >
+        Retour
+      </Button>
       <Button 
         type="button"
         variant="primary"
@@ -321,7 +383,7 @@ const handleSubmit = async () => {
         class="btn-submit"
         @click="handleSubmit"
       >
-        Terminer
+        {{ isEditMode ? 'Enregistrer' : 'Terminer' }}
       </Button>
     </div>
   </div>
@@ -470,6 +532,16 @@ const handleSubmit = async () => {
   margin: 0;
 }
 
+/* Section de suppression */
+.delete-section {
+  padding-top: var(--spacing-2);
+  border-top: 1px solid var(--color-neutral-200);
+}
+
+.btn-delete-full {
+  width: 100%;
+}
+
 .fixed-footer {
   position: fixed;
   bottom: 0;
@@ -481,10 +553,13 @@ const handleSubmit = async () => {
   z-index: 10;
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
   box-sizing: border-box;
+  display: flex;
+  gap: var(--spacing-3);
 }
 
+.btn-back,
 .btn-submit {
-  width: 100%;
+  flex: 1;
   max-width: 100%;
 }
 </style>

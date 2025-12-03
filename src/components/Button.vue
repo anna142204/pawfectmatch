@@ -3,7 +3,7 @@ const props = defineProps({
   variant: {
     type: String,
     default: 'primary',
-    validator: (value) => ['primary', 'secondary'].includes(value)
+    validator: (value) => ['primary', 'secondary', 'danger'].includes(value)
   },
   size: {
     type: String,
@@ -101,5 +101,22 @@ const getTextClass = (size) => {
   background-color: var(--color-primary-100);
   color: var(--color-primary-900);
   border-color: var(--color-primary-900);
+}
+
+/* Danger variant */
+.btn-danger {
+  background-color: #dc2626;
+  color: var(--color-neutral-white);
+  border-color: #dc2626;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background-color: #b91c1c;
+  border-color: #b91c1c;
+}
+
+.btn-danger:active:not(:disabled) {
+  background-color: #991b1b;
+  border-color: #991b1b;
 }
 </style>

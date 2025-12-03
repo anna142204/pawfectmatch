@@ -77,7 +77,7 @@ onMounted(async () => {
     localStorage.setItem('editingAnimalId', animalId);
 
     // Rediriger vers la première étape du formulaire
-    router.push('/owner/animal/add');
+    router.push('/owner/animal/add/resume');
     
   } catch (err) {
     error(err.message || 'Impossible de charger l\'animal');
