@@ -173,6 +173,61 @@ describe("GET /api/adopters", function () {
   });
 });
 
+
+beforeEach(async () => await cleanUpDatabase());
+describe("DELETE /api/adopters/:id", function () {
+  test("should delete an adopter by id", async function () {
+    // 1. Register an adopter
+    const createRes = await supertest(app)
+      .post("/api/auth/register/adopter")
+      .send(adopterPayload)
+      .expect(201);
+
+    const adopterId = createRes.body.user._id;
+    expect(adopterId).toBeString();
+
+    // 2. Verify adopter exists (GET before delete)
+    const getRes = await supertest(app)
+      .get("/api/adopters")
+      .expect(200);
+
+    expect(getRes.body.adopters).toBeArray();
+    expect(getRes.body.adopters.length).toBeGreaterThanOrEqual(1);
+    const foundAdopter = getRes.body.adopters.find(a => a._id === adopterId);
+    expect(foundAdopter).toBeDefined();
+
+    // 3. Delete the adopter
+    const deleteRes = await supertest(app)
+      .delete(`/api/adopters/${adopterId}`)
+      .expect(200)
+      .expect("Content-Type", /json/);
+
+    // Assertions
+    expect(deleteRes.body).toBeObject();
+    expect(deleteRes.body.message).toEqual("Adopter deleted successfully");
+
+    // 4. Verify adopter no longer exists (GET after delete)
+    const getAfterDeleteRes = await supertest(app)
+      .get("/api/adopters")
+      .expect(200);
+
+    expect(getAfterDeleteRes.body.adopters).toBeArray();
+    expect(getAfterDeleteRes.body.adopters.length).toEqual(0);
+  });
+
+  test("should return 404 when deleting non-existent adopter", async function () {
+    const fakeId = "64a1b2c3d4e5f67890123456";
+
+    const res = await supertest(app)
+      .delete(`/api/adopters/${fakeId}`)
+      .expect(404)
+      .expect("Content-Type", /json/);
+
+    expect(res.body).toBeObject();
+    expect(res.body.error).toEqual("Adopter not found");
+  });
+});
+
 afterAll(async () => {
   await mongoose.disconnect();
 });

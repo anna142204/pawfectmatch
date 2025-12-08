@@ -59,7 +59,6 @@ const animalPayload = {
 };
 
 beforeEach(async () => await cleanUpDatabase());
-
 describe("POST /api/matches", function () {
   test("should create a new match between adopter and animal", async function () {
     // 1. Register owner
@@ -276,6 +275,95 @@ describe("GET /api/matches", function () {
       "updatedAt",
       "__v",
     ]);
+  });
+});
+
+describe("DELETE /api/matches/:id", function () {
+  test("should delete a match by id", async function () {
+    // 1. Register owner
+    const ownerRes = await supertest(app)
+      .post("/api/auth/register/owner")
+      .send(ownerPayload)
+      .expect(201);
+
+    const ownerId = ownerRes.body.user._id;
+
+    // 2. Register adopter
+    const adopterRes = await supertest(app)
+      .post("/api/auth/register/adopter")
+      .send(adopterPayload)
+      .expect(201);
+
+    const adopterId = adopterRes.body.user._id;
+    const adopterToken = adopterRes.body.token;
+
+    // 3. Create animal with ownerId
+    const animalPayloadWithOwner = {
+      ...animalPayload,
+      ownerId,
+    };
+
+    const animalRes = await supertest(app)
+      .post("/api/animals")
+      .send(animalPayloadWithOwner)
+      .expect(201);
+
+    const animalId = animalRes.body.animal._id;
+
+    // 4. Create match
+    const matchPayload = {
+      adopterId,
+      animalId,
+    };
+
+    const createMatchRes = await supertest(app)
+      .post("/api/matches")
+      .set("Authorization", `Bearer ${adopterToken}`)
+      .send(matchPayload)
+      .expect(201);
+
+    const matchId = createMatchRes.body.match._id;
+    expect(matchId).toBeString();
+
+    // 5. Verify match exists (GET before delete)
+    const getRes = await supertest(app)
+      .get("/api/matches")
+      .expect(200);
+
+    expect(getRes.body.matches).toBeArray();
+    expect(getRes.body.matches.length).toBeGreaterThanOrEqual(1);
+    const foundMatch = getRes.body.matches.find(m => m._id === matchId);
+    expect(foundMatch).toBeDefined();
+
+    // 6. Delete the match
+    const deleteRes = await supertest(app)
+      .delete(`/api/matches/${matchId}`)
+      .expect(200)
+      .expect("Content-Type", /json/);
+
+    // Assertions
+    expect(deleteRes.body).toBeObject();
+    expect(deleteRes.body.message).toEqual("Match deleted successfully");
+
+    // 7. Verify match no longer exists (GET after delete)
+    const getAfterDeleteRes = await supertest(app)
+      .get("/api/matches")
+      .expect(200);
+
+    expect(getAfterDeleteRes.body.matches).toBeArray();
+    expect(getAfterDeleteRes.body.matches.length).toEqual(0);
+  });
+
+  test("should return 404 when deleting non-existent match", async function () {
+    const fakeId = "64a1b2c3d4e5f67890123456";
+
+    const res = await supertest(app)
+      .delete(`/api/matches/${fakeId}`)
+      .expect(404)
+      .expect("Content-Type", /json/);
+
+    expect(res.body).toBeObject();
+    expect(res.body.error).toEqual("Match not found");
   });
 });
 

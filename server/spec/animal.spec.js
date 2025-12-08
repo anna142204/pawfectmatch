@@ -194,6 +194,60 @@ describe("GET /api/animals", function () {
   });
 });
 
+beforeEach(async () => await cleanUpDatabase());
+describe("DELETE /api/animals/:id", function () {
+  test("should delete an animal by id", async function () {
+    // 1. Create an animal
+    const createRes = await supertest(app)
+      .post("/api/animals")
+      .send(animalPayload)
+      .expect(201);
+
+    const animalId = createRes.body.animal._id;
+    expect(animalId).toBeString();
+
+    // 2. Verify animal exists (GET before delete)
+    const getRes = await supertest(app)
+      .get("/api/animals")
+      .expect(200);
+
+    expect(getRes.body.animals).toBeArray();
+    expect(getRes.body.animals.length).toBeGreaterThanOrEqual(1);
+    const foundAnimal = getRes.body.animals.find(a => a._id === animalId);
+    expect(foundAnimal).toBeDefined();
+
+    // 3. Delete the animal
+    const deleteRes = await supertest(app)
+      .delete(`/api/animals/${animalId}`)
+      .expect(200)
+      .expect("Content-Type", /json/);
+
+    // Assertions
+    expect(deleteRes.body).toBeObject();
+    expect(deleteRes.body.message).toEqual("Animal deleted successfully");
+
+    // 4. Verify animal no longer exists (GET after delete)
+    const getAfterDeleteRes = await supertest(app)
+      .get("/api/animals")
+      .expect(200);
+
+    expect(getAfterDeleteRes.body.animals).toBeArray();
+    expect(getAfterDeleteRes.body.animals.length).toEqual(0);
+  });
+
+  test("should return 404 when deleting non-existent animal", async function () {
+    const fakeId = "64a1b2c3d4e5f67890123456";
+
+    const res = await supertest(app)
+      .delete(`/api/animals/${fakeId}`)
+      .expect(404)
+      .expect("Content-Type", /json/);
+
+    expect(res.body).toBeObject();
+    expect(res.body.error).toEqual("Animal not found");
+  });
+});
+
 afterAll(async () => {
   await mongoose.disconnect();
 });
