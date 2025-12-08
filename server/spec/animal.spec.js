@@ -37,7 +37,7 @@ describe("POST /api/animals", function () {
 
     // response shape: { message: "...", animal: { ... } }
     expect(res.body).toBeObject();
-    expect(res.body.message).toEqual("Animal created successfully");
+    expect(res.body.message).toEqual("Animal créé avec succès");
 
     const created = res.body.animal;
 
@@ -98,13 +98,15 @@ describe("POST /api/animals", function () {
     expect(created.__v).toBeNumber();
 
     // basic keys present (including mongoose timestamps & version)
-    expect(created).toContainAllKeys([
-      "_id",
+  expect(created).toContainAllKeys([
+     "_id",
       "species",
       "race",
       "name",
       "age",
       "sex",
+      "size",
+      "weight",
       "address",
       "image",
       "price",
