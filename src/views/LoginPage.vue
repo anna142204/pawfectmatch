@@ -79,7 +79,7 @@ const handleLogin = async () => {
       <!-- Image du chat -->
       <div class="cat-container">
         <img 
-          src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=400&h=300&fit=crop" 
+          src="../images/login-cat.png" 
           alt="Chat mignon"
           class="cat-image"
         />
@@ -145,9 +145,10 @@ const handleLogin = async () => {
 </template>
 
 <style scoped>
+/* PAGE */
 .login-page {
   height: 100vh;
-  height: 100dvh; /* Dynamic viewport height pour mobile */
+  height: 100dvh;
   display: flex;
   align-items: flex-start;
   justify-content: flex-start;
@@ -156,6 +157,7 @@ const handleLogin = async () => {
   overflow: hidden;
 }
 
+/* CONTAINER PRINCIPAL */
 .login-container {
   width: 100%;
   height: 100%;
@@ -164,9 +166,10 @@ const handleLogin = async () => {
   align-items: center;
   padding: 0 var(--spacing-6);
   padding-top: var(--spacing-12);
+  position: relative; /* nécessaire pour placer le chat */
 }
 
-/* En-tête */
+/* TITRE */
 .login-header {
   width: 100%;
   text-align: center;
@@ -177,32 +180,29 @@ const handleLogin = async () => {
   font-family: var(--font-family);
   font-size: var(--heading-h1-size);
   font-weight: var(--heading-h1-weight);
-  line-height: var(--heading-h1-height);
-  letter-spacing: var(--heading-h1-spacing);
   color: var(--color-neutral-white);
   margin: 0;
   text-shadow: var(--shadow-sm);
 }
 
-/* Container du chat */
+/* 🎉 CHAT PARFAITEMENT POSITIONNÉ */
 .cat-container {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  margin-bottom: -50px;
-  position: relative;
-  z-index: 2;
+  position: absolute;
+top: calc(var(--spacing-12) + 57px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  pointer-events: none;
 }
 
 .cat-image {
   width: 200px;
-  height: 200px;
-  object-fit: cover;
-  object-position: top;
+  height: auto;
+  object-fit: contain;
   filter: drop-shadow(var(--shadow-md));
 }
 
-/* Formulaire wrapper */
+/* FORMULAIRE */
 .login-form-wrapper {
   width: 100%;
   background: var(--color-neutral-white);
@@ -211,21 +211,20 @@ const handleLogin = async () => {
   padding-top: var(--spacing-20);
   box-shadow: var(--shadow-2xl);
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
+
+  /* ⭐ espace ajouté pour laisser le chat chevaucher proprement */
+  margin-top: 130px;
 }
 
 .login-form {
   width: 100%;
 }
 
-/* Groupes d'input */
 .input-group {
   margin-bottom: var(--spacing-5);
 }
 
-/* Mot de passe oublié */
+/* MOT DE PASSE OUBLIÉ */
 .forgot-password-container {
   text-align: right;
   margin-bottom: var(--spacing-4);
@@ -233,44 +232,32 @@ const handleLogin = async () => {
 }
 
 .forgot-password-link {
-  font-family: var(--font-family);
-  font-size: var(--body-base-size);
-  line-height: var(--body-base-height);
   color: var(--color-neutral-500);
   text-decoration: none;
-  font-weight: var(--font-weight-normal);
   transition: color 0.2s ease;
   padding: var(--spacing-2);
   display: inline-block;
-  min-height: 44px;
 }
 
-.forgot-password-link:hover {
-  color: var(--color-primary-600);
-}
-
-/* Message d'erreur */
+/* ERREUR */
 .error-message {
   background: var(--color-error);
   color: var(--color-neutral-white);
   padding: var(--spacing-3) var(--spacing-4);
   border-radius: var(--radius-base);
-  font-size: var(--body-sm-size);
   margin-bottom: var(--spacing-4);
   text-align: center;
 }
 
-/* Bouton de connexion */
+/* BOUTON */
 .login-form :deep(.btn-login) {
   width: 100%;
 }
 
-/* Loader */
 .loader {
-  display: inline-block;
   width: 20px;
   height: 20px;
-  border: 3px solid rgba(255, 255, 255, 0.3);
+  border: 3px solid rgba(255,255,255,0.3);
   border-radius: 50%;
   border-top-color: white;
   animation: spin 0.6s linear infinite;
@@ -280,116 +267,17 @@ const handleLogin = async () => {
   to { transform: rotate(360deg); }
 }
 
-/* Lien inscription */
+/* INSCRIPTION */
 .signup-container {
   text-align: center;
   margin-top: var(--spacing-4);
-  width: 100%;
 }
 
 .signup-link-text {
-  display: inline-block;
-  font-family: var(--font-family);
-  font-size: var(--body-base-size);
   color: var(--color-primary-600);
   text-decoration: underline;
   padding: var(--spacing-3);
-  transition: color 0.2s ease;
 }
 
-.signup-link-text:hover {
-  color: var(--color-primary-700);
-}
-
-/* Séparateur */
-.divider {
-  width: 100%;
-  height: 1px;
-  background: var(--color-neutral-200);
-  margin: var(--spacing-10) 0;
-}
-
-/* ========== RESPONSIVE MOBILE ========== */
-
-/* Très petits écrans (iPhone SE, Galaxy S8) - hauteur < 700px */
-@media (max-height: 700px) {
-  .login-container {
-    padding-top: var(--spacing-4);
-  }
-
-  .login-header {
-    margin-bottom: var(--spacing-2);
-  }
-
-  .login-title {
-    font-size: var(--heading-h2-size);
-  }
-
-  .cat-container {
-    margin-bottom: -35px;
-  }
-
-  .cat-image {
-    width: 140px;
-    height: 140px;
-  }
-
-  .login-form-wrapper {
-    padding-top: var(--spacing-12);
-    padding-left: var(--spacing-4);
-    padding-right: var(--spacing-4);
-  }
-
-  .input-group {
-    margin-bottom: var(--spacing-3);
-  }
-
-  .forgot-password-container {
-    margin-bottom: var(--spacing-2);
-    margin-top: 0;
-  }
-
-  .forgot-password-link {
-    font-size: var(--body-sm-size);
-    padding: var(--spacing-1);
-    min-height: 36px;
-  }
-
-  .signup-container {
-    margin-top: var(--spacing-3);
-  }
-}
-
-/* Écrans moyens (iPhone X/11/12/13/14) - hauteur 700-850px */
-@media (min-height: 701px) and (max-height: 850px) {
-  .login-container {
-    padding-top: var(--spacing-8);
-  }
-
-  .cat-image {
-    width: 180px;
-    height: 180px;
-  }
-
-  .login-form-wrapper {
-    padding-top: var(--spacing-16);
-  }
-}
-
-/* Grands téléphones (iPhone Plus/Max, grands Android) - hauteur > 850px */
-@media (min-height: 851px) {
-  .login-container {
-    padding-top: var(--spacing-12);
-  }
-
-  .cat-image {
-    width: 200px;
-    height: 200px;
-  }
-
-  .login-form-wrapper {
-    padding-top: var(--spacing-18);
-  }
-}
 
 </style>
