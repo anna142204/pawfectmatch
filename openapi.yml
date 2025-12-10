@@ -24,30 +24,35 @@ paths:
           application/json:
             schema:
               type: object
+              required:
+                - firstName
+                - lastName
+                - email
+                - password
+                - age
+                - address
               properties:
                 firstName:
                   type: string
-                  description: First name of the adopter
                   example: Marie
                 lastName:
                   type: string
-                  description: Last name of the adopter
                   example: Martin
                 email:
                   type: string
                   format: email
-                  description: Email address (must be unique)
                   example: marie.martin@example.com
                 password:
                   type: string
-                  description: Password (minimum 6 characters)
                   example: securePassword123
                 age:
                   type: number
-                  description: Age of the adopter (minimum 18)
                   example: 28
                 address:
                   type: object
+                  required:
+                    - zip
+                    - city
                   properties:
                     zip:
                       type: string
@@ -57,8 +62,7 @@ paths:
                       example: Genève
                 about:
                   type: string
-                  description: About the adopter (max 150 characters)
-                  example: Passionné par les animaux, je cherche un compagnon fidèle
+                  example: Passionné par les animaux
                 preferences:
                   type: object
                   properties:
@@ -91,11 +95,12 @@ paths:
                     type: string
                   token:
                     type: string
-                    description: JWT token for authentication
                   user:
                     $ref: "#/components/schemas/Adopter"
         "400":
           description: Validation error
+        "500":
+          description: Registration error
 
   /api/auth/register/owner:
     post:
@@ -108,6 +113,12 @@ paths:
           application/json:
             schema:
               type: object
+              required:
+                - firstName
+                - lastName
+                - email
+                - password
+                - address
               properties:
                 firstName:
                   type: string
@@ -127,6 +138,9 @@ paths:
                   example: "+41 79 123 45 67"
                 address:
                   type: object
+                  required:
+                    - zip
+                    - city
                   properties:
                     zip:
                       type: string
@@ -149,11 +163,443 @@ paths:
                     type: string
                   user:
                     $ref: "#/components/schemas/Owner"
+        "400":
+          description: Validation error
+        "500":
+          description: Registration error
+
+  /api/auth/login:
+    post:
+      summary: Login user (adopter or owner)
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: marie.martin@example.com
+                password:
+                  type: string
+                  example: securePassword123
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  user:
+                    type: object
+        "401":
+          description: Invalid credentials
+        "500":
+          description: Login error
+
+  /api/auth/logout:
+    post:
+      summary: Logout user
+      tags:
+        - Authentication
+      responses:
+        "200":
+          description: Logout successful
+        "500":
+          description: Logout error
+
+  # Image Upload Routes
+  /api/upload/image:
+    post:
+      summary: Upload a single image
+      tags:
+        - Images
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - image
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: Image file to upload
+      responses:
+        "200":
+          description: Image uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  url:
+                    type: string
+                    format: url
+                    description: URL of the uploaded image
+        "400":
+          description: Invalid image
+        "500":
+          description: Upload error
+
+    delete:
+      summary: Delete an image
+      tags:
+        - Images
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - imageUrl
+              properties:
+                imageUrl:
+                  type: string
+                  format: url
+                  description: URL of the image to delete
+      responses:
+        "200":
+          description: Image deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "404":
+          description: Image not found
+        "500":
+          description: Delete error
+
+  /api/upload/images:
+    post:
+      summary: Upload multiple images (max 10)
+      tags:
+        - Images
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - images
+              properties:
+                images:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  maxItems: 10
+                  description: Images to upload (max 10 files)
+      responses:
+        "200":
+          description: Images uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  urls:
+                    type: array
+                    items:
+                      type: string
+                      format: url
+        "400":
+          description: Invalid images
+        "500":
+          description: Upload error
+
+  # Animal Endpoints
+  /api/animals:
+    post:
+      summary: Create a new animal
+      tags:
+        - Animals
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - species
+                - name
+                - age
+                - sex
+                - address
+                - image
+                - price
+                - ownerId
+                - description
+                - characteristics
+              properties:
+                species:
+                  type: string
+                  example: dog
+                race:
+                  type: string
+                  example: Labrador
+                name:
+                  type: string
+                  example: Buddy
+                age:
+                  type: number
+                  example: 3
+                sex:
+                  type: string
+                  enum: [male, female]
+                size:
+                  type: string
+                  enum: [petit, moyen, grand]
+                  example: grand
+                weight:
+                  type: string
+                  enum: ["0-5", "5-10", "10-20", "20-30", "30+"]
+                  example: "20-30"
+                address:
+                  type: object
+                  required:
+                    - city
+                    - zip
+                  properties:
+                    city:
+                      type: string
+                    zip:
+                      type: string
+                image:
+                  type: string
+                  format: url
+                price:
+                  type: number
+                  example: 150
+                ownerId:
+                  type: string
+                  description: ID of the owner
+                availability:
+                  type: boolean
+                  default: true
+                description:
+                  type: string
+                  maxLength: 300
+                characteristics:
+                  type: object
+                  required:
+                    - environment
+                    - dressage
+                    - personality
+                  properties:
+                    environment:
+                      type: array
+                      items:
+                        type: string
+                        enum: [appartement, voiture, enfant, chien, chat, autre animaux]
+                      minItems: 1
+                    dressage:
+                      type: array
+                      items:
+                        type: string
+                        enum: [éduqué, facile à dresser, habitué à la laisse, têtu]
+                      minItems: 1
+                    personality:
+                      type: array
+                      items:
+                        type: string
+                        enum: [calme, énergique, indépendant, affectueux, curieux, joueur, bavard, explorateur, câlin, protecteur, territorial, sociable, timide, peureux]
+                      minItems: 1
+      responses:
+        "201":
+          description: Animal created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  animal:
+                    $ref: "#/components/schemas/Animal"
+        "400":
+          description: Validation error
+        "500":
+          description: Create animal error
+
+    get:
+      summary: Get list of all animals with pagination and filtering
+      tags:
+        - Animals
+      parameters:
+        - name: species
+          in: query
+          schema:
+            type: string
+        - name: name
+          in: query
+          schema:
+            type: string
+        - name: city
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: List of animals
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  animals:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Animal"
+                  pagination:
+                    $ref: "#/components/schemas/Pagination"
+        "500":
+          description: Get animals error
+
+  /api/animals/{id}:
+    get:
+      summary: Get animal by ID
+      tags:
+        - Animals
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Animal found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Animal"
+        "404":
+          description: Animal not found
+        "500":
+          description: Get animal error
+
+    put:
+      summary: Update an animal by ID
+      tags:
+        - Animals
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                species:
+                  type: string
+                race:
+                  type: string
+                name:
+                  type: string
+                age:
+                  type: number
+                sex:
+                  type: string
+                  enum: [male, female]
+                size:
+                  type: string
+                  enum: [petit, moyen, grand]
+                weight:
+                  type: string
+                  enum: ["0-5", "5-10", "10-20", "20-30", "30+"]
+                address:
+                  type: object
+                image:
+                  type: string
+                  format: url
+                price:
+                  type: number
+                availability:
+                  type: boolean
+                description:
+                  type: string
+                characteristics:
+                  type: object
+      responses:
+        "200":
+          description: Animal updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Animal"
+        "400":
+          description: Validation error
+        "404":
+          description: Animal not found
+        "500":
+          description: Update animal error
+
+    delete:
+      summary: Delete an animal by ID
+      tags:
+        - Animals
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Animal deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "404":
+          description: Animal not found
+        "500":
+          description: Delete animal error
 
   # Adopter Endpoints
   /api/adopters:
     get:
-      summary: Get list of all adopters with pagination
+      summary: Get list of all adopters with pagination and filtering
       tags:
         - Adopters
       parameters:
@@ -197,8 +643,96 @@ paths:
                       $ref: "#/components/schemas/Adopter"
                   pagination:
                     $ref: "#/components/schemas/Pagination"
+        "500":
+          description: Get adopters error
 
   /api/adopters/{id}:
+    get:
+      summary: Get adopter by ID
+      tags:
+        - Adopters
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Adopter found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Adopter"
+        "404":
+          description: Adopter not found
+        "500":
+          description: Get adopter error
+
+    put:
+      summary: Update an adopter by ID
+      tags:
+        - Adopters
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                age:
+                  type: number
+                address:
+                  type: object
+                  properties:
+                    zip:
+                      type: string
+                    city:
+                      type: string
+                about:
+                  type: string
+                preferences:
+                  type: object
+                  properties:
+                    environment:
+                      type: array
+                      items:
+                        type: string
+                    species:
+                      type: array
+                      items:
+                        type: string
+                    sizePreference:
+                      type: array
+                      items:
+                        type: string
+      responses:
+        "200":
+          description: Adopter updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Adopter"
+        "400":
+          description: Validation error
+        "404":
+          description: Adopter not found
+        "500":
+          description: Update adopter error
+
     delete:
       summary: Delete an adopter by ID
       tags:
@@ -212,13 +746,22 @@ paths:
       responses:
         "200":
           description: Adopter deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
         "404":
           description: Adopter not found
+        "500":
+          description: Delete adopter error
 
   # Owner Endpoints
   /api/owners:
     get:
-      summary: Get list of all owners with pagination
+      summary: Get list of all owners with pagination and filtering
       tags:
         - Owners
       parameters:
@@ -262,8 +805,81 @@ paths:
                       $ref: "#/components/schemas/Owner"
                   pagination:
                     $ref: "#/components/schemas/Pagination"
+        "500":
+          description: Get owners error
 
   /api/owners/{id}:
+    get:
+      summary: Get owner by ID
+      tags:
+        - Owners
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Owner found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Owner"
+        "404":
+          description: Owner not found
+        "500":
+          description: Get owner error
+
+    put:
+      summary: Update an owner by ID
+      tags:
+        - Owners
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                phoneNumber:
+                  type: string
+                address:
+                  type: object
+                  properties:
+                    zip:
+                      type: string
+                    city:
+                      type: string
+                about:
+                  type: string
+      responses:
+        "200":
+          description: Owner updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Owner"
+        "400":
+          description: Validation error
+        "404":
+          description: Owner not found
+        "500":
+          description: Update owner error
+
     delete:
       summary: Delete an owner by ID (only if no associated animals)
       tags:
@@ -277,93 +893,6 @@ paths:
       responses:
         "200":
           description: Owner deleted successfully
-        "400":
-          description: Cannot delete owner with associated animals
-        "404":
-          description: Owner not found
-
-  # Animal Endpoints
-  /api/animals:
-    post:
-      summary: Create a new animal
-      tags:
-        - Animals
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                species:
-                  type: string
-                  example: dog
-                race:
-                  type: string
-                  example: Labrador
-                name:
-                  type: string
-                  example: Buddy
-                age:
-                  type: number
-                  example: 3
-                sex:
-                  type: string
-                  enum: [male, female]
-                size:
-                  type: string
-                  enum: [petit, moyen, grand]
-                  example: grand
-                weight:
-                  type: string
-                  enum: ["0-5", "5-10", "10-20", "20-30", "30+"]
-                  example: "20-30"
-                address:
-                  type: object
-                  properties:
-                    city:
-                      type: string
-                    zip:
-                      type: string
-                image:
-                  type: string
-                  format: url
-                price:
-                  type: number
-                  example: 150
-                ownerId:
-                  type: string
-                  description: ID of the owner
-                availability:
-                  type: boolean
-                  default: true
-                description:
-                  type: string
-                  maxLength: 300
-                characteristics:
-                  type: object
-                  properties:
-                    environment:
-                      type: array
-                      items:
-                        type: string
-                        enum: [appartement, voiture, enfant, chien, chat, autre animaux]
-                      minItems: 1
-                    dressage:
-                      type: array
-                      items:
-                        type: string
-                        enum: [éduqué, facile à dresser, habitué à la laisse, têtu]
-                      minItems: 1
-                    personality:
-                      type: array
-                      items:
-                        type: string
-                        enum: [calme, énergique, indépendant, affectueux, curieux, joueur, bavard, explorateur, câlin, protecteur, territorial, sociable, timide, peureux]
-                      minItems: 1
-      responses:
-        "201":
-          description: Animal created successfully
           content:
             application/json:
               schema:
@@ -371,69 +900,21 @@ paths:
                 properties:
                   message:
                     type: string
-                  animal:
-                    $ref: "#/components/schemas/Animal"
         "400":
-          description: Validation error
-
-    get:
-      summary: Get list of all animals with pagination and filtering
-      tags:
-        - Animals
-      parameters:
-        - name: species
-          in: query
-          schema:
-            type: string
-        - name: name
-          in: query
-          schema:
-            type: string
-        - name: city
-          in: query
-          schema:
-            type: string
-        - name: page
-          in: query
-          schema:
-            type: integer
-            default: 1
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            default: 20
-      responses:
-        "200":
-          description: List of animals
+          description: Cannot delete owner with associated animals
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  animals:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/Animal"
-                  pagination:
-                    $ref: "#/components/schemas/Pagination"
-
-  /api/animals/{id}:
-    delete:
-      summary: Delete an animal by ID
-      tags:
-        - Animals
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Animal deleted successfully
+                  error:
+                    type: string
+                  animalsCount:
+                    type: number
         "404":
-          description: Animal not found
+          description: Owner not found
+        "500":
+          description: Delete owner error
 
   # Match Endpoints
   /api/matches:
@@ -449,6 +930,9 @@ paths:
           application/json:
             schema:
               type: object
+              required:
+                - adopterId
+                - animalId
               properties:
                 adopterId:
                   type: string
@@ -477,6 +961,8 @@ paths:
           description: Adopter or animal not found
         "409":
           description: Match already exists
+        "500":
+          description: Create match error
 
     get:
       summary: Get list of all matches with pagination
@@ -507,8 +993,63 @@ paths:
                       $ref: "#/components/schemas/Match"
                   pagination:
                     $ref: "#/components/schemas/Pagination"
+        "500":
+          description: Get matches error
 
   /api/matches/{id}:
+    get:
+      summary: Get match by ID
+      tags:
+        - Matches
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Match found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Match"
+        "404":
+          description: Match not found
+        "500":
+          description: Get match error
+
+    put:
+      summary: Update a match by ID
+      tags:
+        - Matches
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                isActive:
+                  type: boolean
+      responses:
+        "200":
+          description: Match updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Match"
+        "404":
+          description: Match not found
+        "500":
+          description: Update match error
+
     delete:
       summary: Delete a match by ID
       tags:
@@ -522,8 +1063,124 @@ paths:
       responses:
         "200":
           description: Match deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
         "404":
           description: Match not found
+        "500":
+          description: Delete match error
+
+  /api/matches/{id}/messages:
+    post:
+      summary: Add a message to match discussion
+      tags:
+        - Matches
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - sender
+                - senderModel
+                - message
+              properties:
+                sender:
+                  type: string
+                  description: ID of the sender (adopter or owner)
+                senderModel:
+                  type: string
+                  enum: [Adopter, Owner]
+                message:
+                  type: string
+      responses:
+        "201":
+          description: Message added successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Match"
+        "400":
+          description: Invalid message data
+        "404":
+          description: Match not found
+        "500":
+          description: Add message error
+
+  /api/matches/{id}/discussion:
+    get:
+      summary: Get match discussion messages
+      tags:
+        - Matches
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Discussion messages
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  discussion:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        sender:
+                          type: string
+                        senderModel:
+                          type: string
+                        message:
+                          type: string
+                        timestamp:
+                          type: string
+                          format: date-time
+        "404":
+          description: Match not found
+        "500":
+          description: Get discussion error
+
+  # Admin Routes
+  /api/admin/stats:
+    get:
+      summary: Get API statistics
+      tags:
+        - Admin
+      responses:
+        "200":
+          description: API statistics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalAdopters:
+                    type: number
+                  totalOwners:
+                    type: number
+                  totalAnimals:
+                    type: number
+                  totalMatches:
+                    type: number
+        "500":
+          description: Error retrieving statistics
 
 components:
   schemas:
@@ -572,6 +1229,8 @@ components:
         updatedAt:
           type: string
           format: date-time
+        __v:
+          type: number
 
     Owner:
       type: object
@@ -603,6 +1262,8 @@ components:
         updatedAt:
           type: string
           format: date-time
+        __v:
+          type: number
 
     Animal:
       type: object
@@ -665,6 +1326,8 @@ components:
         updatedAt:
           type: string
           format: date-time
+        __v:
+          type: number
 
     Match:
       type: object
@@ -703,6 +1366,8 @@ components:
         updatedAt:
           type: string
           format: date-time
+        __v:
+          type: number
 
     Pagination:
       type: object
@@ -724,12 +1389,16 @@ components:
 
 tags:
   - name: Authentication
-    description: User registration endpoints
+    description: User registration and login endpoints
   - name: Adopters
-    description: Adopter management
+    description: Adopter management endpoints (GET, POST, PUT, DELETE)
   - name: Owners
-    description: Owner management
+    description: Owner management endpoints (GET, POST, PUT, DELETE)
   - name: Animals
-    description: Animal listings
+    description: Animal listings and management (GET, POST, PUT, DELETE)
   - name: Matches
-    description: Match between adopters and animals
+    description: Match creation and discussion management (GET, POST, PUT, DELETE, messages)
+  - name: Images
+    description: Image upload and deletion (POST, DELETE)
+  - name: Admin
+    description: Administrative endpoints for statistics

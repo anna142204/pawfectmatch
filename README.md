@@ -1,37 +1,182 @@
-# DevMobil IM-52
+# PawfectMatch API
 
-### Installation
+A RESTful API for connecting animal adopters with pets available for adoption, implemented with [Express][express] and [MongoDB][mongo].
 
-1. Clone the repository:
+[![license](https://img.shields.io/github/license/HEIG-VD/pawfectmatch)](https://opensource.org/licenses/MIT)
+
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Configuration](#configuration)
+- [API Resources](#api-resources)
+- [API Documentation](#api-documentation)
+- [Automated Tests](#automated-tests)
+- [License](#license)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+## Requirements
+
+- [Node.js][node] 18.x or higher
+- [MongoDB][mongo] 7.x or 8.x
+- [npm][npm] 9.x or higher
+
+## Installation
+
 ```bash
-git clone https://github.com/Chabloz/devmobil52.git
-cd devmobil52
+# Clone the repository
+git clone https://github.com/HEIG-VD/pawfectmatch.git
+cd pawfectmatch
+
+# Install dependencies
+npm ci
 ```
 
-2. Install dependencies:
-```bash
-npm install
-```
-
-### Development
+## Usage
 
 ```bash
+# Start the application in development mode with hot reload
 npm run dev
 ```
 
+The API will be available at [http://localhost:8989](http://localhost:8989).
 
-### Build
+### Other Scripts
 
 ```bash
+# Start the application in production mode
+npm start
+
+# Run automated tests
+npm test
+
+# Run tests with coverage report
+npm run test:coverage
+
+# Build the application (if applicable)
 npm run build
 ```
 
-### Preview
+## Configuration
+
+The application connects to MongoDB at `mongodb://localhost/pawfectmatch` by default.
+
+Use the following environment variables to customize the configuration:
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `DATABASE_URL` | MongoDB connection URL | `mongodb://localhost/pawfectmatch` |
+| `MONGODB_URI` | Alternative MongoDB connection URL | (uses `DATABASE_URL` if not set) |
+| `PORT` | Server port | `8989` |
+| `NODE_ENV` | Environment (development/production) | `development` |
+
+### Example with Custom MongoDB URL
 
 ```bash
-npm run preview
+DATABASE_URL=mongodb://myserver:27017/pawfectmatch npm start
 ```
 
-## 📄 License
+## API Resources
 
-This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
+This API allows you to work with the following resources:
+
+### Core Resources
+
+- **Adopters** - Users looking to adopt animals
+  - Register as an adopter
+  - Browse and filter adopters
+  - Update adopter profile and preferences
+  - Delete adopter account
+
+- **Owners** - Users offering animals for adoption
+  - Register as an owner
+  - Browse and filter owners
+  - Update owner profile
+  - Delete owner account (if no associated animals)
+
+- **Animals** - Pets available for adoption
+  - Create and manage animal listings
+  - Browse animals with filtering (species, city, name)
+  - Update animal information and availability
+  - Delete animal listings
+
+- **Matches** - Connections between adopters and animals
+  - Create matches between adopters and animals
+  - Manage match status (active/inactive)
+  - Exchange messages within a match discussion
+  - View discussion history
+
+### Related Resources
+
+- **Images** - Image upload and management
+  - Upload single or multiple images (up to 10 files)
+  - Delete images
+
+- **Admin** - Administrative endpoints
+  - Retrieve API statistics (total users, animals, matches)
+
+## API Documentation
+
+The complete API documentation is available in the [OpenAPI specification](openapi.yml).
+
+You can view the interactive documentation using:
+
+1. **Swagger UI** - Copy the `openapi.yml` content to https://editor.swagger.io/
+2. **ReDoc** - View at https://redocly.github.io/redoc/ (paste the YAML)
+
+### Key Features
+
+- **Authentication** - JWT-based token authentication for secure endpoints
+- **Pagination** - All list endpoints support pagination with `page` and `limit` parameters
+- **Filtering** - Filter resources by various criteria (firstName, lastName, email, city, species, etc.)
+- **Error Handling** - Comprehensive error responses with appropriate HTTP status codes
+- **Validation** - Request data validation with detailed error messages
+
+## Automated Tests
+
+This application includes an automated test suite using [Mocha][mocha], [Chai][chai], and [SuperTest][supertest].
+
+### Running Tests
+
+```bash
+# Run all tests
+npm test
+
+# Run tests with coverage
+npm run test:coverage
+
+# Run tests in watch mode
+npm run test:watch
+```
+
+The tests will attempt to connect to MongoDB at `mongodb://localhost/pawfectmatch-test`.
+
+### Test Coverage
+
+- **Authentication** - Registration, login, logout
+- **Adopters** - CRUD operations, filtering, pagination
+- **Owners** - CRUD operations, deletion with validation
+- **Animals** - CRUD operations, availability management
+- **Matches** - Creation, message handling, discussion management
+- **Images** - Upload and deletion
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## Support
+
+For issues, questions, or contributions, please visit the [GitHub repository](https://github.com/HEIG-VD/pawfectmatch).
+
+[chai]: https://www.chaijs.com
+[express]: https://expressjs.com
+[mocha]: https://mochajs.org
+[mongo]: https://www.mongodb.com
+[node]: https://nodejs.org
+[npm]: https://www.npmjs.com
+[supertest]: https://github.com/visionmedia/supertest#readme
