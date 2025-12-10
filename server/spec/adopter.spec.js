@@ -228,6 +228,168 @@ describe("DELETE /api/adopters/:id", function () {
   });
 });
 
+
+beforeEach(async () => await cleanUpDatabase());
+describe("PUT /api/adopters/:id", function () {
+  test("should update adopter fields and ignore password", async function () {
+    // 1. Register an adopter
+    const createRes = await supertest(app)
+      .post("/api/auth/register/adopter")
+      .send(adopterPayload)
+      .expect(201);
+
+    const adopterId = createRes.body.user._id;
+    expect(adopterId).toBeString();
+
+    // 2. Update fields (including a password which must be ignored)
+    const updatePayload = {
+      firstName: "UpdatedName",
+      about: "Nouvelle description",
+      address: { city: "Lausanne", zip: "1000" },
+      preferences: {
+        environment: ["appartement"],
+        species: ["chat"],
+        sizePreference: ["petit"]
+      },
+      password: "newPasswordShouldBeIgnored"
+    };
+
+    const res = await supertest(app)
+      .put(`/api/adopters/${adopterId}`)
+      .send(updatePayload)
+      .expect(200)
+      .expect("Content-Type", /json/);
+
+    // Assertions
+    expect(res.body).toBeObject();
+    expect(res.body.message).toEqual("Adopter updated successfully");
+
+    const adopter = res.body.adopter;
+    expect(adopter).toBeObject();
+    expect(adopter._id).toEqual(adopterId);
+    expect(adopter.firstName).toEqual(updatePayload.firstName);
+    expect(adopter.about).toEqual(updatePayload.about);
+    expect(adopter.address).toBeObject();
+    expect(adopter.address.city).toEqual(updatePayload.address.city);
+    expect(adopter.address.zip).toEqual(updatePayload.address.zip);
+
+    expect(adopter.preferences).toBeObject();
+    expect(adopter.preferences.environment).toBeArray();
+    expect(adopter.preferences.environment).toIncludeSameMembers(updatePayload.preferences.environment);
+    expect(adopter.preferences.species).toBeArray();
+    expect(adopter.preferences.species).toIncludeSameMembers(updatePayload.preferences.species);
+    expect(adopter.preferences.sizePreference).toBeArray();
+    expect(adopter.preferences.sizePreference).toIncludeSameMembers(updatePayload.preferences.sizePreference);
+
+    // password must not be returned/updated via this route
+    expect(adopter.password).toBeUndefined();
+
+    // mongoose metadata
+    expect(adopter.updatedAt).toBeString();
+    expect(adopter.__v).toBeNumber();
+  });
+
+  test("should return 404 when updating non-existent adopter", async function () {
+    const fakeId = "64a1b2c3d4e5f67890123456";
+
+    const res = await supertest(app)
+      .put(`/api/adopters/${fakeId}`)
+      .send({ firstName: "Nope" })
+      .expect(404)
+      .expect("Content-Type", /json/);
+
+    expect(res.body).toBeObject();
+    expect(res.body.error).toEqual("Adopter not found");
+  });
+});
+
+
+beforeEach(async () => await cleanUpDatabase());
+describe("GET /api/adopters/:id", function () {
+  test("should retrieve an adopter by id", async function () {
+    // 1. Register an adopter
+    const createRes = await supertest(app)
+      .post("/api/auth/register/adopter")
+      .send(adopterPayload)
+      .expect(201);
+
+    const adopterId = createRes.body.user._id;
+    expect(adopterId).toBeString();
+
+    // 2. Fetch adopter by id
+    const res = await supertest(app)
+      .get(`/api/adopters/${adopterId}`)
+      .expect(200)
+      .expect("Content-Type", /json/);
+
+    // Assertions
+    const fetched = res.body;
+    expect(fetched).toBeObject();
+    expect(fetched._id).toEqual(adopterId);
+    expect(fetched.firstName).toEqual(adopterPayload.firstName);
+    expect(fetched.lastName).toEqual(adopterPayload.lastName);
+    expect(fetched.email).toEqual(adopterPayload.email);
+    expect(fetched.age).toBeNumber();
+    expect(fetched.age).toEqual(adopterPayload.age);
+
+    // address
+    expect(fetched.address).toBeObject();
+    expect(fetched.address.zip).toEqual(adopterPayload.address.zip);
+    expect(fetched.address.city).toEqual(adopterPayload.address.city);
+
+    // about
+    if (adopterPayload.about) expect(fetched.about).toEqual(adopterPayload.about);
+
+    // preferences
+    expect(fetched.preferences).toBeObject();
+    expect(fetched.preferences.environment).toBeArray();
+    expect(fetched.preferences.environment).toIncludeSameMembers(
+      adopterPayload.preferences.environment
+    );
+    expect(fetched.preferences.species).toBeArray();
+    expect(fetched.preferences.species).toIncludeSameMembers(
+      adopterPayload.preferences.species
+    );
+    expect(fetched.preferences.sizePreference).toBeArray();
+    expect(fetched.preferences.sizePreference).toIncludeSameMembers(
+      adopterPayload.preferences.sizePreference
+    );
+
+    // mongoose metadata
+    expect(fetched.createdAt).toBeString();
+    expect(fetched.updatedAt).toBeString();
+    expect(fetched.__v).toBeNumber();
+
+    // basic keys present
+    expect(fetched).toContainAllKeys([
+      "_id",
+      "firstName",
+      "lastName",
+      "email",
+      "age",
+      "address",
+      "about",
+      "preferences",
+      "createdAt",
+      "updatedAt",
+      "__v",
+    ]);
+  });
+
+  test("should return 404 when adopter does not exist", async function () {
+    const fakeId = "64a1b2c3d4e5f67890123456";
+
+    const res = await supertest(app)
+      .get(`/api/adopters/${fakeId}`)
+      .expect(404)
+      .expect("Content-Type", /json/);
+
+    expect(res.body).toBeObject();
+    expect(res.body.error).toEqual("Adopter not found");
+  });
+});
+
+
 afterAll(async () => {
   await mongoose.disconnect();
 });
