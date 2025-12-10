@@ -7,6 +7,9 @@ import { wsServer } from './store/wsStore.mjs';
 import apiRouter from './routes/api.mjs';
 import mongoose from 'mongoose';
 import Admin from './models/admin.js';
+import fs from 'fs';
+import yaml from 'js-yaml';
+import swaggerUi from 'swagger-ui-express';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -39,6 +42,12 @@ mongoose.connect(process.env.DATABASE_URL || 'mongodb://127.0.0.1:27017/pawfect_
 
   
 const app = express();
+
+// Parse the OpenAPI document.
+const openApiDocument = yaml.load(fs.readFileSync('./openapi.yml'));
+// Serve the Swagger UI documentation.
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openApiDocument));
+
 const httpServer = http.createServer(app);
 
 
