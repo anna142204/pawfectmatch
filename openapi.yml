@@ -1,0 +1,735 @@
+openapi: 3.1.0
+info:
+  title: PawfectMatch API
+  description: >
+    API for PawfectMatch, a platform that connects animal adopters with pets available for adoption.
+    Users can register as adopters or owners, browse available animals, match with animals if the owner agrees,
+    and communicate through a discussion system.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8989
+    description: Development server
+
+paths:
+  # Authentication Endpoints
+  /api/auth/register/adopter:
+    post:
+      summary: Register a new adopter
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                  description: First name of the adopter
+                  example: Marie
+                lastName:
+                  type: string
+                  description: Last name of the adopter
+                  example: Martin
+                email:
+                  type: string
+                  format: email
+                  description: Email address (must be unique)
+                  example: marie.martin@example.com
+                password:
+                  type: string
+                  description: Password (minimum 6 characters)
+                  example: securePassword123
+                age:
+                  type: number
+                  description: Age of the adopter (minimum 18)
+                  example: 28
+                address:
+                  type: object
+                  properties:
+                    zip:
+                      type: string
+                      example: "1201"
+                    city:
+                      type: string
+                      example: Genève
+                about:
+                  type: string
+                  description: About the adopter (max 150 characters)
+                  example: Passionné par les animaux, je cherche un compagnon fidèle
+                preferences:
+                  type: object
+                  properties:
+                    environment:
+                      type: array
+                      items:
+                        type: string
+                        enum: [appartement, voiture, enfant, chien, chat, autre animaux]
+                      example: [appartement, enfant]
+                    species:
+                      type: array
+                      items:
+                        type: string
+                      example: [chat, chien]
+                    sizePreference:
+                      type: array
+                      items:
+                        type: string
+                        enum: [petit, moyen, grand]
+                      example: [petit, moyen]
+      responses:
+        "201":
+          description: Adopter registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  token:
+                    type: string
+                    description: JWT token for authentication
+                  user:
+                    $ref: "#/components/schemas/Adopter"
+        "400":
+          description: Validation error
+
+  /api/auth/register/owner:
+    post:
+      summary: Register a new owner
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                  example: John
+                lastName:
+                  type: string
+                  example: Doe
+                email:
+                  type: string
+                  format: email
+                  example: john.doe@example.com
+                password:
+                  type: string
+                  example: securePassword123
+                phoneNumber:
+                  type: string
+                  example: "+41 79 123 45 67"
+                address:
+                  type: object
+                  properties:
+                    zip:
+                      type: string
+                    city:
+                      type: string
+                about:
+                  type: string
+                  maxLength: 300
+      responses:
+        "201":
+          description: Owner registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  token:
+                    type: string
+                  user:
+                    $ref: "#/components/schemas/Owner"
+
+  # Adopter Endpoints
+  /api/adopters:
+    get:
+      summary: Get list of all adopters with pagination
+      tags:
+        - Adopters
+      parameters:
+        - name: firstName
+          in: query
+          schema:
+            type: string
+        - name: lastName
+          in: query
+          schema:
+            type: string
+        - name: email
+          in: query
+          schema:
+            type: string
+        - name: city
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: List of adopters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  adopters:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Adopter"
+                  pagination:
+                    $ref: "#/components/schemas/Pagination"
+
+  /api/adopters/{id}:
+    delete:
+      summary: Delete an adopter by ID
+      tags:
+        - Adopters
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Adopter deleted successfully
+        "404":
+          description: Adopter not found
+
+  # Owner Endpoints
+  /api/owners:
+    get:
+      summary: Get list of all owners with pagination
+      tags:
+        - Owners
+      parameters:
+        - name: firstName
+          in: query
+          schema:
+            type: string
+        - name: lastName
+          in: query
+          schema:
+            type: string
+        - name: email
+          in: query
+          schema:
+            type: string
+        - name: city
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: List of owners
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  owners:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Owner"
+                  pagination:
+                    $ref: "#/components/schemas/Pagination"
+
+  /api/owners/{id}:
+    delete:
+      summary: Delete an owner by ID (only if no associated animals)
+      tags:
+        - Owners
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Owner deleted successfully
+        "400":
+          description: Cannot delete owner with associated animals
+        "404":
+          description: Owner not found
+
+  # Animal Endpoints
+  /api/animals:
+    post:
+      summary: Create a new animal
+      tags:
+        - Animals
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                species:
+                  type: string
+                  example: dog
+                race:
+                  type: string
+                  example: Labrador
+                name:
+                  type: string
+                  example: Buddy
+                age:
+                  type: number
+                  example: 3
+                sex:
+                  type: string
+                  enum: [male, female]
+                size:
+                  type: string
+                  enum: [petit, moyen, grand]
+                  example: grand
+                weight:
+                  type: string
+                  enum: ["0-5", "5-10", "10-20", "20-30", "30+"]
+                  example: "20-30"
+                address:
+                  type: object
+                  properties:
+                    city:
+                      type: string
+                    zip:
+                      type: string
+                image:
+                  type: string
+                  format: url
+                price:
+                  type: number
+                  example: 150
+                ownerId:
+                  type: string
+                  description: ID of the owner
+                availability:
+                  type: boolean
+                  default: true
+                description:
+                  type: string
+                  maxLength: 300
+                characteristics:
+                  type: object
+                  properties:
+                    environment:
+                      type: array
+                      items:
+                        type: string
+                        enum: [appartement, voiture, enfant, chien, chat, autre animaux]
+                      minItems: 1
+                    dressage:
+                      type: array
+                      items:
+                        type: string
+                        enum: [éduqué, facile à dresser, habitué à la laisse, têtu]
+                      minItems: 1
+                    personality:
+                      type: array
+                      items:
+                        type: string
+                        enum: [calme, énergique, indépendant, affectueux, curieux, joueur, bavard, explorateur, câlin, protecteur, territorial, sociable, timide, peureux]
+                      minItems: 1
+      responses:
+        "201":
+          description: Animal created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  animal:
+                    $ref: "#/components/schemas/Animal"
+        "400":
+          description: Validation error
+
+    get:
+      summary: Get list of all animals with pagination and filtering
+      tags:
+        - Animals
+      parameters:
+        - name: species
+          in: query
+          schema:
+            type: string
+        - name: name
+          in: query
+          schema:
+            type: string
+        - name: city
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: List of animals
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  animals:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Animal"
+                  pagination:
+                    $ref: "#/components/schemas/Pagination"
+
+  /api/animals/{id}:
+    delete:
+      summary: Delete an animal by ID
+      tags:
+        - Animals
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Animal deleted successfully
+        "404":
+          description: Animal not found
+
+  # Match Endpoints
+  /api/matches:
+    post:
+      summary: Create a new match between adopter and animal
+      tags:
+        - Matches
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                adopterId:
+                  type: string
+                  description: ID of the adopter
+                animalId:
+                  type: string
+                  description: ID of the animal
+                isActive:
+                  type: boolean
+                  default: true
+      responses:
+        "201":
+          description: Match created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  match:
+                    $ref: "#/components/schemas/Match"
+        "400":
+          description: Invalid request or animal not available
+        "404":
+          description: Adopter or animal not found
+        "409":
+          description: Match already exists
+
+    get:
+      summary: Get list of all matches with pagination
+      tags:
+        - Matches
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: List of matches
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  matches:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Match"
+                  pagination:
+                    $ref: "#/components/schemas/Pagination"
+
+  /api/matches/{id}:
+    delete:
+      summary: Delete a match by ID
+      tags:
+        - Matches
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Match deleted successfully
+        "404":
+          description: Match not found
+
+components:
+  schemas:
+    Adopter:
+      type: object
+      properties:
+        _id:
+          type: string
+          format: uuid
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        age:
+          type: number
+        address:
+          type: object
+          properties:
+            zip:
+              type: string
+            city:
+              type: string
+        about:
+          type: string
+        preferences:
+          type: object
+          properties:
+            environment:
+              type: array
+              items:
+                type: string
+            species:
+              type: array
+              items:
+                type: string
+            sizePreference:
+              type: array
+              items:
+                type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Owner:
+      type: object
+      properties:
+        _id:
+          type: string
+          format: uuid
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        phoneNumber:
+          type: string
+        address:
+          type: object
+          properties:
+            zip:
+              type: string
+            city:
+              type: string
+        about:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Animal:
+      type: object
+      properties:
+        _id:
+          type: string
+          format: uuid
+        species:
+          type: string
+        race:
+          type: string
+        name:
+          type: string
+        age:
+          type: number
+        sex:
+          type: string
+          enum: [male, female]
+        size:
+          type: string
+          enum: [petit, moyen, grand]
+        weight:
+          type: string
+        address:
+          type: object
+          properties:
+            city:
+              type: string
+            zip:
+              type: string
+        image:
+          type: string
+          format: url
+        price:
+          type: number
+        ownerId:
+          type: string
+        availability:
+          type: boolean
+        description:
+          type: string
+        characteristics:
+          type: object
+          properties:
+            environment:
+              type: array
+              items:
+                type: string
+            dressage:
+              type: array
+              items:
+                type: string
+            personality:
+              type: array
+              items:
+                type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Match:
+      type: object
+      properties:
+        _id:
+          type: string
+          format: uuid
+        adopterId:
+          oneOf:
+            - type: string
+            - $ref: "#/components/schemas/Adopter"
+        animalId:
+          oneOf:
+            - type: string
+            - $ref: "#/components/schemas/Animal"
+        isActive:
+          type: boolean
+        discussion:
+          type: array
+          items:
+            type: object
+            properties:
+              sender:
+                type: string
+              senderModel:
+                type: string
+                enum: [Adopter, Owner]
+              message:
+                type: string
+              timestamp:
+                type: string
+                format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Pagination:
+      type: object
+      properties:
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+        pages:
+          type: integer
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+tags:
+  - name: Authentication
+    description: User registration endpoints
+  - name: Adopters
+    description: Adopter management
+  - name: Owners
+    description: Owner management
+  - name: Animals
+    description: Animal listings
+  - name: Matches
+    description: Match between adopters and animals
