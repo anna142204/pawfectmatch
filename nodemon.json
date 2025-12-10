@@ -1,0 +1,11 @@
+{
+  "watch": [
+    "app.js",
+    "bin/www.js",
+    "config.js",
+    "models/**/*.js",
+    "openapi.yml",
+    "routes/**/*.js",
+    "unrest/**/*.js"
+  ]
+}
