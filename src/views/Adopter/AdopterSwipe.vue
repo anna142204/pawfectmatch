@@ -126,17 +126,18 @@ const nextAnimal = () => {
 
 <style scoped>
 .swipe-page {
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   background-color: var(--color-neutral-100);
-  padding-bottom: 80px;
+  overflow: hidden;
 }
 
 .swipe-header {
   padding: var(--spacing-8) var(--spacing-6);
   padding-top: var(--spacing-12);
   background-color: var(--color-neutral-100);
+  flex-shrink: 0;
 }
 
 .swipe-title {
@@ -155,14 +156,16 @@ const nextAnimal = () => {
   justify-content: center;
   align-items: center;
   padding: 0 var(--spacing-6);
+  padding-bottom: 100px;
   position: relative;
-  min-height: 600px;
+  overflow: hidden;
 }
 
 .cards-stack {
   width: 100%;
   max-width: 400px;
-  height: 640px;
+  height: 100%;
+  max-height: 640px;
   position: relative;
 }
 
