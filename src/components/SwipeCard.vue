@@ -293,7 +293,7 @@ const handleMouseUp = () => {
   backdrop-filter: blur(8px);
   border-radius: var(--radius-full);
   font-family: var(--font-family);
-  font-size: var(--body-sm-size);
+  font-size: var(--body-base-size);
   color: var(--color-neutral-white);
   font-weight: var(--font-weight-medium);
 }

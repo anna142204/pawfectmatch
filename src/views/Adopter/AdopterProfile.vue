@@ -266,9 +266,9 @@ const handleContact = () => {
   display: flex;
   flex-direction: column;
   gap: 15px;
-  padding: 24px;
+  padding: 24px 40px;
   background: white;
-  margin-top: -20px;
+  margin-top: -100px;
   border-radius: 20px 20px 0 0;
   position: relative;
   z-index: 1;
@@ -284,7 +284,7 @@ const handleContact = () => {
 }
 
 .header-left {
-  width: 100%;
+  width: 150%;
 }
 
 .profile-name {
@@ -421,30 +421,5 @@ const handleContact = () => {
   width: 100%;
 }
 
-@media (max-width: 480px) {
-  .photo-section {
-    height: 320px;
-  }
 
-  .content-section {
-    padding: 20px;
-    margin-top: -16px;
-  }
-
-  .profile-name {
-    font-size: 24px;
-  }
-
-  .profile-header {
-    gap: 12px;
-  }
-
-  .edit-button {
-flex:1;
-  }
-
-  .preferences-grid {
-    grid-template-columns: 1fr;
-  }
-}
 </style>

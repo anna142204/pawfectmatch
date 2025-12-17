@@ -96,7 +96,7 @@ const handleCardClick = (animal) => {
   <div class="swipe-page">
     <!-- En-tête -->
     <div class="swipe-header">
-      <h1 class="swipe-title">Swipe</h1>
+      <h1 class="swipe-title text-h1 text-primary-700">Swipe</h1>
     </div>
 
     <!-- Zone de swipe -->
@@ -145,18 +145,13 @@ const handleCardClick = (animal) => {
 }
 
 .swipe-header {
-  padding: var(--spacing-8) var(--spacing-6);
+  padding: var(--spacing-2) var(--spacing-6);
   padding-top: var(--spacing-12);
   background-color: var(--color-neutral-100);
   flex-shrink: 0;
 }
 
 .swipe-title {
-  font-family: var(--font-family);
-  font-size: var(--heading-h1-size);
-  font-weight: var(--heading-h1-weight);
-  line-height: var(--heading-h1-height);
-  color: var(--color-neutral-black);
   margin: 0;
   text-align: center;
 }
