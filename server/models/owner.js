@@ -8,11 +8,13 @@ const ownerSchema = new Schema({
         type: String,
         required: true,
         trim: true,
+        maxlength: 100,
     },
     lastName: {
         type: String,
         required: true,
         trim: true,
+        maxlength: 100,
     },
     email: {
         type: String,
@@ -21,33 +23,39 @@ const ownerSchema = new Schema({
         lowercase: true,
         trim: true,
         match: [/^\S+@\S+\.\S+$/, 'Invalid email format'],
+        maxlength: 254,
     },
     password: {
         type: String,
         required: true,
         minlength: 6,
+        maxlength: 128,
     },
     address: {
         zip: {
             type: String,
             required: true,
             trim: true,
+            maxlength: 12,
         },
         city: {
             type: String,
             required: true,
             trim: true,
+            maxlength: 100,
         },
     },
     societyName: {
         type: String,
         required: false,
         trim: true,
+        maxlength: 150,
     },
     phoneNumber: {
         type: String,
         required: false,
         trim: true,
+        maxlength: 30,
     },
     about: {
         type: String,
