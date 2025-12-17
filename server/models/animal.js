@@ -6,16 +6,19 @@ const animalSchema = new Schema({
         type: String,
         required: true,
         trim: true,
+        maxlength: 50,
     },
     race: {
         type: String,
         required: false,
         trim: true,
+        maxlength: 80,
     },
     name: {
         type: String,
         required: true,
         trim: true,
+        maxlength: 80,
     },
     age: {
         type: Number,
@@ -26,33 +29,39 @@ const animalSchema = new Schema({
         type: String,
         enum: ['male', 'female'],
         required: true,
+        maxlength: 10,
     },
     size: {
         type: String,
         enum: ['petit', 'moyen', 'grand'],
         required: false,
+        maxlength: 10,
     },
     weight: {
         type: String,
         enum: ['0-5', '5-10', '10-20', '20-30', '30+'],
         required: false,
+        maxlength: 10,
     },
     address: {
         city: {
             type: String,
             required: true,
             trim: true,
+            maxlength: 100,
         },
         zip: {
             type: String,
             required: true,
             trim: true,
+            maxlength: 12,
         },
     },
     image: {
         type: String,
         required: true, // URL ou chemin d’image obligatoire
         trim: true,
+        maxlength: 500,
     },
     price: {
         type: Number,
@@ -79,6 +88,7 @@ const animalSchema = new Schema({
             type: [{
                 type: String,
                 enum: ['appartement', 'voiture', 'enfant', 'chien', 'chat', 'autre animaux'],
+                maxlength: 30,
             }],
             required: true,
             validate: {
@@ -90,6 +100,7 @@ const animalSchema = new Schema({
             type: [{
                 type: String,
                 enum: ['éduqué', 'facile à dresser', 'habitué à la laisse', 'têtu'],
+                maxlength: 30,
             }],
             required: true,
             validate: {
@@ -105,6 +116,7 @@ const animalSchema = new Schema({
                     'joueur', 'bavard', 'explorateur', 'câlin', 'protecteur',
                     'territorial', 'sociable', 'timide', 'peureux'
                 ],
+                maxlength: 30,
             }],
             required: true,
             validate: {
