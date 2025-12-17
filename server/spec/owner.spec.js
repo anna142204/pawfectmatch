@@ -248,6 +248,161 @@ describe("DELETE /api/owners/:id", function () {
   });
 });
 
+
+beforeEach(async () => await cleanUpDatabase());
+describe("GET /api/owners/:id", function () {
+  test("should retrieve an owner by id with their animals", async function () {
+    // 1. Register an owner
+    const ownerRes = await supertest(app)
+      .post("/api/auth/register/owner")
+      .send(ownerPayload)
+      .expect(201);
+
+    const ownerId = ownerRes.body.user._id;
+    expect(ownerId).toBeString();
+
+    // 2. Create animals for this owner
+    const baseAnimal = {
+      species: "dog",
+      race: "Labrador",
+      age: 3,
+      sex: "male",
+      size: "grand",
+      weight: "20-30",
+      address: { city: "Lausanne", zip: "1004" },
+      image: "https://example.com/images/buddy.jpg",
+      price: 150,
+      ownerId,
+      availability: true,
+      description: "Friendly and energetic dog",
+      characteristics: {
+        environment: ["appartement", "chien"],
+        dressage: ["éduqué", "habitué à la laisse"],
+        personality: ["affectueux", "joueur", "sociable"],
+      },
+    };
+
+    const animal1 = { ...baseAnimal, name: "Buddy" };
+    const animal2 = { ...baseAnimal, name: "Max" };
+
+    await supertest(app).post("/api/animals").send(animal1).expect(201);
+    await supertest(app).post("/api/animals").send(animal2).expect(201);
+
+    // 3. Fetch owner by id
+    const res = await supertest(app)
+      .get(`/api/owners/${ownerId}`)
+      .expect(200)
+      .expect("Content-Type", /json/);
+
+    const fetched = res.body;
+    expect(fetched).toBeObject();
+    expect(fetched._id).toEqual(ownerId);
+    expect(fetched.firstName).toEqual(ownerPayload.firstName);
+    expect(fetched.lastName).toEqual(ownerPayload.lastName);
+    expect(fetched.email).toEqual(ownerPayload.email);
+
+    expect(fetched.address).toBeObject();
+    expect(fetched.address.city).toEqual(ownerPayload.address.city);
+    expect(fetched.address.zip).toEqual(ownerPayload.address.zip);
+
+    if (ownerPayload.phoneNumber) expect(fetched.phoneNumber).toEqual(ownerPayload.phoneNumber);
+    if (ownerPayload.about) expect(fetched.about).toEqual(ownerPayload.about);
+
+    expect(fetched.animals).toBeArray();
+    expect(fetched.animals).toHaveLength(2);
+    const names = fetched.animals.map((a) => a.name);
+    expect(names).toIncludeSameMembers(["Buddy", "Max"]);
+    fetched.animals.forEach((a) => {
+      expect(a.ownerId).toEqual(ownerId);
+      expect(a.species).toEqual(baseAnimal.species);
+    });
+
+    expect(fetched.createdAt).toBeString();
+    expect(fetched.updatedAt).toBeString();
+    expect(fetched.__v).toBeNumber();
+  });
+
+  test("should return 404 when owner does not exist", async function () {
+    const fakeId = "64a1b2c3d4e5f67890123456";
+
+    const res = await supertest(app)
+      .get(`/api/owners/${fakeId}`)
+      .expect(404)
+      .expect("Content-Type", /json/);
+
+    expect(res.body).toBeObject();
+    expect(res.body.error).toEqual("Owner not found");
+  });
+});
+
+//write the PUT test here
+
+beforeEach(async () => await cleanUpDatabase());
+describe("PUT /api/owners/:id", function () {
+  test("should update an owner and return the updated document", async function () {
+    // 1. Register an owner
+    const createRes = await supertest(app)
+      .post("/api/auth/register/owner")
+      .send(ownerPayload)
+      .expect(201);
+
+    const ownerId = createRes.body.user._id;
+
+    // 2. Prepare updates (password should be ignored)
+    const updates = {
+      firstName: "Updated",
+      lastName: "Owner",
+      phoneNumber: "+41 78 000 00 00",
+      about: "Updated bio",
+      address: { city: "Geneva", zip: "1200" },
+      password: "shouldNotBeUpdated",
+    };
+
+    // 3. Update owner
+    const res = await supertest(app)
+      .put(`/api/owners/${ownerId}`)
+      .send(updates)
+      .expect(200)
+      .expect("Content-Type", /json/);
+
+    // 4. Assertions
+    expect(res.body).toBeObject();
+    expect(res.body.message).toEqual("Owner updated successfully");
+    expect(res.body.owner).toBeObject();
+
+    const updated = res.body.owner;
+    expect(updated._id).toEqual(ownerId);
+    expect(updated.firstName).toEqual(updates.firstName);
+    expect(updated.lastName).toEqual(updates.lastName);
+    expect(updated.phoneNumber).toEqual(updates.phoneNumber);
+    expect(updated.about).toEqual(updates.about);
+    expect(updated.address).toBeObject();
+    expect(updated.address.city).toEqual(updates.address.city);
+    expect(updated.address.zip).toEqual(updates.address.zip);
+
+    // The password should not be returned/updated via this route
+    expect(updated.password).toBeUndefined();
+
+    expect(updated.createdAt).toBeString();
+    expect(updated.updatedAt).toBeString();
+    expect(updated.__v).toBeNumber();
+  });
+
+  test("should return 404 when updating a non-existent owner", async function () {
+    const fakeId = "64a1b2c3d4e5f67890123456";
+
+    const res = await supertest(app)
+      .put(`/api/owners/${fakeId}`)
+      .send({ firstName: "Nobody" })
+      .expect(404)
+      .expect("Content-Type", /json/);
+
+    expect(res.body).toBeObject();
+    expect(res.body.error).toEqual("Owner not found");
+  });
+});
+
+
 afterAll(async () => {
   await mongoose.disconnect();
 });
