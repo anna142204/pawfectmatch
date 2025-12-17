@@ -1,60 +1,55 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { MapPinIcon } from "lucide-vue-next";
 import Menu from '@/components/Menu.vue';
 import Button from '@/components/Button.vue';
-import TagButton from '@/components/TagButton.vue';
+import BackButton from "../../components/BackButton.vue";
+
 
 const router = useRouter();
+const route = useRoute();
 
 const user = ref(null);
 const loading = ref(true);
 const error = ref('');
 
+const viewerType = computed(() => localStorage.getItem('user_type'));
+const loggedInUserId = computed(() => localStorage.getItem('user_id'));
+
+// Si l'owner visite: /owner/adopter/:id  -> on prend l'id du profil dans l'URL
+// Sinon (adopter): /adopter/profile      -> on prend son propre id
+const profileAdopterId = computed(() => {
+  return route.params?.id ? String(route.params.id) : String(loggedInUserId.value || '');
+});
+
+const isSelfView = computed(() => {
+  return viewerType.value === 'adopter' && profileAdopterId.value && profileAdopterId.value === String(loggedInUserId.value || '');
+});
+
 const adoptedCount = computed(() => 1); // À adapter selon les données réelles
 const requestsCount = computed(() => 2); // À adapter selon les données réelles
-const rating = computed(() => '5,5/6');
 
-// Format les préférences depuis les données utilisateur
 const formattedPreferences = computed(() => {
-  if (!user.value?.preferences) return [];
-  
-  const prefs = [];
-  
-  // Ajouter les préférences d'environnement
-  if (user.value.preferences.environment?.length > 0) {
-    user.value.preferences.environment.forEach(env => {
-      prefs.push({ label: env, type: 'environment' });
-    });
-  }
-  
-  // Ajouter les espèces recherchées
-  if (user.value.preferences.species?.length > 0) {
-    user.value.preferences.species.forEach(species => {
-      prefs.push({ label: species, type: 'species' });
-    });
-  }
-  
-  // Ajouter les tailles préférées
-  if (user.value.preferences.sizePreference?.length > 0) {
-    user.value.preferences.sizePreference.forEach(size => {
-      prefs.push({ label: size, type: 'size' });
-    });
-  }
-  
-  return prefs;
+  const prefsRaw = user.value?.preferences;
+  if (!prefsRaw) return [[], []];
+
+  const prefs = Array.isArray(prefsRaw)
+      ? prefsRaw
+      : Object.values(prefsRaw).flat();
+
+  const mid = Math.ceil(prefs.length / 2);
+  return [prefs.slice(0, mid), prefs.slice(mid)];
 });
 
 onMounted(async () => {
   try {
-    const userId = localStorage.getItem('user_id');
-    if (!userId) {
+    if (!profileAdopterId.value) {
       router.push('/login');
       return;
     }
 
-    const response = await fetch(`/api/adopters/${userId}`, {
+    const response = await fetch(`/api/adopters/${profileAdopterId.value}`, {
       credentials: 'include'
     });
 
@@ -74,17 +69,23 @@ onMounted(async () => {
 const handleLogout = () => {
   router.push('/logout');
 };
+
 const handleEdit = () => {
-  router.push('/')
+  router.push('/');
 };
 
+// Action "Contacter" côté owner
+// Ici on redirige vers la liste des discussions owner en passant l'id en query (pour pré-sélectionner plus tard si tu veux)
+const handleContact = () => {
+  router.push({ name: 'OwnerDiscussions', query: { adopterId: profileAdopterId.value } });
+};
 </script>
 
 <template>
   <div class="profile-page">
-    <!-- Back button -->
-    <button @click="router.back()" class="back-button">←</button>
-
+    <div v-if="!isSelfView">
+    <BackButton/>
+  </div>
     <!-- Loading -->
     <div v-if="loading" class="loading">
       <p>Chargement...</p>
@@ -104,16 +105,35 @@ const handleEdit = () => {
 
       <!-- Content Section -->
       <div class="content-section">
-        <!-- Profile Header with Name and Edit Button -->
+        <!-- Profile Header with Name and Action Button -->
         <div class="profile-header">
           <div class="header-left">
             <h1 class="profile-name">{{ user.firstName }} {{ user.lastName }}</h1>
             <div class="profile-meta">
-            <p>{{ user.age }} ans </p>
+              <p>{{ user.age }} ans </p>
               <p class="profile-location"><MapPinIcon size="20px"/> {{ user.address?.city }}</p>
             </div>
           </div>
-          <Button variant="primary" size="sm" @click="handleEdit" class="edit-button">Modifier</Button>
+
+          <Button
+              v-if="isSelfView"
+              variant="primary"
+              size="sm"
+              @click="handleEdit"
+              class="edit-button"
+          >
+            Modifier
+          </Button>
+
+          <Button
+              v-else
+              variant="primary"
+              size="sm"
+              @click="handleContact"
+              class="edit-button"
+          >
+            Contacter
+          </Button>
         </div>
 
         <!-- Stats Section -->
@@ -131,32 +151,36 @@ const handleEdit = () => {
         <!-- About Section -->
         <section class="about-section">
           <div v-if="user.description">
-          <h2 class="section-title">À propos</h2>
-          <p class="about-text">
-            {{ user.description }}
-          </p>
+            <h2 class="section-title">À propos</h2>
+            <p class="about-text">
+              {{ user.description }}
+            </p>
           </div>
         </section>
 
-        <!-- Preferences Section -->
         <section class="preferences-section">
           <h2 class="section-title">Préférences</h2>
-          <div class="preferences-grid" v-if="formattedPreferences.length > 0">
-            <TagButton 
-              v-for="(pref, idx) in formattedPreferences" 
-              :key="idx"
-              :label="pref.label"
-            />
+
+          <div class="preferences-grid" v-if="formattedPreferences.flat().length > 0">
+            <div class="chars">
+              <div class="char-col" v-for="(col, idx) in formattedPreferences" :key="idx">
+                <ul>
+                  <li v-for="(c, i) in col" :key="i" class="text-body-base">
+                    <span class="bullet"></span>{{ c }}
+                  </li>
+                </ul>
+              </div>
+            </div>
           </div>
           <p v-else class="no-preferences">Aucune préférence renseignée</p>
         </section>
 
-        <!-- Logout Button -->
-        <div class="logout-section">
-          <Button 
-            variant="secondary" 
-            @click="handleLogout"
-            class="logout-btn"
+        <!-- Logout Button (uniquement si c'est son propre profil) -->
+        <div v-if="isSelfView" class="logout-section">
+          <Button
+              variant="secondary"
+              @click="handleLogout"
+              class="logout-btn"
           >
             Se déconnecter
           </Button>
@@ -345,18 +369,38 @@ const handleEdit = () => {
 }
 
 /* Preferences Section */
-.preferences-section {
+
+.chars {
   display: flex;
-  flex-direction: column;
-  gap: 16px;
+  gap: var(--spacing-4);
+  padding: var(--spacing-4) 0;
 }
 
-.preferences-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
+.char-col {
+  flex: 1;
 }
 
+.char-col ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.char-col li {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-1) 0;
+  color: var(--color-neutral-700);
+}
+
+.bullet {
+  width: 12px;
+  height: 12px;
+  background: var(--color-accent-600);
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
 .no-preferences {
   margin: 0;
   font-size: 13px;

@@ -29,21 +29,12 @@ onMounted(async () => {
 
     const animal = await response.json();
 
-    // Convertir l'âge numérique en format string pour le formulaire
-    const ageMapping = {
-      0: '0-1',
-      1: '1-3',
-      3: '3-7',
-      7: '7+'
-    };
-    const ageString = ageMapping[animal.age] || '1-3';
-
     // Préparer les données pour le formulaire général
     const generalData = {
       name: animal.name,
       species: animal.species,
       race: animal.race || '',
-      age: ageString,
+      age: animal.age,
       sex: animal.sex,
       city: animal.address?.city || '',
       zip: animal.address?.zip || '',

@@ -48,13 +48,9 @@ const isFullBleed = computed(() => {
 
 <template>
   <Toast />
-  <div :class="{ 'app-content': !isAuthPage && !isFullBleed }">
     <router-view />
-  </div>
 </template>
 
 <style scoped>
-.app-content {
-  padding: 0 var(--spacing-7);
-}
+
 </style>

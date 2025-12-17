@@ -73,13 +73,6 @@ const weightLabels = {
   '30+': '30+ kg'
 };
 
-const AGE_MAPPING = {
-  '0-1': 0,
-  '1-3': 1,
-  '3-7': 3,
-  '7+': 7
-};
-
 // Charger toutes les données sauvegardées
 onMounted(() => {
   formData.value.general = JSON.parse(localStorage.getItem('animalFormData') || '{}');
@@ -201,13 +194,12 @@ const handleSubmit = async () => {
     // Préparer les données pour l'API
     const firstImage = formData.value.media.images[0];
     const imageUrl = typeof firstImage === 'string' ? firstImage : firstImage.url;
-    const ageValue = AGE_MAPPING[formData.value.general.age] ?? 1;
 
     const animalData = {
       name: formData.value.general.name,
       species: formData.value.general.species,
       race: formData.value.general.race || '',
-      age: ageValue,
+      age: formData.value.general.age,
       sex: formData.value.general.sex,
       size: formData.value.general.size || undefined,
       weight: formData.value.general.weight || undefined,

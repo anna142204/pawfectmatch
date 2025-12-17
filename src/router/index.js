@@ -23,7 +23,6 @@ import OwnerAnimals from '../views/Owner/OwnerAnimals.vue'
 import OwnerRequests from '../views/Owner/OwnerRequests.vue'
 import OwnerDiscussions from '../views/Owner/OwnerDiscussions.vue'
 import OwnerConversation from '../views/Owner/OwnerConversation.vue'
-import OwnerProfileAdopter from '../views/Owner/OwnerProfileAdopter.vue'
 
 // Animal Forms
 import AnimalAddFormGeneral from '../views/Animal/AnimalAddFormGeneral.vue'
@@ -95,7 +94,7 @@ const routes = [
     path: '/adopter/profile',
     name: 'AdopterProfile',
     component: AdopterProfile,
-    meta: { requiresAuth: true, userType: 'adopter' }
+    meta: { requiresAuth: true, userType: 'adopter'}
   },
   {
     path: '/adopter/swipe',
@@ -107,7 +106,7 @@ const routes = [
     path: '/adopter/animal/:id',
     name: 'AdopterAnimalDetails',
     component: AdopterAnimalDetails,
-    meta: { requiresAuth: true, userType: 'adopter', fullBleed: true }
+    meta: { requiresAuth: true, userType: 'adopter'}
   },
   {
     path: '/adopter/discussions',
@@ -174,7 +173,7 @@ const routes = [
   {
     path: '/owner/adopter/:id',
     name: 'OwnerProfileAdopter',
-    component: OwnerProfileAdopter,
+    component: AdopterProfile,
     meta: { requiresAuth: true, userType: 'owner' }
   },
 

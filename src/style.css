@@ -30,6 +30,7 @@ button,
 }
 
 :root {
+  --general-padding: 0 var(--spacing-7);
   /* ============================================ */
   /* COLORS - PRIMARY */
   /* ============================================ */
@@ -48,17 +49,17 @@ button,
   /* ============================================ */
   /* COLORS - SECONDARY */
   /* ============================================ */
-  --color-secondary-50: #ffe5e8;
-  --color-secondary-100: #ffcccc;
-  --color-secondary-200: #ffb3b3;
-  --color-secondary-300: #ff9999;
-  --color-secondary-400: #ff8080;
-  --color-secondary-500: #ff6666;
-  --color-secondary-600: #ff4d4d;
-  --color-secondary-700: #ff3333;
-  --color-secondary-800: #cc0000;
-  --color-secondary-900: #990000;
-  --color-secondary-950: #660000;
+  --color-secondary-50: #FEF2F3;
+  --color-secondary-100: #FDE6E8;
+  --color-secondary-200: #FBD0D4;
+  --color-secondary-300: #F7AAB3;
+  --color-secondary-400: #F38795;
+  --color-secondary-500: #E84B64;
+  --color-secondary-600: #D42A4C;
+  --color-secondary-700: #B21E40;
+  --color-secondary-800: #961B3B;
+  --color-secondary-900: #801B38;
+  --color-secondary-950: #470A1A;
 
   /* ============================================ */
   /* COLORS - ACCENT */

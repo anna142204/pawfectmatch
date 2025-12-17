@@ -3,8 +3,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import Menu from '@/components/Menu.vue';
 import BackButton from '@/components/BackButton.vue';
-import Button from '@/components/Button.vue';
-import { Cat, MapPin, Mars, Heart, Home } from 'lucide-vue-next';
+import { Cat, MapPin, Mars, Venus, Heart, User } from 'lucide-vue-next';
 
 const router = useRouter();
 const route = useRoute();
@@ -46,79 +45,122 @@ const charColumns = computed(() => {
   const mid = Math.ceil(chars.length / 2);
   return [chars.slice(0, mid), chars.slice(mid)];
 });
+
+const ownerName = computed(() => {
+  const o = animal.value?.ownerId;
+  if (!o) return '';
+  return [o.firstName, o.lastName].filter(Boolean).join(' ');
+});
+
+const ownerProfileTo = computed(() => {
+  const ownerId = animal.value?.ownerId?._id;
+  if (!ownerId) return null;
+  return { name: 'AdopterProfileOwner', params: { id: ownerId } };
+});
+
+const formatPrice = (price) => {
+  if (price === null || price === undefined || price === '') return '';
+  const n = Number(price);
+  if (isNaN(n)) return String(price);
+  return `${n} CHF`;
+};
 </script>
 
 <template>
   <div class="animal-page">
-    <div class="hero">
-      <BackButton @click="goBackToSwipe" />
-      <img :src="animal?.image || '/images/sample-cat.jpg'" alt="photo animal" class="hero-img"/>
+    <!-- Loading -->
+    <div v-if="loading" class="loading">
+      <p>Chargement...</p>
     </div>
 
-    <section class="card">
-      <template v-if="loading">
-        <div style="text-align:center; padding:2rem;">Chargement...</div>
-      </template>
-      <template v-else-if="error">
-        <div style="color:red; text-align:center; padding:2rem;">{{ error }}</div>
-      </template>
-      <template v-else-if="animal">
-        <div class="card-header">
-          <div class="title">
+    <!-- Error -->
+    <div v-else-if="error" class="error-message">
+      <p>{{ error }}</p>
+    </div>
+
+    <!-- Animal Content -->
+    <div v-else-if="animal" class="profile-wrapper">
+      <!-- Full Screen Photo Section -->
+      <div class="photo-section">
+        <BackButton @click="goBackToSwipe" variant="overlay" />
+        <img :src="animal?.image || '/images/sample-cat.jpg'" alt="photo animal" class="animal-photo"/>
+      </div>
+
+      <!-- Content Section -->
+      <div class="content-section">
+        <!-- Animal Header with Name and owner Logo -->
+        <div class="animal-header">
+          <div class="header-left">
             <div class="name-row">
-              <h1 class="text-h2">{{ animal.name }}</h1>
+              <h1 class="animal-name">{{ animal.name }}</h1>
               <div class="gender" :title="animal.gender">
-                <Mars size="18" v-if="animal.gender === 'male'" />
-                <Mars size="18" v-else />
+                <Mars size="20" v-if="animal.gender === 'male'" />
+                <Venus size="20" v-else />
               </div>
             </div>
 
             <div class="tags">
-              <span class="tag"><Cat size="18" /> {{ animal.species || 'Animal' }}</span>
-              <span class="tag small"><MapPin size="18" /> {{ animal.location || animal.city || '' }}</span>
+              <span class="tag"><Cat size="16" /> {{ animal.species || 'Animal' }}</span>
+              <span class="tag"><MapPin size="16" /> {{ animal.address.city || '' }}</span>
             </div>
           </div>
+          <div class ="owner-link">
+          <RouterLink
+              v-if="ownerProfileTo"
+              class="owner-logo"
+              :to="ownerProfileTo"
+              :title="ownerName"
+          >
+            <img v-if="animal?.ownerId?.avatarUrl" :src="animal.ownerId.avatarUrl" alt="image propriétaire" />
+            <div v-else class="owner-placeholder"><User/></div>
 
-          <div class="shelter">
-            <div class="shelter-logo">{{ animal.shelter?.name || '' }}</div>
+          </RouterLink>
+          <p>{{ ownerName || '' }}</p>
           </div>
         </div>
 
-        <div class="info-row">
-          <div class="info-col">
-            <div class="info-label text-body-sm">Race</div>
-            <div class="info-value text-body-lg">{{ animal.race }}</div>
+        <!-- Stats Section -->
+        <div class="stats-section">
+          <div class="stat-item">
+            <p class="stat-label">Race</p>
+            <p class="stat-value">{{ animal.race }}</p>
           </div>
-          <div class="info-col">
-            <div class="info-label text-body-sm">Âge</div>
-            <div class="info-value text-body-lg">{{ animal.age }}</div>
+          <div class="stat-item">
+            <p class="stat-label">Âge</p>
+            <p class="stat-value">{{ animal.age }}</p>
           </div>
-          <div class="info-col">
-            <div class="info-label text-body-sm">Prix</div>
-            <div class="info-value text-body-lg">{{ animal.price }}</div>
-          </div>
-        </div>
-
-        <h2 class="text-h4" style="margin-top: var(--spacing-4); margin-bottom: var(--spacing-2);">Caractéristiques</h2>
-
-        <div class="chars">
-          <div class="char-col" v-for="(col, idx) in charColumns" :key="idx">
-            <ul>
-              <li v-for="(c, i) in col" :key="i" class="text-body-base"><span class="bullet"></span>{{ c }}</li>
-            </ul>
+          <div class="stat-item">
+            <p class="stat-label">Prix</p>
+            <p class="stat-value">{{ formatPrice(animal.price) }}</p>
           </div>
         </div>
 
-        <h2 class="text-h4" style="margin-top: var(--spacing-4); margin-bottom: var(--spacing-2);">Description</h2>
-        <p class="text-body-base">{{ animal.description }}</p>
+        <!-- Characteristics Section -->
+        <section class="characteristics-section">
+          <h2 class="section-title">Caractéristiques</h2>
+          <div class="chars">
+            <div class="char-col" v-for="(col, idx) in charColumns" :key="idx">
+              <ul>
+                <li v-for="(c, i) in col" :key="i"><span class="bullet"></span>{{ c }}</li>
+              </ul>
+            </div>
+          </div>
+        </section>
 
+        <!-- Description Section -->
+        <section class="description-section">
+          <h2 class="section-title">Description</h2>
+          <p class="description-text">{{ animal.description }}</p>
+        </section>
+
+        <!-- Favorite Button -->
         <div class="fav-btn-row">
           <button class="fav-btn" aria-label="Favori">
-            <Heart size="28" stroke-width="1.6" />
+            <Heart size="30" stroke-width="2" />
           </button>
         </div>
-      </template>
-    </section>
+      </div>
+    </div>
 
     <Menu />
   </div>
@@ -126,62 +168,88 @@ const charColumns = computed(() => {
 
 <style scoped>
 .animal-page {
-  color: var(--color-neutral-black);
-  position: relative;
-  min-height: 100vh;
-  background: var(--color-neutral-white);
+  height: 100%;
+  background: #FFFFFF;
+  padding-bottom: 100px;
+}
+
+.loading,
+.error-message {
+  text-align: center;
+  padding: 24px;
+  color: #999;
+}
+
+.error-message {
+  color: #d32f2f;
+}
+
+/* Profile Wrapper */
+.profile-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+.owner-link{
   display: flex;
   flex-direction: column;
   align-items: center;
 }
-
-.hero {
+.photo-section {
   position: relative;
-  height: 340px;
+  width: 100%;
+  height: 400px;
+  background: linear-gradient(180deg, #DDD 0%, #AAA 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
 }
 
-.hero-img {
+.animal-photo {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: block;
 }
 
-.card {
-  background: #fff7fb;
-  border-top-left-radius: var(--radius-2xl);
-  border-top-right-radius: var(--radius-2xl);
-  margin-top: -30px;
-  padding: var(--spacing-6) var(--spacing-6) 180px;
-  box-shadow: 0 -6px 30px rgba(230,200,220,0.18);
-  position: relative;
-  z-index: 10;
-  min-height: calc(100vh - 340px + 30px);
+/* Content Section - White Background */
+.content-section {
   display: flex;
   flex-direction: column;
+  gap: 10px;
+  padding: 25px 40px;
+  background: white ;
+  margin-top: -60px;
+  border-radius: 20px 20px 0 0;
+  position: relative;
+  z-index: 1;
 }
 
-.card-header {
+/* Animal Header */
+.animal-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  gap: var(--spacing-4);
+  align-items: flex-start;
+  gap: 16px;
+  margin-top: 15px;
 }
 
-.title {
+.header-left {
   flex: 1;
 }
 
 .name-row {
   display: flex;
   align-items: center;
-  gap: var(--spacing-2);
+  gap: 8px;
+  margin-bottom: 8px;
 }
 
-.name-row h1 {
+.animal-name {
   margin: 0;
-  font-weight: var(--font-weight-bold);
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1.2;
 }
 
 .gender {
@@ -191,74 +259,106 @@ const charColumns = computed(() => {
 
 .gender svg {
   color: var(--color-neutral-900);
-  opacity: 0.95;
 }
 
 .tags {
-  margin-top: var(--spacing-2);
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .tag {
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-2);
-  background: var(--color-secondary-50);
-  color: var(--color-secondary-800);
-  padding: var(--spacing-1) var(--spacing-3);
-  border-radius: var(--radius-full);
-  margin-right: var(--spacing-2);
-  font-size: var(--body-sm-size);
-  font-weight: var(--font-weight-normal);
+  gap: 6px;
+  background: linear-gradient(var(--color-secondary-200),var(--color-secondary-100));
+  color: #6b2335;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
 }
 
 .tag svg {
-  display: inline-block;
+  flex-shrink: 0;
 }
 
-.shelter {
-  display: flex;
-  justify-content: center;
-}
-
-.shelter-logo {
+.owner-logo {
   width: 56px;
   height: 56px;
-  border-radius: var(--radius-full);
-  background: linear-gradient(180deg, var(--color-neutral-white), var(--color-secondary-100));
+  border-radius: 50%;
+  background: linear-gradient(180deg, #f5f5f5, #e8e8e8);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--label-sm-size);
-  text-align: center;
-  font-weight: var(--font-weight-normal);
-  color: var(--color-neutral-900);
+  overflow: hidden;
+  border: 2px solid #fff;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  flex-shrink: 0;
 }
 
-.info-row {
+.owner-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.owner-placeholder {
+display: flex;
+color: #454444;
+}
+
+/* Stats Section */
+.stats-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  text-align: center;
+  padding: 25px 0;
+  border-top: 1px solid #E8E8E8;
+  border-bottom: 1px solid #E8E8E8;
+}
+
+.stat-item {
   display: flex;
-  justify-content: space-between;
-  margin-top: var(--spacing-4);
-  gap: var(--spacing-4);
+  flex-direction: column;
+  gap: 8px;
 }
 
-.info-col {
-  text-align: center;
-  flex: 1;
+.stat-label {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #999;
 }
 
-.info-label {
-  color: var(--color-neutral-600);
-  font-weight: var(--font-weight-normal);
+.stat-value {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a1a1a;
 }
 
-.info-value {
-  font-weight: var(--font-weight-semibold);
-  margin-top: var(--spacing-1);
+/* Section Titles */
+.section-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+/* Characteristics Section */
+.characteristics-section {
+  display: flex;
+  flex-direction: column;
+  padding-top: 15px;
+  gap: 12px;
 }
 
 .chars {
   display: flex;
-  gap: var(--spacing-4);
+  gap: 16px;
+  padding: 12px 0;
 }
 
 .char-col {
@@ -274,53 +374,60 @@ const charColumns = computed(() => {
 .char-col li {
   display: flex;
   align-items: center;
-  gap: var(--spacing-2);
-  padding: var(--spacing-1) 0;
-  color: var(--color-neutral-700);
+  gap: 8px;
+  padding: 6px 0;
+  color: #555;
+  font-size: 14px;
 }
 
 .bullet {
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
   background: var(--color-accent-600);
-  border-radius: var(--radius-full);
+  border-radius: 50%;
   flex-shrink: 0;
 }
 
-    .fav-btn-row {
-      display: flex;
-      justify-content: flex-end;
-      margin-top: var(--spacing-6);
-      margin-bottom: var(--spacing-1);
-    }
-    .fav-btn {
-      position: static;
-      width: 64px;
-      height: 64px;
-      border-radius: var(--radius-full);
-      border: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: radial-gradient(circle at 30% 30%, var(--color-secondary-100), var(--color-secondary-700));
-      box-shadow: 0 10px 20px rgba(225,75,98,0.28);
-      cursor: pointer;
-      transition: transform 0.2s ease;
-      z-index: 20;
-      box-sizing: border-box;
-    }
+/* Description Section */
+.description-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.description-text {
+  margin: 0;
+  font-size: 14px;
+  color: #555;
+  line-height: 1.7;
+  text-align: justify;
+}
+
+/* Favorite Button */
+.fav-btn-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.fav-btn {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(var(--color-secondary-600),var(--color-secondary-300));
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
 
 .fav-btn:hover {
   transform: scale(1.05);
 }
 
 .fav-btn svg {
-  color: var(--color-neutral-white);
-}
-
-@media (max-width: 420px) {
-  .card {
-    padding-bottom: 180px;
-  }
+  color: #fff;
 }
 </style>
