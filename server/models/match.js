@@ -27,11 +27,13 @@ const matchSchema = new Schema({
                 type: String,
                 required: true,
                 enum: ['Adopter', 'Owner'], // indique le type d'utilisateur
+                maxlength: 20,
             },
             message: {
                 type: String,
                 required: true,
                 trim: true,
+                maxlength: 1000,
             },
             timestamp: {
                 type: Date,
