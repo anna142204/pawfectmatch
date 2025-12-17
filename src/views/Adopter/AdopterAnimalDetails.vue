@@ -1,41 +1,50 @@
 <script setup>
-import { reactive, computed } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, computed, onMounted } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import Menu from '@/components/Menu.vue';
 import BackButton from '@/components/BackButton.vue';
 import Button from '@/components/Button.vue';
 import { Cat, MapPin, Mars, Heart, Home } from 'lucide-vue-next';
-import PlumoImg from '@/images/Plumo.png';
 
-const props = defineProps({
-  animal: {
-    type: Object,
-    default: () => ({
-      name: 'Plumo',
-      gender: 'male',
-      species: 'Chat',
-      location: 'Travers',
-      race: 'Race',
-      age: '1 an',
-      price: '200 CHF',
-      characteristics: ['Lorem ipsum', 'Lorem ipsum', 'Lorem ipsum', 'Lorem ipsum', 'Lorem ipsum', 'Lorem ipsum'],
-      description: `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.`,
-      image: '/images/sample-cat.jpg',
-      shelter: { name: "Les P'tites Truffes", logo: '' }
-    })
-  }
-});
-
-const animal = reactive(props.animal);
 const router = useRouter();
+const route = useRoute();
+const animal = ref(null);
+const loading = ref(true);
+const error = ref(null);
 
 const goBackToSwipe = () => {
   router.push({ name: 'AdopterSwipe' });
 };
 
+const fetchAnimal = async () => {
+  loading.value = true;
+  error.value = null;
+  try {
+    const id = route.params.id;
+    const response = await fetch(`/api/animals/${id}`, {
+      credentials: 'include',
+    });
+    if (!response.ok) throw new Error('Erreur lors du chargement de l\'animal');
+    const data = await response.json();
+    animal.value = data.animal || data;
+  } catch (err) {
+    error.value = err.message;
+  } finally {
+    loading.value = false;
+  }
+};
+
+onMounted(() => {
+  fetchAnimal();
+});
+
 const charColumns = computed(() => {
-  const mid = Math.ceil(animal.characteristics.length / 2);
-  return [animal.characteristics.slice(0, mid), animal.characteristics.slice(mid)];
+  if (!animal.value || !animal.value.characteristics) return [[], []];
+  const chars = Array.isArray(animal.value.characteristics)
+    ? animal.value.characteristics
+    : Object.values(animal.value.characteristics).flat();
+  const mid = Math.ceil(chars.length / 2);
+  return [chars.slice(0, mid), chars.slice(mid)];
 });
 </script>
 
@@ -43,64 +52,72 @@ const charColumns = computed(() => {
   <div class="animal-page">
     <div class="hero">
       <BackButton @click="goBackToSwipe" />
-      <img :src="PlumoImg" alt="photo Plumo" class="hero-img"/>
+      <img :src="animal?.image || '/images/sample-cat.jpg'" alt="photo animal" class="hero-img"/>
     </div>
 
     <section class="card">
-      <div class="card-header">
-        <div class="title">
-          <div class="name-row">
-            <h1 class="text-h2">{{ animal.name }}</h1>
-            <div class="gender" :title="animal.gender">
-              <Mars size="18" v-if="animal.gender === 'male'" />
-              <Mars size="18" v-else />
+      <template v-if="loading">
+        <div style="text-align:center; padding:2rem;">Chargement...</div>
+      </template>
+      <template v-else-if="error">
+        <div style="color:red; text-align:center; padding:2rem;">{{ error }}</div>
+      </template>
+      <template v-else-if="animal">
+        <div class="card-header">
+          <div class="title">
+            <div class="name-row">
+              <h1 class="text-h2">{{ animal.name }}</h1>
+              <div class="gender" :title="animal.gender">
+                <Mars size="18" v-if="animal.gender === 'male'" />
+                <Mars size="18" v-else />
+              </div>
+            </div>
+
+            <div class="tags">
+              <span class="tag"><Cat size="18" /> {{ animal.species || 'Animal' }}</span>
+              <span class="tag small"><MapPin size="18" /> {{ animal.location || animal.city || '' }}</span>
             </div>
           </div>
 
-          <div class="tags">
-            <span class="tag"><Cat size="18" /> Chat</span>
-            <span class="tag small"><MapPin size="18" /> {{ animal.location }}</span>
+          <div class="shelter">
+            <div class="shelter-logo">{{ animal.shelter?.name || '' }}</div>
           </div>
         </div>
 
-        <div class="shelter">
-          <div class="shelter-logo">{{ animal.shelter.name }}</div>
+        <div class="info-row">
+          <div class="info-col">
+            <div class="info-label text-body-sm">Race</div>
+            <div class="info-value text-body-lg">{{ animal.race }}</div>
+          </div>
+          <div class="info-col">
+            <div class="info-label text-body-sm">Âge</div>
+            <div class="info-value text-body-lg">{{ animal.age }}</div>
+          </div>
+          <div class="info-col">
+            <div class="info-label text-body-sm">Prix</div>
+            <div class="info-value text-body-lg">{{ animal.price }}</div>
+          </div>
         </div>
-      </div>
 
-      <div class="info-row">
-        <div class="info-col">
-          <div class="info-label text-body-sm">Race</div>
-          <div class="info-value text-body-lg">{{ animal.race }}</div>
+        <h2 class="text-h4" style="margin-top: var(--spacing-4); margin-bottom: var(--spacing-2);">Caractéristiques</h2>
+
+        <div class="chars">
+          <div class="char-col" v-for="(col, idx) in charColumns" :key="idx">
+            <ul>
+              <li v-for="(c, i) in col" :key="i" class="text-body-base"><span class="bullet"></span>{{ c }}</li>
+            </ul>
+          </div>
         </div>
-        <div class="info-col">
-          <div class="info-label text-body-sm">Âge</div>
-          <div class="info-value text-body-lg">{{ animal.age }}</div>
+
+        <h2 class="text-h4" style="margin-top: var(--spacing-4); margin-bottom: var(--spacing-2);">Description</h2>
+        <p class="text-body-base">{{ animal.description }}</p>
+
+        <div class="fav-btn-row">
+          <button class="fav-btn" aria-label="Favori">
+            <Heart size="28" stroke-width="1.6" />
+          </button>
         </div>
-        <div class="info-col">
-          <div class="info-label text-body-sm">Prix</div>
-          <div class="info-value text-body-lg">{{ animal.price }}</div>
-        </div>
-      </div>
-
-      <h2 class="text-h4" style="margin-top: var(--spacing-4); margin-bottom: var(--spacing-2);">Caractéristiques</h2>
-
-      <div class="chars">
-        <div class="char-col" v-for="(col, idx) in charColumns" :key="idx">
-          <ul>
-            <li v-for="(c, i) in col" :key="i" class="text-body-base"><span class="bullet"></span>{{ c }}</li>
-          </ul>
-        </div>
-      </div>
-
-      <h2 class="text-h4" style="margin-top: var(--spacing-4); margin-bottom: var(--spacing-2);">Description</h2>
-      <p class="text-body-base">{{ animal.description }}</p>
-
-      <div class="fav-btn-row">
-        <button class="fav-btn" aria-label="Favori">
-          <Heart size="28" stroke-width="1.6" />
-        </button>
-      </div>
+      </template>
     </section>
 
     <Menu />
