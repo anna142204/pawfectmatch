@@ -5,6 +5,7 @@ const animalSchema = new Schema({
     species: {
         type: String,
         required: true,
+        enum: ['chat', 'chien', 'lapin', 'oiseau', 'rongeur', 'autre'],
         trim: true,
         maxlength: 50,
     },
@@ -21,9 +22,9 @@ const animalSchema = new Schema({
         maxlength: 80,
     },
     age: {
-        type: Number,
+        type: String,
         required: true,
-        min: 0,
+        enum: ['0-1', '1-3', '3-7', '7+'],
     },
     sex: {
         type: String,

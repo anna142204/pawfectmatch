@@ -34,19 +34,25 @@ paths:
               properties:
                 firstName:
                   type: string
+                  maxLength: 100
                   example: Marie
                 lastName:
                   type: string
+                  maxLength: 100
                   example: Martin
                 email:
                   type: string
                   format: email
+                  maxLength: 254
                   example: marie.martin@example.com
                 password:
                   type: string
+                  minLength: 6
+                  maxLength: 128
                   example: securePassword123
                 age:
-                  type: number
+                  type: integer
+                  minimum: 18
                   example: 28
                 address:
                   type: object
@@ -56,32 +62,82 @@ paths:
                   properties:
                     zip:
                       type: string
-                      example: "1201"
+                      maxLength: 12
+                      description: Invalid request or animal not available
+                      content:
+                        application/json:
+                          schema:
+                            type: object
+                            properties:
+                              error:
+                                type: string
+                                example: "adopterId and animalId are required"
                     city:
-                      type: string
-                      example: Genève
+                      description: Adopter or animal not found
+                      content:
+                        application/json:
+                          schema:
+                            type: object
+                            properties:
+                              error:
+                                type: string
+                                example: "Adopter not found"
+                      maxLength: 100
+                      description: Match already exists
+                      content:
+                        application/json:
+                          schema:
+                            type: object
+                            properties:
+                              error:
+                                type: string
+                                example: "Match already exists"
                 about:
-                  type: string
+                      description: Create match error
+                      content:
+                        application/json:
+                          schema:
+                            type: object
+                            properties:
+                              error:
+                                type: string
+                                example: "Failed to create match"
+                  maxLength: 150
                   example: Passionné par les animaux
                 preferences:
                   type: object
                   properties:
                     environment:
+                    - name: adopterId
+                      in: query
+                      schema:
+                        type: string
+                    - name: animalId
+                      in: query
+                      schema:
+                        type: string
+                    - name: isActive
+                      in: query
+                      schema:
+                        type: boolean
                       type: array
                       items:
                         type: string
                         enum: [appartement, voiture, enfant, chien, chat, autre animaux]
+                        maxLength: 30
                       example: [appartement, enfant]
                     species:
                       type: array
                       items:
                         type: string
+                        maxLength: 50
                       example: [chat, chien]
                     sizePreference:
                       type: array
                       items:
                         type: string
                         enum: [petit, moyen, grand]
+                        maxLength: 10
                       example: [petit, moyen]
       responses:
         "201":
@@ -93,14 +149,41 @@ paths:
                 properties:
                   message:
                     type: string
+                    example: Adopter registered successfully
                   token:
                     type: string
                   user:
                     $ref: "#/components/schemas/Adopter"
         "400":
           description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Tous les champs requis doivent être remplis
+        "409":
+          description: Email already registered
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Cet email est déjà enregistré
         "500":
           description: Registration error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Échec de l'inscription
 
   /api/auth/register/owner:
     post:
@@ -122,20 +205,29 @@ paths:
               properties:
                 firstName:
                   type: string
+                  maxLength: 100
                   example: John
                 lastName:
                   type: string
+                  maxLength: 100
                   example: Doe
                 email:
                   type: string
                   format: email
+                  maxLength: 254
                   example: john.doe@example.com
                 password:
                   type: string
+                  minLength: 6
+                  maxLength: 128
                   example: securePassword123
                 phoneNumber:
                   type: string
+                  maxLength: 30
                   example: "+41 79 123 45 67"
+                societyName:
+                  type: string
+                  maxLength: 150
                 address:
                   type: object
                   required:
@@ -144,11 +236,13 @@ paths:
                   properties:
                     zip:
                       type: string
+                      maxLength: 12
                     city:
                       type: string
+                      maxLength: 100
                 about:
                   type: string
-                  maxLength: 300
+                  maxLength: 150
       responses:
         "201":
           description: Owner registered successfully
@@ -159,14 +253,41 @@ paths:
                 properties:
                   message:
                     type: string
+                    example: Owner registered successfully
                   token:
                     type: string
                   user:
                     $ref: "#/components/schemas/Owner"
         "400":
           description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Tous les champs requis doivent être remplis
+        "409":
+          description: Email already registered
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Cet email est déjà enregistré
         "500":
           description: Registration error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Échec de l'inscription
 
   /api/auth/login:
     post:
@@ -186,9 +307,12 @@ paths:
                 email:
                   type: string
                   format: email
+                  maxLength: 254
                   example: marie.martin@example.com
                 password:
                   type: string
+                  minLength: 6
+                  maxLength: 128
                   example: securePassword123
       responses:
         "200":
@@ -202,10 +326,41 @@ paths:
                     type: string
                   user:
                     type: object
+                    description: User object (Adopter, Owner, or Admin)
+                  type:
+                    type: string
+                    enum: [adopter, owner, admin]
+                    example: adopter
+        "400":
+          description: Missing required fields
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Email et mot de passe requis
         "401":
           description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Email ou mot de passe invalide
         "500":
           description: Login error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Échec de la connexion
 
   /api/auth/logout:
     post:
@@ -215,8 +370,22 @@ paths:
       responses:
         "200":
           description: Logout successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
         "500":
           description: Logout error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
 
   # Image Upload Routes
   /api/upload/image:
@@ -245,16 +414,36 @@ paths:
               schema:
                 type: object
                 properties:
-                  message:
-                    type: string
                   url:
                     type: string
                     format: url
                     description: URL of the uploaded image
+                  publicId:
+                    type: string
+                    description: Cloudinary public ID of the image
+                  message:
+                    type: string
+                    example: Image uploadée avec succès
         "400":
           description: Invalid image
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Aucun fichier fourni
         "500":
           description: Upload error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Erreur lors de l'upload de l'image
 
     delete:
       summary: Delete an image
@@ -267,12 +456,11 @@ paths:
             schema:
               type: object
               required:
-                - imageUrl
+                - publicId
               properties:
-                imageUrl:
+                publicId:
                   type: string
-                  format: url
-                  description: URL of the image to delete
+                  description: Cloudinary public ID of the image to delete
       responses:
         "200":
           description: Image deleted successfully
@@ -283,10 +471,27 @@ paths:
                 properties:
                   message:
                     type: string
-        "404":
-          description: Image not found
+                    example: Image supprimée avec succès
+        "400":
+          description: Missing publicId
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: publicId requis
         "500":
           description: Delete error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Erreur lors de la suppression de l'image
 
   /api/upload/images:
     post:
@@ -317,17 +522,39 @@ paths:
               schema:
                 type: object
                 properties:
-                  message:
-                    type: string
-                  urls:
+                  images:
                     type: array
                     items:
-                      type: string
-                      format: url
+                      type: object
+                      properties:
+                        url:
+                          type: string
+                          format: url
+                        publicId:
+                          type: string
+                  message:
+                    type: string
+                    example: 3 image(s) uploadée(s) avec succès
         "400":
           description: Invalid images
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Aucun fichier fourni
         "500":
           description: Upload error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Erreur lors de l'upload des images
 
   # Animal Endpoints
   /api/animals:
@@ -355,25 +582,33 @@ paths:
               properties:
                 species:
                   type: string
-                  example: dog
+                  maxLength: 50
+                  enum: [chat, chien, lapin, oiseau, rongeur, autre]
+                  example: chien
                 race:
                   type: string
+                  maxLength: 80
                   example: Labrador
                 name:
                   type: string
+                  maxLength: 80
                   example: Buddy
                 age:
-                  type: number
-                  example: 3
+                  type: string
+                  enum: ['0-1', '1-3', '3-7', '7+']
+                  example: "3-7"
                 sex:
                   type: string
+                  maxLength: 10
                   enum: [male, female]
                 size:
                   type: string
+                  maxLength: 10
                   enum: [petit, moyen, grand]
                   example: grand
                 weight:
                   type: string
+                  maxLength: 10
                   enum: ["0-5", "5-10", "10-20", "20-30", "30+"]
                   example: "20-30"
                 address:
@@ -384,17 +619,21 @@ paths:
                   properties:
                     city:
                       type: string
+                      maxLength: 100
                     zip:
                       type: string
+                      maxLength: 12
                 image:
                   type: string
                   format: url
+                  maxLength: 500
                 price:
                   type: number
+                  minimum: 0
                   example: 150
                 ownerId:
                   type: string
-                  description: ID of the owner
+                  description: ID of the owner (references Owner model)
                 availability:
                   type: boolean
                   default: true
@@ -412,18 +651,21 @@ paths:
                       type: array
                       items:
                         type: string
-                        enum: [appartement, voiture, enfant, chien, chat, autre animaux]
+                        maxLength: 30
+                        enum: [appartement, voiture, enfant, chien, chat, "autre animaux"]
                       minItems: 1
                     dressage:
                       type: array
                       items:
                         type: string
-                        enum: [éduqué, facile à dresser, habitué à la laisse, têtu]
+                        maxLength: 30
+                        enum: [éduqué, "facile à dresser", "habitué à la laisse", têtu]
                       minItems: 1
                     personality:
                       type: array
                       items:
                         type: string
+                        maxLength: 30
                         enum: [calme, énergique, indépendant, affectueux, curieux, joueur, bavard, explorateur, câlin, protecteur, territorial, sociable, timide, peureux]
                       minItems: 1
       responses:
@@ -436,12 +678,31 @@ paths:
                 properties:
                   message:
                     type: string
+                    example: "Animal créé avec succès"
                   animal:
                     $ref: "#/components/schemas/Animal"
         "400":
-          description: Validation error
+          description: Validation error - required fields missing
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Tous les champs requis doivent être remplis"
         "500":
-          description: Create animal error
+          description: Server error creating animal
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Échec de la création de l'animal"
+                  details:
+                    type: string
 
     get:
       summary: Get list of all animals with pagination and filtering
@@ -452,14 +713,85 @@ paths:
           in: query
           schema:
             type: string
+            enum: [chat, chien, lapin, oiseau, rongeur, autre]
+        - name: race
+          in: query
+          schema:
+            type: string
+            maxLength: 80
         - name: name
           in: query
           schema:
             type: string
+            maxLength: 80
+        - name: age
+          in: query
+          schema:
+            type: string
+            enum: ['0-1', '1-3', '3-7', '7+']
+        - name: sex
+          in: query
+          schema:
+            type: string
+            enum: [male, female]
         - name: city
           in: query
           schema:
             type: string
+            maxLength: 100
+        - name: zip
+          in: query
+          schema:
+            type: string
+            maxLength: 12
+        - name: minPrice
+          in: query
+          schema:
+            type: number
+            minimum: 0
+        - name: maxPrice
+          in: query
+          schema:
+            type: number
+            minimum: 0
+        - name: ownerId
+          in: query
+          schema:
+            type: string
+        - name: availability
+          in: query
+          schema:
+            type: boolean
+        - name: environment
+          in: query
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+              maxLength: 30
+              enum: [appartement, voiture, enfant, chien, chat, "autre animaux"]
+        - name: dressage
+          in: query
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+              maxLength: 30
+              enum: [éduqué, "facile à dresser", "habitué à la laisse", têtu]
+        - name: personality
+          in: query
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+              maxLength: 30
+              enum: [calme, énergique, indépendant, affectueux, curieux, joueur, bavard, explorateur, câlin, protecteur, territorial, sociable, timide, peureux]
         - name: page
           in: query
           schema:
@@ -485,7 +817,15 @@ paths:
                   pagination:
                     $ref: "#/components/schemas/Pagination"
         "500":
-          description: Get animals error
+          description: Server error fetching animals
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Failed to fetch animals"
 
   /api/animals/{id}:
     get:
@@ -507,8 +847,24 @@ paths:
                 $ref: "#/components/schemas/Animal"
         "404":
           description: Animal not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Animal not found"
         "500":
-          description: Get animal error
+          description: Server error fetching animal
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Failed to fetch animal"
 
     put:
       summary: Update an animal by ID
@@ -522,55 +878,120 @@ paths:
             type: string
       requestBody:
         required: true
-        description: Password updates are ignored on this route.
         content:
           application/json:
             schema:
               type: object
-              properties:
                 species:
                   type: string
-                race:
+                  maxLength: 50
+                  enum: [chat, chien, lapin, oiseau, rongeur, autre]
                   type: string
+                  maxLength: 80
                 name:
                   type: string
+                  maxLength: 80
                 age:
-                  type: number
-                sex:
                   type: string
+                  enum: ['0-1', '1-3', '3-7', '7+']
+                  type: string
+                  maxLength: 10
                   enum: [male, female]
                 size:
                   type: string
+                  maxLength: 10
                   enum: [petit, moyen, grand]
                 weight:
                   type: string
+                  maxLength: 10
                   enum: ["0-5", "5-10", "10-20", "20-30", "30+"]
                 address:
                   type: object
+                  properties:
+                    city:
+                      type: string
+                      maxLength: 100
+                    zip:
+                      type: string
+                      maxLength: 12
                 image:
                   type: string
                   format: url
+                  maxLength: 500
                 price:
                   type: number
+                  minimum: 0
                 availability:
                   type: boolean
                 description:
                   type: string
+                  maxLength: 300
                 characteristics:
                   type: object
+                  properties:
+                    environment:
+                      type: array
+                      items:
+                        type: string
+                        maxLength: 30
+                        enum: [appartement, voiture, enfant, chien, chat, "autre animaux"]
+                      minItems: 1
+                    dressage:
+                      type: array
+                      items:
+                        type: string
+                        maxLength: 30
+                        enum: [éduqué, "facile à dresser", "habitué à la laisse", têtu]
+                      minItems: 1
+                    personality:
+                      type: array
+                      items:
+                        type: string
+                        maxLength: 30
+                        enum: [calme, énergique, indépendant, affectueux, curieux, joueur, bavard, explorateur, câlin, protecteur, territorial, sociable, timide, peureux]
+                      minItems: 1
       responses:
         "200":
           description: Animal updated successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Animal"
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Animal updated successfully"
+                  animal:
+                    $ref: "#/components/schemas/Animal"
         "400":
-          description: Validation error
+          description: Validation error in update request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
         "404":
           description: Animal not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Animal not found"
         "500":
-          description: Update animal error
+          description: Server error updating animal
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Failed to update animal"
 
     delete:
       summary: Delete an animal by ID
@@ -592,10 +1013,27 @@ paths:
                 properties:
                   message:
                     type: string
+                    example: "Animal deleted successfully"
         "404":
           description: Animal not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Animal not found"
         "500":
-          description: Delete animal error
+          description: Server error deleting animal
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Failed to delete animal"
 
   # Adopter Endpoints
   /api/adopters:
@@ -923,18 +1361,33 @@ paths:
           in: query
           schema:
             type: string
+            maxLength: 100
         - name: lastName
           in: query
           schema:
             type: string
+            maxLength: 100
         - name: email
           in: query
           schema:
             type: string
+            format: email
+            maxLength: 254
+        - name: phoneNumber
+          in: query
+          schema:
+            type: string
+            maxLength: 30
         - name: city
           in: query
           schema:
             type: string
+            maxLength: 100
+        - name: zip
+          in: query
+          schema:
+            type: string
+            maxLength: 12
         - name: page
           in: query
           schema:
@@ -960,11 +1413,19 @@ paths:
                   pagination:
                     $ref: "#/components/schemas/Pagination"
         "500":
-          description: Get owners error
+          description: Server error fetching owners
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Failed to fetch owners"
 
   /api/owners/{id}:
     get:
-      summary: Get owner by ID
+      summary: Get owner by ID with associated animals
       tags:
         - Owners
       parameters:
@@ -975,15 +1436,38 @@ paths:
             type: string
       responses:
         "200":
-          description: Owner found
+          description: Owner found with associated animals
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Owner"
+                allOf:
+                  - $ref: "#/components/schemas/Owner"
+                  - type: object
+                    properties:
+                      animals:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Animal"
         "404":
           description: Owner not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Owner not found"
         "500":
-          description: Get owner error
+          description: Server error fetching owner
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Failed to fetch owner"
 
     put:
       summary: Update an owner by ID
@@ -997,6 +1481,7 @@ paths:
             type: string
       requestBody:
         required: true
+        description: Password updates are not allowed on this route
         content:
           application/json:
             schema:
@@ -1004,35 +1489,74 @@ paths:
               properties:
                 firstName:
                   type: string
+                  maxLength: 100
                 lastName:
                   type: string
+                  maxLength: 100
                 email:
                   type: string
                   format: email
+                  maxLength: 254
                 phoneNumber:
                   type: string
+                  maxLength: 30
+                societyName:
+                  type: string
+                  maxLength: 150
                 address:
                   type: object
                   properties:
                     zip:
                       type: string
+                      maxLength: 12
                     city:
                       type: string
+                      maxLength: 100
                 about:
                   type: string
+                  maxLength: 150
       responses:
         "200":
           description: Owner updated successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Owner"
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Owner updated successfully"
+                  owner:
+                    $ref: "#/components/schemas/Owner"
         "400":
-          description: Validation error
+          description: Validation error in update request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
         "404":
           description: Owner not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Owner not found"
         "500":
-          description: Update owner error
+          description: Server error updating owner
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Failed to update owner"
 
     delete:
       summary: Delete an owner by ID (only if no associated animals)
@@ -1054,6 +1578,7 @@ paths:
                 properties:
                   message:
                     type: string
+                    example: "Owner deleted successfully"
         "400":
           description: Cannot delete owner with associated animals
           content:
@@ -1063,12 +1588,29 @@ paths:
                 properties:
                   error:
                     type: string
+                    example: "Cannot delete owner with associated animals"
                   animalsCount:
-                    type: number
+                    type: integer
         "404":
           description: Owner not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Owner not found"
         "500":
-          description: Delete owner error
+          description: Server error deleting owner
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Failed to delete owner"
 
   # Match Endpoints
   /api/matches:
@@ -1107,22 +1649,67 @@ paths:
                 properties:
                   message:
                     type: string
+                    example: "Match created successfully"
                   match:
                     $ref: "#/components/schemas/Match"
         "400":
           description: Invalid request or animal not available
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "adopterId and animalId are required"
         "404":
           description: Adopter or animal not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Adopter not found"
         "409":
           description: Match already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Match already exists"
         "500":
           description: Create match error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Failed to create match"
 
     get:
       summary: Get list of all matches with pagination
       tags:
         - Matches
       parameters:
+        - name: adopterId
+          in: query
+          schema:
+            type: string
+        - name: animalId
+          in: query
+          schema:
+            type: string
+        - name: isActive
+          in: query
+          schema:
+            type: boolean
         - name: page
           in: query
           schema:
@@ -1149,6 +1736,14 @@ paths:
                     $ref: "#/components/schemas/Pagination"
         "500":
           description: Get matches error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Failed to fetch matches"
 
   /api/matches/{id}:
     get:
@@ -1170,8 +1765,24 @@ paths:
                 $ref: "#/components/schemas/Match"
         "404":
           description: Match not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Match not found"
         "500":
           description: Get match error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Failed to fetch match"
 
     put:
       summary: Update a match by ID
@@ -1198,11 +1809,33 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Match"
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Match updated successfully"
+                  match:
+                    $ref: "#/components/schemas/Match"
         "404":
           description: Match not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Match not found"
         "500":
           description: Update match error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Failed to update match"
 
     delete:
       summary: Delete a match by ID
@@ -1224,10 +1857,27 @@ paths:
                 properties:
                   message:
                     type: string
+                    example: "Match deleted successfully"
         "404":
           description: Match not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Match not found"
         "500":
           description: Delete match error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Failed to delete match"
 
   /api/matches/{id}/messages:
     post:
@@ -1257,21 +1907,53 @@ paths:
                 senderModel:
                   type: string
                   enum: [Adopter, Owner]
+                  maxLength: 20
                 message:
                   type: string
+                  maxLength: 1000
       responses:
-        "201":
+        "200":
           description: Message added successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Match"
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Message added successfully"
+                  match:
+                    $ref: "#/components/schemas/Match"
         "400":
-          description: Invalid message data
+          description: Invalid message data or inactive match
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "sender, senderModel, and message are required"
         "404":
           description: Match not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Match not found"
         "500":
           description: Add message error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Failed to add message"
 
   /api/matches/{id}/discussion:
     get:
@@ -1292,6 +1974,14 @@ paths:
               schema:
                 type: object
                 properties:
+                  matchId:
+                    type: string
+                  adopterId:
+                    type: string
+                  animalId:
+                    type: string
+                  isActive:
+                    type: boolean
                   discussion:
                     type: array
                     items:
@@ -1301,15 +1991,33 @@ paths:
                           type: string
                         senderModel:
                           type: string
+                          enum: [Adopter, Owner]
                         message:
                           type: string
+                          maxLength: 1000
                         timestamp:
                           type: string
                           format: date-time
         "404":
           description: Match not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Match not found"
         "500":
           description: Get discussion error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Failed to fetch discussion"
 
   # Admin Routes
   /api/admin/stats:
@@ -1546,6 +2254,32 @@ components:
           type: integer
         pages:
           type: integer
+
+    Admin:
+      type: object
+      properties:
+        _id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        name:
+          type: string
+          maxLength: 100
+        role:
+          type: string
+          maxLength: 20
+          default: admin
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        __v:
+          type: number
 
   securitySchemes:
     BearerAuth:
