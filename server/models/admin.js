@@ -7,19 +7,23 @@ const adminSchema = new mongoose.Schema({
     required: true,
     unique: true,
     lowercase: true,
-    trim: true
+    trim: true,
+    maxlength: 254
   },
   password: {
     type: String,
-    required: true
+    required: true,
+    maxlength: 128
   },
   name: {
     type: String,
-    required: true
+    required: true,
+    maxlength: 100
   },
   role: {
     type: String,
-    default: 'admin'
+    default: 'admin',
+    maxlength: 20
   }
 }, {
   timestamps: true
