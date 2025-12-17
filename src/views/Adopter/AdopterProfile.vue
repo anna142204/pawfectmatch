@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
+import { MapPinIcon } from "lucide-vue-next";
 import Menu from '@/components/Menu.vue';
 import Button from '@/components/Button.vue';
 import TagButton from '@/components/TagButton.vue';
@@ -73,10 +74,10 @@ onMounted(async () => {
 const handleLogout = () => {
   router.push('/logout');
 };
-
-const handleContact = () => {
-  // À implémenter
+const handleEdit = () => {
+  router.push('/')
 };
+
 </script>
 
 <template>
@@ -103,13 +104,16 @@ const handleContact = () => {
 
       <!-- Content Section -->
       <div class="content-section">
-        <!-- Profile Header with Name and Contact Button -->
+        <!-- Profile Header with Name and Edit Button -->
         <div class="profile-header">
           <div class="header-left">
             <h1 class="profile-name">{{ user.firstName }} {{ user.lastName }}</h1>
-            <p class="profile-meta">{{ user.age }} ans 📍 {{ user.address?.city }}</p>
+            <div class="profile-meta">
+            <p>{{ user.age }} ans </p>
+              <p class="profile-location"><MapPinIcon size="20px"/> {{ user.address?.city }}</p>
+            </div>
           </div>
-          <button class="contact-btn" @click="handleContact">contacter</button>
+          <Button variant="primary" size="sm" @click="handleEdit" class="edit-button">Modifier</Button>
         </div>
 
         <!-- Stats Section -->
@@ -122,18 +126,16 @@ const handleContact = () => {
             <p class="stat-label">Demandes en cours</p>
             <p class="stat-value">{{ requestsCount }}</p>
           </div>
-          <div class="stat-item">
-            <p class="stat-label">Note</p>
-            <p class="stat-value star">⭐ {{ rating }}</p>
-          </div>
         </div>
 
         <!-- About Section -->
         <section class="about-section">
+          <div v-if="user.description">
           <h2 class="section-title">À propos</h2>
           <p class="about-text">
-            {{ user.description || 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.' }}
+            {{ user.description }}
           </p>
+          </div>
         </section>
 
         <!-- Preferences Section -->
@@ -147,12 +149,6 @@ const handleContact = () => {
             />
           </div>
           <p v-else class="no-preferences">Aucune préférence renseignée</p>
-        </section>
-
-        <!-- Testimonials Section -->
-        <section class="testimonials-section">
-          <h2 class="section-title">Témoignages</h2>
-          <p class="coming-soon">Section en construction...</p>
         </section>
 
         <!-- Logout Button -->
@@ -174,8 +170,8 @@ const handleContact = () => {
 
 <style scoped>
 .profile-page {
-  min-height: 100vh;
-  background: #F5F5F5;
+  height: 100%;
+  background: #FFFFFF;
   padding-bottom: 100px;
 }
 
@@ -245,7 +241,7 @@ const handleContact = () => {
 .content-section {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 15px;
   padding: 24px;
   background: white;
   margin-top: -20px;
@@ -258,12 +254,13 @@ const handleContact = () => {
 .profile-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   gap: 16px;
+  margin-top: 15px;
 }
 
 .header-left {
-  flex: 1;
+  width: 100%;
 }
 
 .profile-name {
@@ -275,30 +272,22 @@ const handleContact = () => {
 }
 
 .profile-meta {
-  margin: 8px 0 0 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0 0 0;
   font-size: 14px;
   color: #666;
 }
 
-/* Contact Button */
-.contact-btn {
-  padding: 12px 24px;
-  background: #7C3AED;
-  color: white;
-  border: none;
-  border-radius: 20px;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-  flex-shrink: 0;
+.profile-location {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
 }
 
-.contact-btn:hover {
-  background: #6D28D9;
-  transform: translateY(-2px);
-}
+
+
 
 /* Stats Section */
 .stats-section {
@@ -331,9 +320,6 @@ const handleContact = () => {
   color: #1a1a1a;
 }
 
-.stat-value.star {
-  font-size: 20px;
-}
 
 /* Section Titles */
 .section-title {
@@ -381,26 +367,10 @@ const handleContact = () => {
   border-radius: 8px;
 }
 
-/* Testimonials Section */
-.testimonials-section {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.coming-soon {
-  margin: 0;
-  font-size: 13px;
-  color: #999;
-  text-align: center;
-  padding: 24px;
-  background: #FAFAFA;
-  border-radius: 8px;
-}
-
 /* Logout Section */
 .logout-section {
-  margin-top: 16px;
+  border-top: 1px solid #E8E8E8;
+  padding-top: 26px;
 }
 
 .logout-btn {
@@ -425,9 +395,8 @@ const handleContact = () => {
     gap: 12px;
   }
 
-  .contact-btn {
-    padding: 10px 20px;
-    font-size: 12px;
+  .edit-button {
+flex:1;
   }
 
   .preferences-grid {

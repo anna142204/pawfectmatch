@@ -1,7 +1,10 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import Menu from '@/components/Menu.vue';
 import SwipeCard from '@/components/SwipeCard.vue';
+
+const router = useRouter();
 
 const animals = ref([]);
 const currentIndex = ref(0);
@@ -34,7 +37,9 @@ const fetchAnimals = async () => {
       name: animal.name,
       description: animal.description,
       image: animal.image,
-      distance: '9 km', // À calculer avec la géolocalisation
+      distance: animal.distance !== null && animal.distance !== undefined 
+        ? `${animal.distance} km` 
+        : 'Distance inconnue',
       urgent: false, // À définir selon vos critères
       tags: [
         ...(animal.characteristics?.environment || []),
@@ -80,6 +85,11 @@ const nextAnimal = () => {
     currentIndex.value = animals.value.length;
   }
 };
+
+const handleCardClick = (animal) => {
+  // Navigation vers la page de détails de l'animal
+  router.push({ name: 'AdopterAnimalDetails', params: { id: animal.id } });
+};
 </script>
 
 <template>
@@ -115,6 +125,7 @@ const nextAnimal = () => {
           :animal="currentAnimal"
           @swipe-left="handleSwipeLeft"
           @swipe-right="handleSwipeRight"
+          @click="handleCardClick"
         />
       </div>
     </div>

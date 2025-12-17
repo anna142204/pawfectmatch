@@ -185,7 +185,6 @@ const handleLogin = async () => {
   text-shadow: var(--shadow-sm);
 }
 
-/* 🎉 CHAT PARFAITEMENT POSITIONNÉ */
 .cat-container {
   position: absolute;
 top: calc(var(--spacing-12) + 57px);

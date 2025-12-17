@@ -8,7 +8,7 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['swipe-left', 'swipe-right']);
+const emit = defineEmits(['swipe-left', 'swipe-right', 'click']);
 
 const card = ref(null);
 const isDragging = ref(false);
@@ -56,6 +56,13 @@ const handleMouseDown = (e) => {
   startX.value = e.clientX;
 };
 
+const handleClick = (e) => {
+  // Émettre l'événement click seulement si ce n'était pas un drag
+  if (Math.abs(offsetX.value) < 5) {
+    emit('click', props.animal);
+  }
+};
+
 const handleMouseMove = (e) => {
   if (!isDragging.value) return;
   currentX.value = e.clientX;
@@ -90,6 +97,7 @@ const handleMouseUp = () => {
     @mousemove="handleMouseMove"
     @mouseup="handleMouseUp"
     @mouseleave="handleMouseUp"
+    @click="handleClick"
   >
     <!-- Badges en haut -->
     <div class="card-badges">

@@ -107,7 +107,7 @@ const routes = [
     path: '/adopter/animal/:id',
     name: 'AdopterAnimalDetails',
     component: AdopterAnimalDetails,
-    meta: { requiresAuth: true, userType: 'adopter' }
+    meta: { requiresAuth: true, userType: 'adopter', fullBleed: true }
   },
   {
     path: '/adopter/discussions',
