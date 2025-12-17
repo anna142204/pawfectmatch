@@ -8,11 +8,13 @@ const adopterSchema = new Schema({
         type: String,
         required: true,
         trim: true,
+        maxlength: 100,
     },
     lastName: {
         type: String,
         required: true,
         trim: true,
+        maxlength: 100,
     },
     email: {
         type: String,
@@ -21,22 +23,26 @@ const adopterSchema = new Schema({
         lowercase: true,
         trim: true,
         match: [/^\S+@\S+\.\S+$/, 'Invalid email format'],
+        maxlength: 254,
     },
     password: {
         type: String,
         required: true,
         minlength: 6,
+        maxlength: 128,
     },
     address: {
         zip: {
             type: String,
             required: true,
             trim: true,
+            maxlength: 12,
         },
         city: {
             type: String,
             required: true,
             trim: true,
+            maxlength: 100,
         },
     },
     age: {
@@ -54,19 +60,21 @@ const adopterSchema = new Schema({
         environment: {
             type: [{
                 type: String,
+                maxlength: 30,
                 enum: ['appartement', 'voiture', 'enfant', 'chien', 'chat', 'autre animaux'],
             }],
             required: false,
             default: [],
         },
         species: {
-            type: [String],
+            type: [{ type: String, maxlength: 50 }],
             required: false,
             default: [],
         },
         sizePreference: {
             type: [{
                 type: String,
+                maxlength: 10,
                 enum: ['petit', 'moyen', 'grand'],
             }],
             required: false,
