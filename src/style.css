@@ -23,7 +23,8 @@ body {
   box-shadow: var(--shadow-xl);
 }
 
-button, .btn {
+button,
+.btn {
   -webkit-user-select: none;
   user-select: none;
 }
@@ -32,81 +33,85 @@ button, .btn {
   /* ============================================ */
   /* COLORS - PRIMARY */
   /* ============================================ */
-  --color-primary-50: #F3E5FF;
-  --color-primary-100: #E6CCFF;
-  --color-primary-200: #D9B3FF;
-  --color-primary-300: #CC99FF;
-  --color-primary-400: #BF80FF;
-  --color-primary-500: #B366FF;
-  --color-primary-600: #A64DFF;
-  --color-primary-700: #8D0FBC;
-  --color-primary-800: #760F99;
-  --color-primary-900: #5F0D7A;
+  --color-primary-50: #f3e5ff;
+  --color-primary-100: #e6ccff;
+  --color-primary-200: #d9b3ff;
+  --color-primary-300: #cc99ff;
+  --color-primary-400: #bf80ff;
+  --color-primary-500: #b366ff;
+  --color-primary-600: #a64dff;
+  --color-primary-700: #8d0fbc;
+  --color-primary-800: #760f99;
+  --color-primary-900: #5f0d7a;
   --color-primary-950: #410054;
 
   /* ============================================ */
   /* COLORS - SECONDARY */
   /* ============================================ */
-  --color-secondary-50: #FFE5E8;
-  --color-secondary-100: #FFCCCC;
-  --color-secondary-200: #FFB3B3;
-  --color-secondary-300: #FF9999;
-  --color-secondary-400: #FF8080;
-  --color-secondary-500: #FF6666;
-  --color-secondary-600: #FF4D4D;
-  --color-secondary-700: #FF3333;
-  --color-secondary-800: #CC0000;
+  --color-secondary-50: #ffe5e8;
+  --color-secondary-100: #ffcccc;
+  --color-secondary-200: #ffb3b3;
+  --color-secondary-300: #ff9999;
+  --color-secondary-400: #ff8080;
+  --color-secondary-500: #ff6666;
+  --color-secondary-600: #ff4d4d;
+  --color-secondary-700: #ff3333;
+  --color-secondary-800: #cc0000;
   --color-secondary-900: #990000;
   --color-secondary-950: #660000;
 
   /* ============================================ */
   /* COLORS - ACCENT */
   /* ============================================ */
-  --color-accent-50: #FFF5E6;
-  --color-accent-100: #FFEBCC;
-  --color-accent-200: #FFE0B3;
-  --color-accent-300: #FFD699;
-  --color-accent-400: #FFCC80;
-  --color-accent-500: #FFC266;
-  --color-accent-600: #FFB84D;
-  --color-accent-700: #FFAD33;
-  --color-accent-800: #FF9900;
-  --color-accent-900: #CC7A00;
-  --color-accent-950: #994D00;
+  --color-accent-50: #fff5e6;
+  --color-accent-100: #ffebcc;
+  --color-accent-200: #ffe0b3;
+  --color-accent-300: #ffd699;
+  --color-accent-400: #ffcc80;
+  --color-accent-500: #ffc266;
+  --color-accent-600: #ffb84d;
+  --color-accent-700: #ffad33;
+  --color-accent-800: #ff9900;
+  --color-accent-900: #cc7a00;
+  --color-accent-950: #994d00;
 
   /* ============================================ */
   /* COLORS - NEUTRAL */
   /* ============================================ */
-  --color-neutral-50: #F8F7FA;
-  --color-neutral-100: #F0EEF5;
-  --color-neutral-200: #E8E5ED;
-  --color-neutral-300: #D9D6E0;
-  --color-neutral-400: #C0BCCF;
-  --color-neutral-500: #A8A3B8;
-  --color-neutral-600: #8F8A9E;
+  --color-neutral-50: #f8f7fa;
+  --color-neutral-100: #f0eef5;
+  --color-neutral-200: #e8e5ed;
+  --color-neutral-300: #d9d6e0;
+  --color-neutral-400: #c0bccf;
+  --color-neutral-500: #a8a3b8;
+  --color-neutral-600: #8f8a9e;
   --color-neutral-700: #767182;
-  --color-neutral-800: #5D5867;
-  --color-neutral-900: #3D3847;
-  --color-neutral-black: #07010A;
-  --color-neutral-white: #FDF9FF;
+  --color-neutral-800: #5d5867;
+  --color-neutral-900: #3d3847;
+  --color-neutral-black: #07010a;
+  --color-neutral-white: #fdf9ff;
 
   /* ============================================ */
   /* COLORS - STATE */
   /* ============================================ */
-  --color-success: #22C55E;
-  --color-warning: #FBBF24;
-  --color-error: #EF4444;
-  --color-info: #3B82F6;
+  --color-success: #22c55e;
+  --color-warning: #fbbf24;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
 
   /* ============================================ */
   /* GRADIENTS */
   /* ============================================ */
-  --gradient-primary-secondary: linear-gradient(180deg, var(--color-primary-700) 0%, var(--color-secondary-700) 100%);
+  --gradient-primary-secondary: linear-gradient(
+    180deg,
+    var(--color-primary-700) 0%,
+    var(--color-secondary-700) 100%
+  );
 
   /* ============================================ */
   /* TYPOGRAPHY - FONT FAMILIES & WEIGHTS */
   /* ============================================ */
-  --font-family: 'Comfortaa', sans-serif;
+  --font-family: "Comfortaa", sans-serif;
   --font-weight-light: 300;
   --font-weight-normal: 400;
   --font-weight-medium: 500;
@@ -460,47 +465,115 @@ button, .btn {
 /* ============================================ */
 /* COLOR UTILITIES - PRIMARY */
 /* ============================================ */
-.text-primary-50 { color: var(--color-primary-50); }
-.text-primary-100 { color: var(--color-primary-100); }
-.text-primary-200 { color: var(--color-primary-200); }
-.text-primary-300 { color: var(--color-primary-300); }
-.text-primary-400 { color: var(--color-primary-400); }
-.text-primary-500 { color: var(--color-primary-500); }
-.text-primary-600 { color: var(--color-primary-600); }
-.text-primary-700 { color: var(--color-primary-700); }
-.text-primary-800 { color: var(--color-primary-800); }
-.text-primary-900 { color: var(--color-primary-900); }
-.text-primary-950 { color: var(--color-primary-950); }
+.text-primary-50 {
+  color: var(--color-primary-50);
+}
+.text-primary-100 {
+  color: var(--color-primary-100);
+}
+.text-primary-200 {
+  color: var(--color-primary-200);
+}
+.text-primary-300 {
+  color: var(--color-primary-300);
+}
+.text-primary-400 {
+  color: var(--color-primary-400);
+}
+.text-primary-500 {
+  color: var(--color-primary-500);
+}
+.text-primary-600 {
+  color: var(--color-primary-600);
+}
+.text-primary-700 {
+  color: var(--color-primary-700);
+}
+.text-primary-800 {
+  color: var(--color-primary-800);
+}
+.text-primary-900 {
+  color: var(--color-primary-900);
+}
+.text-primary-950 {
+  color: var(--color-primary-950);
+}
 
-.bg-primary-50 { background-color: var(--color-primary-50); }
-.bg-primary-100 { background-color: var(--color-primary-100); }
-.bg-primary-200 { background-color: var(--color-primary-200); }
-.bg-primary-300 { background-color: var(--color-primary-300); }
-.bg-primary-400 { background-color: var(--color-primary-400); }
-.bg-primary-500 { background-color: var(--color-primary-500); }
-.bg-primary-600 { background-color: var(--color-primary-600); }
-.bg-primary-700 { background-color: var(--color-primary-700); }
-.bg-primary-800 { background-color: var(--color-primary-800); }
-.bg-primary-900 { background-color: var(--color-primary-900); }
-.bg-primary-950 { background-color: var(--color-primary-950); }
+.bg-primary-50 {
+  background-color: var(--color-primary-50);
+}
+.bg-primary-100 {
+  background-color: var(--color-primary-100);
+}
+.bg-primary-200 {
+  background-color: var(--color-primary-200);
+}
+.bg-primary-300 {
+  background-color: var(--color-primary-300);
+}
+.bg-primary-400 {
+  background-color: var(--color-primary-400);
+}
+.bg-primary-500 {
+  background-color: var(--color-primary-500);
+}
+.bg-primary-600 {
+  background-color: var(--color-primary-600);
+}
+.bg-primary-700 {
+  background-color: var(--color-primary-700);
+}
+.bg-primary-800 {
+  background-color: var(--color-primary-800);
+}
+.bg-primary-900 {
+  background-color: var(--color-primary-900);
+}
+.bg-primary-950 {
+  background-color: var(--color-primary-950);
+}
 
 /* ============================================ */
 /* COLOR UTILITIES - NEUTRAL */
 /* ============================================ */
-.text-neutral-black { color: var(--color-neutral-black); }
-.text-neutral-white { color: var(--color-neutral-white); }
-.bg-neutral-black { background-color: var(--color-neutral-black); }
-.bg-neutral-white { background-color: var(--color-neutral-white); }
+.text-neutral-black {
+  color: var(--color-neutral-black);
+}
+.text-neutral-white {
+  color: var(--color-neutral-white);
+}
+.bg-neutral-black {
+  background-color: var(--color-neutral-black);
+}
+.bg-neutral-white {
+  background-color: var(--color-neutral-white);
+}
 
 /* ============================================ */
 /* COLOR UTILITIES - STATE */
 /* ============================================ */
-.text-success { color: var(--color-success); }
-.text-warning { color: var(--color-warning); }
-.text-error { color: var(--color-error); }
-.text-info { color: var(--color-info); }
+.text-success {
+  color: var(--color-success);
+}
+.text-warning {
+  color: var(--color-warning);
+}
+.text-error {
+  color: var(--color-error);
+}
+.text-info {
+  color: var(--color-info);
+}
 
-.bg-success { background-color: var(--color-success); }
-.bg-warning { background-color: var(--color-warning); }
-.bg-error { background-color: var(--color-error); }
-.bg-info { background-color: var(--color-info); }
+.bg-success {
+  background-color: var(--color-success);
+}
+.bg-warning {
+  background-color: var(--color-warning);
+}
+.bg-error {
+  background-color: var(--color-error);
+}
+.bg-info {
+  background-color: var(--color-info);
+}
