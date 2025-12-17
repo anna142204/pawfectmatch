@@ -11,6 +11,9 @@ const route = useRoute();
 const isAuthPage = computed(() => {
   return route.path === '/login' || route.path === '/register';
 });
+const isFullBleed = computed(() => {
+  return route.meta?.fullBleed === true;
+});
   // ws.on('close', () => {
   //   if (isAuth.value) {
   //     $q.notify({
@@ -45,7 +48,7 @@ const isAuthPage = computed(() => {
 
 <template>
   <Toast />
-  <div :class="{ 'app-content': !isAuthPage }">
+  <div :class="{ 'app-content': !isAuthPage && !isFullBleed }">
     <router-view />
   </div>
 </template>
