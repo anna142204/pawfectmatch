@@ -1,4 +1,45 @@
 import Animal from '../models/animal.js';
+import Adopter from '../models/adopter.js';
+import jwt from 'jsonwebtoken';
+import { parseCookies } from '../utils/parseCookies.mjs';
+
+const JWT_SECRET = process.env.JWT_SECRET;
+
+/**
+ * Calcule un score de compatibilité entre un animal et les préférences d'un adoptant
+ * @param {Object} animal - L'animal à évaluer
+ * @param {Object} preferences - Les préférences de l'adoptant
+ * @returns {number} - Score de compatibilité (plus élevé = meilleur match)
+ */
+function calculateMatchScore(animal, preferences) {
+  let score = 0;
+
+  if (!preferences) return 0;
+
+  // Score pour l'espèce (poids: 3 points par match)
+  if (preferences.species && preferences.species.length > 0) {
+    if (preferences.species.includes(animal.species)) {
+      score += 3;
+    }
+  }
+
+  // Score pour la taille (poids: 2 points par match)
+  if (preferences.sizePreference && preferences.sizePreference.length > 0) {
+    if (animal.size && preferences.sizePreference.includes(animal.size)) {
+      score += 2;
+    }
+  }
+
+  // Score pour l'environnement (poids: 1 point par caractéristique commune)
+  if (preferences.environment && preferences.environment.length > 0 && animal.characteristics?.environment) {
+    const commonEnv = preferences.environment.filter(env => 
+      animal.characteristics.environment.includes(env)
+    );
+    score += commonEnv.length;
+  }
+
+  return score;
+}
 
 export async function getAnimals(req, res) {
   try {
@@ -70,14 +111,55 @@ export async function getAnimals(req, res) {
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const total = await Animal.countDocuments(query);
 
-    const animals = await Animal.find(query)
-      .populate('ownerId', 'firstName lastName email phoneNumber')
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(parseInt(limit));
+    // Récupérer tous les animaux sans pagination pour le scoring
+    let animals = await Animal.find(query)
+      .populate('ownerId', 'firstName lastName email phoneNumber');
+
+    // Trier par préférences de l'adoptant si connecté
+    try {
+      const cookies = parseCookies(req.headers.cookie);
+      const authToken = cookies?.auth_token;
+      
+      if (authToken) {
+        const decoded = jwt.verify(authToken, JWT_SECRET, { algorithms: ['HS256'] });
+        const adopterId = decoded.userId;
+        const userType = decoded.userType;
+        
+        // Appliquer le scoring uniquement pour les adoptants
+        if (userType === 'adopter' && adopterId) {
+          const adopter = await Adopter.findById(adopterId);
+          
+          if (adopter && adopter.preferences) {
+            // Calculer le score pour chaque animal
+            const animalsWithScore = animals.map(animal => ({
+              animal,
+              score: calculateMatchScore(animal, adopter.preferences)
+            }));
+            
+            // Trier par score décroissant, puis par date de création
+            animalsWithScore.sort((a, b) => {
+              if (b.score !== a.score) {
+                return b.score - a.score;
+              }
+              return new Date(b.animal.createdAt) - new Date(a.animal.createdAt);
+            });
+            
+            // Extraire les animaux triés
+            animals = animalsWithScore.map(item => item.animal);
+          }
+        }
+      }
+    } catch (err) {
+      // En cas d'erreur de token, on continue avec le tri par défaut
+      console.log('Tri par défaut (pas de token valide)');
+      animals.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    }
+
+    // Appliquer la pagination après le tri
+    const paginatedAnimals = animals.slice(skip, skip + parseInt(limit));
 
     res.json({
-      animals,
+      animals: paginatedAnimals,
       pagination: {
         total,
         page: parseInt(page),
