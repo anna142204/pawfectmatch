@@ -2,6 +2,7 @@ import Animal from '../models/animal.js';
 import Adopter from '../models/adopter.js';
 import jwt from 'jsonwebtoken';
 import { parseCookies } from '../utils/parseCookies.mjs';
+import { calculateDistance } from '../utils/distanceCalculator.mjs';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -43,6 +44,7 @@ function calculateMatchScore(animal, preferences) {
 
 export async function getAnimals(req, res) {
   try {
+    console.log('\n=== Début getAnimals ===');
     const {
       species,
       race,
@@ -113,7 +115,16 @@ export async function getAnimals(req, res) {
 
     // Récupérer tous les animaux sans pagination pour le scoring
     let animals = await Animal.find(query)
-      .populate('ownerId', 'firstName lastName email phoneNumber');
+      .populate('ownerId', 'firstName lastName email phoneNumber address');
+console.log(`Nombre d'animaux trouvés: ${animals.length}`);
+    if (animals.length > 0) {
+      console.log(`Premier animal - Propriétaire: ${animals[0].ownerId?.firstName}, Zip: ${animals[0].ownerId?.address?.zip}`);
+    }
+
+    
+    // Variables pour l'adoptant connecté
+    let adopter = null;
+    let adopterZip = null;
 
     // Trier par préférences de l'adoptant si connecté
     try {
@@ -125,9 +136,16 @@ export async function getAnimals(req, res) {
         const adopterId = decoded.userId;
         const userType = decoded.userType;
         
-        // Appliquer le scoring uniquement pour les adoptants
+        // Récupérer l'adoptant si connecté
         if (userType === 'adopter' && adopterId) {
-          const adopter = await Adopter.findById(adopterId);
+          adopter = await Adopter.findById(adopterId);
+          console.log(`Adoptant trouvé: ${adopter?.firstName} ${adopter?.lastName}`);
+          if (adopter && adopter.address) {
+            adopterZip = adopter.address.zip;
+            console.log(`Code postal de l'adoptant: ${adopterZip}`);
+          } else {
+            console.log(`Pas d'adresse pour l'adoptant`);
+          }
           
           if (adopter && adopter.preferences) {
             // Calculer le score pour chaque animal
@@ -155,8 +173,33 @@ export async function getAnimals(req, res) {
       animals.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     }
 
+    // Calculer la distance pour chaque animal
+    const animalsWithDistance = animals.map(animal => {
+      const animalObj = animal.toObject();
+      
+      // Calculer la distance si on a le zip de l'adoptant et celui du propriétaire
+      if (adopterZip && animal.ownerId?.address?.zip) {
+        const ownerZip = animal.ownerId.address.zip;
+        console.log(`Calcul distance: adoptant ${adopterZip} -> propriétaire ${ownerZip}`);
+        const distance = calculateDistance(adopterZip, ownerZip);
+        console.log(`Distance calculée: ${distance} km`);
+        animalObj.distance = distance !== null ? distance : null;
+      } else {
+        console.log(`Distance non calculée: adopterZip=${adopterZip}, ownerZip=${animal.ownerId?.address?.zip}`);
+        animalObj.distance = null;
+      }
+      
+      return animalObj;
+    console.log(`Animaux paginés: ${paginatedAnimals.length}`);
+    if (paginatedAnimals.length > 0) {
+      console.log(`Distance du premier animal: ${paginatedAnimals[0].distance}`);
+    }
+    console.log('=== Fin getAnimals ===\n');
+
+    });
+
     // Appliquer la pagination après le tri
-    const paginatedAnimals = animals.slice(skip, skip + parseInt(limit));
+    const paginatedAnimals = animalsWithDistance.slice(skip, skip + parseInt(limit));
 
     res.json({
       animals: paginatedAnimals,
