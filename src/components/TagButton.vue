@@ -13,6 +13,14 @@ const props = defineProps({
   selected: {
     type: Boolean,
     default: false
+  },
+  showPlus: {
+    type: Boolean,
+    default: true
+  },
+  noHover: {
+    type: Boolean,
+    default: false
   }
 });
 
@@ -24,23 +32,28 @@ const handleClick = () => {
 </script>
 
 <template>
-  <button 
-    :class="['tag-button', { 'tag-button--selected': selected }]"
-    @click="handleClick"
-    type="button"
+  <button
+      :class="[
+      'tag-button',
+      { 'tag-button--selected': selected, 'tag-button--no-hover': noHover }
+    ]"
+      @click="handleClick"
+      type="button"
   >
-    <component 
-      v-if="icon" 
-      :is="icon" 
-      :size="20" 
-      :stroke-width="2.5"
-      class="tag-icon"
+    <component
+        v-if="icon"
+        :is="icon"
+        :size="20"
+        :stroke-width="2.5"
+        class="tag-icon"
     />
     <span class="tag-label">{{ label }}</span>
-    <Plus 
-      :size="20" 
-      :stroke-width="2.5"
-      class="tag-plus"
+
+    <Plus
+        v-if="showPlus"
+        :size="20"
+        :stroke-width="2.5"
+        class="tag-plus"
     />
   </button>
 </template>
@@ -55,7 +68,7 @@ const handleClick = () => {
   border: none;
   border-radius: var(--radius-full);
   font-family: var(--font-family);
-  font-size: var(--body-md-size);
+  font-size: var(--body-base-size);
   font-weight: var(--font-weight-medium);
   color: var(--color-primary-700);
   cursor: pointer;
@@ -78,6 +91,19 @@ const handleClick = () => {
 
 .tag-button--selected:hover {
   background-color: var(--color-primary-700);
+}
+
+/* Désactive hover + active quand noHover=true */
+.tag-button--no-hover:hover {
+  background-color: var(--color-primary-100);
+}
+
+.tag-button--no-hover.tag-button--selected:hover {
+  background-color: var(--color-primary-600);
+}
+
+.tag-button--no-hover:active {
+  transform: none;
 }
 
 .tag-icon,
