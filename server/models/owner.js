@@ -63,6 +63,13 @@ const ownerSchema = new Schema({
         maxlength: 150,
         trim: true,
     },
+    image: {
+        type: String,
+        required: false,
+        trim: true,
+        maxlength: 500,
+        default: '',
+    },
 }, {
     timestamps: true,
 });

@@ -130,7 +130,7 @@ const handleNext = () => {
   <div class="add-animal-page">
     <!-- Header avec bouton retour et titre -->
     <div class="page-header">
-      <BackButton @click="goBack" />
+      <BackButton manual @click="goBack" />
       <h1 class="page-title text-h2 text-primary-700">{{ isEditMode ? 'Modifier un animal' : 'Ajouter un animal' }}</h1>
     </div>
 
@@ -288,6 +288,7 @@ const handleNext = () => {
   background-color: var(--color-neutral-100);
   position: relative;
   padding-bottom: 100px;
+  padding: var(--general-padding)
 }
 
 .page-header {

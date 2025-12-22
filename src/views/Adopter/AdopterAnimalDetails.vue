@@ -49,6 +49,9 @@ const charColumns = computed(() => {
 const ownerName = computed(() => {
   const o = animal.value?.ownerId;
   if (!o) return '';
+  if (o.societyName && o.societyName.trim() !== '') {
+    return o.societyName;
+  }
   return [o.firstName, o.lastName].filter(Boolean).join(' ');
 });
 
@@ -115,7 +118,7 @@ const formatPrice = (price) => {
             <div v-else class="owner-placeholder"><User/></div>
 
           </RouterLink>
-          <p>{{ ownerName || '' }}</p>
+          <p>{{ ownerName }}</p>
           </div>
         </div>
 
@@ -211,7 +214,6 @@ const formatPrice = (price) => {
   object-fit: cover;
 }
 
-/* Content Section - White Background */
 .content-section {
   display: flex;
   flex-direction: column;

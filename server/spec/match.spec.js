@@ -20,6 +20,7 @@ const adopterPayload = {
     species: ["chat", "chien"],
     sizePreference: ["petit", "moyen"],
   },
+  image: "https://i.pravatar.cc/150?u=john.doe@example.com"
 };
 
 const ownerPayload = {
@@ -33,13 +34,14 @@ const ownerPayload = {
   },
   phoneNumber: "+41 79 123 45 67",
   about: "Passionné par les animaux, je cherche une famille aimante pour mon compagnon fidèle.",
+  image: "https://i.pravatar.cc/150?u=john.doe@example.com"
 };
 
 const animalPayload = {
-  species: "dog",
+  species: "chien",
   race: "Labrador",
   name: "Buddy",
-  age: 3,
+  age: "1-3",
   sex: "male",
   size: "grand",
   weight: "20-30",
@@ -126,6 +128,7 @@ describe("POST /api/matches", function () {
     expect(match.animalId.name).toEqual(animalPayload.name);
     expect(match.animalId.address.city).toEqual(animalPayload.address.city);
     expect(match.animalId.address.zip).toEqual(animalPayload.address.zip);
+
 
     // ownerId of animal should also be populated
     expect(match.animalId.ownerId).toBeObject();
@@ -239,7 +242,7 @@ describe("GET /api/matches", function () {
     expect(first.animalId.species).toEqual(animalPayload.species);
     expect(first.animalId.race).toEqual(animalPayload.race);
     expect(first.animalId.name).toEqual(animalPayload.name);
-    expect(first.animalId.age).toBeNumber();
+    expect(first.animalId.age).toBeString();
     expect(first.animalId.age).toEqual(animalPayload.age);
     expect(first.animalId.image).toEqual(animalPayload.image);
 

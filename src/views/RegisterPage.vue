@@ -4,6 +4,9 @@ import { useRouter } from 'vue-router';
 import Button from '@/components/Button.vue';
 import Input from '@/components/Input.vue';
 
+
+import ImageUploader from '@/components/ImageUploader.vue';
+
 const router = useRouter();
 
 const step = ref(1); // Étape actuelle
@@ -24,9 +27,21 @@ const preferences = ref({
   species: [],
   sizePreference: []
 });
+const imageFile = ref(null); // Fichier image sélectionné
+const imagePreview = ref(''); // Pour affichage preview
 
 const loading = ref(false);
 const error = ref('');
+// Gestion de l'image sélectionnée
+const handleImageSelected = (files) => {
+  if (files && files.length > 0) {
+    imageFile.value = files[0].file;
+    imagePreview.value = files[0].preview;
+  } else {
+    imageFile.value = null;
+    imagePreview.value = '';
+  }
+};
 
 const handleNextStep = () => {
   error.value = '';
@@ -89,9 +104,25 @@ const handleRegister = async () => {
   error.value = '';
 
   try {
-    const endpoint = userType.value === 'adopter' 
-      ? '/api/auth/register/adopter' 
+    const endpoint = userType.value === 'adopter'
+      ? '/api/auth/register/adopter'
       : '/api/auth/register/owner';
+
+
+    let imageUrl = '';
+    if (imageFile.value) {
+      const formData = new FormData();
+      formData.append('image', imageFile.value);
+      const uploadRes = await fetch('/api/upload/image', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      });
+      const uploadData = await uploadRes.json();
+      if (uploadRes.ok && uploadData.url) {
+        imageUrl = uploadData.url;
+      }
+    }
 
     const body = {
       firstName: firstName.value,
@@ -102,7 +133,8 @@ const handleRegister = async () => {
         zip: zip.value,
         city: city.value
       },
-      about: about.value
+      about: about.value,
+      image: imageUrl
     };
 
     if (userType.value === 'adopter') {
@@ -170,133 +202,77 @@ const handleRegister = async () => {
           <template v-if="step === 1">
             <!-- Choix du type d'utilisateur -->
             <div class="user-type-selector">
-              <button 
-                type="button"
-                :class="['type-btn', { active: userType === 'adopter' }]"
-                @click="userType = 'adopter'"
-              >
+              <button type="button" :class="['type-btn', { active: userType === 'adopter' }]"
+                @click="userType = 'adopter'">
                 Adoptant
               </button>
-              <button 
-                type="button"
-                :class="['type-btn', { active: userType === 'owner' }]"
-                @click="userType = 'owner'"
-              >
+              <button type="button" :class="['type-btn', { active: userType === 'owner' }]" @click="userType = 'owner'">
                 Propriétaire
               </button>
             </div>
 
             <!-- Champs communs -->
-          <div class="input-group">
-            <Input
-              v-model="firstName"
-              type="text"
-              placeholder="Prénom *"
-              required
-            />
-          </div>
+               <!-- Ajout image de profil -->
+            <div class="input-group">
+              <ImageUploader :multiple="false" @filesSelected="handleImageSelected" />
+            </div>
+            <div class="input-group">
+              <Input v-model="firstName" type="text" placeholder="Prénom *" required />
+            </div>
 
-          <div class="input-group">
-            <Input
-              v-model="lastName"
-              type="text"
-              placeholder="Nom *"
-              required
-            />
-          </div>
+            <div class="input-group">
+              <Input v-model="lastName" type="text" placeholder="Nom *" required />
+            </div>
 
-          <div class="input-group">
-            <Input
-              v-model="email"
-              type="email"
-              placeholder="Adresse e-mail *"
-              icon="email"
-              required
-            />
-          </div>
+            <div class="input-group">
+              <Input v-model="email" type="email" placeholder="Adresse e-mail *" icon="email" required />
+            </div>
 
-          <div class="input-group">
-            <Input
-              v-model="password"
-              type="password"
-              placeholder="Mot de passe *"
-              icon="password"
-              required
-            />
-          </div>
+            <div class="input-group">
+              <Input v-model="password" type="password" placeholder="Mot de passe *" icon="password" required />
+            </div>
 
-          <div class="input-group">
-            <Input
-              v-model="confirmPassword"
-              type="password"
-              placeholder="Confirmer le mot de passe *"
-              icon="password"
-              required
-            />
-          </div>
+            <div class="input-group">
+              <Input v-model="confirmPassword" type="password" placeholder="Confirmer le mot de passe *" icon="password"
+                required />
+            </div>
+
+          
           </template>
 
           <!-- Étape 2: Adresse et informations spécifiques -->
           <template v-if="step === 2">
-          <div class="input-group">
-            <Input
-              v-model="zip"
-              type="text"
-              placeholder="Code postal *"
-              required
-            />
-          </div>
-
-          <div class="input-group">
-            <Input
-              v-model="city"
-              type="text"
-              placeholder="Ville *"
-              required
-            />
-          </div>
-
-          <!-- Champs spécifiques adoptant -->
-          <template v-if="userType === 'adopter'">
             <div class="input-group">
-              <Input
-                v-model="age"
-                type="number"
-                placeholder="Âge * (min. 18 ans)"
-                required
-                min="18"
-              />
-            </div>
-          </template>
-
-          <!-- Champs spécifiques propriétaire -->
-          <template v-if="userType === 'owner'">
-            <div class="input-group">
-              <Input
-                v-model="societyName"
-                type="text"
-                placeholder="Nom de la société (optionnel)"
-              />
+              <Input v-model="zip" type="text" placeholder="Code postal *" required />
             </div>
 
             <div class="input-group">
-              <Input
-                v-model="phoneNumber"
-                type="tel"
-                placeholder="Numéro de téléphone"
-              />
+              <Input v-model="city" type="text" placeholder="Ville *" required />
             </div>
-          </template>
 
-          <!-- Champ À propos (commun) -->
-          <div class="input-group">
-            <textarea
-              v-model="about"
-              placeholder="À propos de vous (optionnel)"
-              class="textarea-input"
-              rows="4"
-            ></textarea>
-          </div>
+            <!-- Champs spécifiques adoptant -->
+            <template v-if="userType === 'adopter'">
+              <div class="input-group">
+                <Input v-model="age" type="number" placeholder="Âge * (min. 18 ans)" required min="18" />
+              </div>
+            </template>
+
+            <!-- Champs spécifiques propriétaire -->
+            <template v-if="userType === 'owner'">
+              <div class="input-group">
+                <Input v-model="societyName" type="text" placeholder="Nom de la société (optionnel)" />
+              </div>
+
+              <div class="input-group">
+                <Input v-model="phoneNumber" type="tel" placeholder="Numéro de téléphone" />
+              </div>
+            </template>
+
+            <!-- Champ À propos (commun) -->
+            <div class="input-group">
+              <textarea v-model="about" placeholder="À propos de vous (optionnel)" class="textarea-input"
+                rows="4"></textarea>
+            </div>
           </template>
 
           <!-- Étape 3: Préférences (adoptant uniquement) -->
@@ -357,36 +333,17 @@ const handleRegister = async () => {
 
           <!-- Boutons de navigation -->
           <div class="form-actions">
-            <Button 
-              v-if="step > 1"
-              type="button"
-              variant="secondary"
-              size="base"
-              @click="handlePreviousStep"
-              class="btn-back"
-            >
+            <Button v-if="step > 1" type="button" variant="secondary" size="base" @click="handlePreviousStep"
+              class="btn-back">
               Retour
             </Button>
-            
-            <Button 
-              v-if="step < 3"
-              type="submit"
-              variant="primary"
-              size="base"
-              class="btn-next"
-            >
+
+            <Button v-if="step < 3" type="submit" variant="primary" size="base" class="btn-next">
               Suivant
             </Button>
 
-            <Button 
-              v-else
-              type="button"
-              variant="primary"
-              size="base"
-              :disabled="loading"
-              @click="handleRegister"
-              class="btn-next"
-            >
+            <Button v-else type="button" variant="primary" size="base" :disabled="loading" @click="handleRegister"
+              class="btn-next">
               <span v-if="loading" class="loader"></span>
               <span v-else>S'inscrire</span>
             </Button>
@@ -535,7 +492,7 @@ const handleRegister = async () => {
   flex-shrink: 0;
 }
 
-.checkbox-item input[type="checkbox"]:checked + span {
+.checkbox-item input[type="checkbox"]:checked+span {
   color: var(--color-primary-600);
   font-weight: var(--font-weight-semibold);
 }
@@ -654,7 +611,9 @@ const handleRegister = async () => {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Lien vers connexion */

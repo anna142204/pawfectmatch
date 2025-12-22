@@ -180,7 +180,7 @@ const handleNext = async () => {
   <div class="add-animal-page">
     <!-- Header avec bouton retour et titre -->
     <div class="page-header">
-      <BackButton @click="goBack" />
+      <BackButton manual @click="goBack" />
       <h1 class="page-title text-h2 text-primary-700">{{ isEditMode ? 'Modifier un animal' : 'Ajouter un animal' }}</h1>
     </div>
 
@@ -283,12 +283,13 @@ const handleNext = async () => {
   flex-direction: column;
   background-color: var(--color-neutral-100);
   overflow: hidden;
+  padding: var(--general-padding)
 }
 
 .page-header {
   display: flex;
   align-items: center;
-  padding: var(--spacing-10) 0 var(--spacing-3);
+  padding: var(--spacing-12) 0 var(--spacing-4);
   gap: var(--spacing-4);
   background-color: var(--color-neutral-100);
   flex-shrink: 0;

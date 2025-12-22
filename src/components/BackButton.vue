@@ -1,30 +1,43 @@
 <script setup>
 import { ChevronLeft } from 'lucide-vue-next';
+import { useRouter } from 'vue-router';
 
-defineProps({
-  size: {
-    type: Number,
-    default: 24
-  },
-  strokeWidth: {
-    type: Number,
-    default: 2
-  },
+const props = defineProps({
+  size: { type: Number, default: 24 },
+  strokeWidth: { type: Number, default: 2 },
   variant: {
     type: String,
-    default: 'default', // 'default' | 'overlay'
+    default: 'default',
     validator: (value) => ['default', 'overlay'].includes(value)
-  }
+  },
+  to: { type: String, default: null },
+  // NOUVEAU : Si vrai, le bouton ne navigue pas tout seul
+  manual: { type: Boolean, default: false }
 });
 
-defineEmits(['click']);
+const emit = defineEmits(['click']);
+const router = useRouter();
+
+const handleBack = () => {
+  emit('click');
+
+  // Si on est en mode manuel, on s'arrête ici
+  if (props.manual) return;
+
+  // Comportement automatique pour les autres cas (profils, etc.)
+  if (props.to) {
+    router.push(props.to);
+  } else {
+    router.back();
+  }
+};
 </script>
 
 <template>
   <button
     class="back-button"
     :class="[`back-button--${variant}`]"
-    @click="$emit('click')"
+    @click="handleBack"
     type="button"
   >
     <ChevronLeft :size="size" :stroke-width="strokeWidth" />
@@ -32,6 +45,7 @@ defineEmits(['click']);
 </template>
 
 <style scoped>
+
 .back-button {
   display: flex;
   align-items: center;

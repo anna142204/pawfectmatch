@@ -9,7 +9,7 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '15m';
 
 export async function registerAdopter(req, res) {
   try {
-    const { firstName, lastName, email, password, address, age, about, preferences } = req.body;
+    const { firstName, lastName, email, password, address, age, about, preferences, image } = req.body;
 
     // Validate required fields only
     if (!firstName || !lastName || !email || !password || !address || !age) {
@@ -32,6 +32,7 @@ export async function registerAdopter(req, res) {
       age,
       ...(about && { about }),
       ...(preferences && { preferences }),
+      image: image || ''
     });
 
     await adopter.save();
@@ -60,7 +61,7 @@ export async function registerAdopter(req, res) {
 
 export async function registerOwner(req, res) {
   try {
-    const { firstName, lastName, email, password, address, phoneNumber, about } = req.body;
+    const { firstName, lastName, email, password, address, phoneNumber, about, image } = req.body;
 
     // Validate required fields
     if (!firstName || !lastName || !email || !password || !address) {
@@ -82,6 +83,7 @@ export async function registerOwner(req, res) {
       address,
       phoneNumber,
       about,
+      image: image || ''
     });
 
     await owner.save();

@@ -5,10 +5,10 @@ import { cleanUpDatabase } from "./utils.js";
 
 // reusable payload for POST and GET tests
 const animalPayload = {
-  species: "dog",
+  species: "chien",
   race: "Labrador",
   name: "Buddy",
-  age: 3,
+  age: "1-3",
   sex: "male",
   size: "grand",
   weight: "20-30",
@@ -47,7 +47,7 @@ describe("POST /api/animals", function () {
     expect(created.name).toEqual(animalPayload.name);
     expect(created.species).toEqual(animalPayload.species);
     expect(created.race).toEqual(animalPayload.race);
-    expect(created.age).toBeNumber();
+    expect(created.age).toBeString();
     expect(created.age).toEqual(animalPayload.age);
     expect(created.sex).toBeOneOf(["male", "female"]);
     
@@ -144,7 +144,7 @@ describe("GET /api/animals", function () {
     expect(first.species).toEqual(animalPayload.species);
     expect(first.race).toEqual(animalPayload.race);
     expect(first.name).toEqual(animalPayload.name);
-    expect(first.age).toBeNumber();
+    expect(first.age).toBeString();
     expect(first.age).toEqual(animalPayload.age);
     expect(first.sex).toBeOneOf(["male", "female"]);
     
@@ -206,6 +206,7 @@ describe("GET /api/animals/:id", function () {
       phoneNumber: "+41 79 123 45 67",
       address: { zip: "1000", city: "Lausanne" },
       about: "Owner for testing populate",
+      image: "https://i.pravatar.cc/150?u=john.doe@example.com"
     };
 
     const ownerRes = await supertest(app)
@@ -244,7 +245,7 @@ describe("GET /api/animals/:id", function () {
     expect(fetched.name).toEqual(animalPayload.name);
     expect(fetched.species).toEqual(animalPayload.species);
     expect(fetched.race).toEqual(animalPayload.race);
-    expect(fetched.age).toBeNumber();
+    expect(fetched.age).toBeString();
     expect(fetched.age).toEqual(animalPayload.age);
     expect(fetched.address).toBeObject();
     expect(fetched.address.city).toEqual(animalPayload.address.city);
@@ -261,6 +262,7 @@ describe("GET /api/animals/:id", function () {
     expect(fetched.ownerId.address).toBeObject();
     expect(fetched.ownerId.address.city).toEqual(ownerPayload.address.city);
     expect(fetched.ownerId.address.zip).toEqual(ownerPayload.address.zip);
+    expect(fetched.ownerId.societyName).toEqual(ownerPayload.societyName);
   });
 
   test("should return 404 when animal does not exist", async function () {

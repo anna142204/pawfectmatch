@@ -1,6 +1,18 @@
 <script setup>
-import { ref, computed } from 'vue';
-import { X, Upload } from 'lucide-vue-next';
+import { ref, computed, onUnmounted } from 'vue';
+import {Upload, CircleX } from 'lucide-vue-next';
+
+// Props pour la flexibilité
+const props = defineProps({
+  multiple: {
+    type: Boolean,
+    default: true
+  },
+  max: {
+    type: Number,
+    default: 10
+  }
+});
 
 const emit = defineEmits(['filesSelected']);
 
@@ -11,58 +23,61 @@ const error = ref('');
 const hasFiles = computed(() => selectedFiles.value.length > 0);
 const fileCount = computed(() => selectedFiles.value.length);
 
+// On ne peut plus uploader si on est en mode simple et qu'on a déjà une photo, 
+// ou si on a atteint la limite max
+const canUploadMore = computed(() => {
+  if (!props.multiple && selectedFiles.value.length >= 1) return false;
+  return selectedFiles.value.length < props.max;
+});
+
 const handleFileSelect = (e) => {
   const files = Array.from(e.target.files || []);
   if (files.length === 0) return;
+
+  // Si mode profil, on ne prend que le premier fichier
+  const filesToProcess = props.multiple ? files : [files[0]];
 
   const validFiles = [];
   const errors = [];
   const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
 
-  for (const file of files) {
-    // Vérifier le type de fichier
+  for (const file of filesToProcess) {
+    if (selectedFiles.value.length + validFiles.length >= props.max) {
+      errors.push("Limite de photos atteinte");
+      break;
+    }
+
     if (!file.type.startsWith('image/')) {
       errors.push(`${file.name}: n'est pas une image`);
       continue;
     }
 
-    // Bloquer les SVG
-    if (file.type === 'image/svg+xml' || file.name.toLowerCase().endsWith('.svg')) {
-      errors.push(`${file.name}: les SVG ne sont pas autorisés`);
-      continue;
-    }
-
-    // Vérifier que le type est dans la liste autorisée
-    if (!allowedTypes.includes(file.type)) {
-      errors.push(`${file.name}: format non supporté (JPG, PNG, WebP, GIF uniquement)`);
-      continue;
-    }
-
-    // Vérifier la taille (5MB max)
     if (file.size > 5 * 1024 * 1024) {
       errors.push(`${file.name}: dépasse 5MB`);
       continue;
     }
 
-    // Créer la prévisualisation
-    const reader = new FileReader();
-    const fileWithPreview = { file, preview: '', id: Date.now() + Math.random() };
-    
-    reader.onload = (evt) => {
-      fileWithPreview.preview = evt.target.result;
-    };
-    reader.readAsDataURL(file);
+    if (!allowedTypes.includes(file.type)) {
+      errors.push(`${file.name}: format non supporté`);
+      continue;
+    }
 
+    // Si on est en mode photo unique, on vide l'existant avant de remplacer
+    if (!props.multiple) {
+      clearAll();
+    }
+
+    const fileWithPreview = {
+      file,
+      preview: URL.createObjectURL(file),
+      id: Date.now() + Math.random()
+    };
     validFiles.push(fileWithPreview);
   }
 
   if (errors.length > 0) {
     error.value = errors.join(' • ');
-    setTimeout(() => {
-      error.value = '';
-    }, 5000);
-  } else {
-    error.value = '';
+    setTimeout(() => { error.value = ''; }, 5000);
   }
 
   if (validFiles.length > 0) {
@@ -70,90 +85,62 @@ const handleFileSelect = (e) => {
     emit('filesSelected', selectedFiles.value);
   }
 
-  // Reset input
-  if (fileInput.value) {
-    fileInput.value.value = '';
-  }
+  if (fileInput.value) fileInput.value.value = '';
 };
 
 const removeFile = (id) => {
+  const fileToRemove = selectedFiles.value.find(f => f.id === id);
+  if (fileToRemove) URL.revokeObjectURL(fileToRemove.preview);
   selectedFiles.value = selectedFiles.value.filter(f => f.id !== id);
   emit('filesSelected', selectedFiles.value);
 };
 
 const clearAll = () => {
+  selectedFiles.value.forEach(f => URL.revokeObjectURL(f.preview));
   selectedFiles.value = [];
-  error.value = '';
   emit('filesSelected', []);
 };
 
-const handleDragOver = (e) => {
-  e.preventDefault();
-  e.stopPropagation();
-};
-
-const handleDrop = (e) => {
-  e.preventDefault();
-  e.stopPropagation();
-  const droppedFiles = e.dataTransfer.files;
-  if (droppedFiles.length > 0) {
-    handleFileSelect({ target: { files: droppedFiles } });
-  }
-};
+onUnmounted(() => {
+  selectedFiles.value.forEach(f => URL.revokeObjectURL(f.preview));
+});
 
 const triggerFileInput = () => {
-  fileInput.value?.click();
+  if (canUploadMore.value) fileInput.value?.click();
 };
 </script>
 
 <template>
   <div class="image-uploader">
-    <div 
-      class="upload-zone"
-      @dragover="handleDragOver"
-      @drop="handleDrop"
-      @click="triggerFileInput"
-    >
-      <input 
-        ref="fileInput"
-        type="file" 
-        accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
-        multiple
-        @change="handleFileSelect"
-        hidden
-      />
-      
+    <div v-if="canUploadMore" class="upload-zone" :class="{ 'profile-mode': !multiple }" @click="triggerFileInput">
+      <input ref="fileInput" type="file" :multiple="multiple"
+        accept="image/jpeg,image/jpg,image/png,image/webp,image/gif" @change="handleFileSelect" hidden />
+
       <Upload :size="40" :stroke-width="1.5" class="upload-icon" />
-      <p class="upload-text">Cliquez ou glissez des images</p>
+      <p class="upload-text">
+        {{ multiple ? 'Cliquez ou glissez des images' : 'Cliquez pour ajouter une photo de profil (optionnel)' }}
+      </p>
       <p class="upload-hint">JPG, PNG, WebP, GIF (max 5MB par image)</p>
     </div>
 
     <div v-if="error" class="error-message">{{ error }}</div>
 
-    <!-- Prévisualisations -->
     <div v-if="hasFiles" class="preview-section">
       <div class="preview-header">
-        <span class="preview-title">{{ fileCount }} image{{ fileCount > 1 ? 's' : '' }} sélectionnée{{ fileCount > 1 ? 's' : '' }}</span>
-        <button 
-          type="button"
-          @click="clearAll"
-          class="clear-all-btn"
-        >
-          Tout supprimer
+        <span class="preview-title" v-if="multiple">
+          {{ fileCount }} image{{ fileCount > 1 ? 's' : '' }} sélectionnée{{ fileCount > 1 ? 's' : '' }}
+        </span>
+
+        <button type="button" @click="clearAll" class="clear-all-btn">
+          {{ multiple ? 'Tout supprimer' : 'Supprimer' }}
         </button>
       </div>
-      <div class="preview-grid">
+
+      <div class="preview-grid" :class="{ 'is-profile': !multiple }">
         <div v-for="fileItem in selectedFiles" :key="fileItem.id" class="preview-item">
-          <img :src="fileItem.preview" :alt="fileItem.file.name" class="preview-image" />
-          <button 
-            type="button" 
-            @click.stop="removeFile(fileItem.id)"
-            class="remove-preview-btn"
-            :aria-label="`Supprimer ${fileItem.file.name}`"
-          >
-            <X :size="14" />
-          </button>
-          <p class="file-name">{{ fileItem.file.name }}</p>
+          <img :src="fileItem.preview" :alt="fileItem.file.name" class="preview-image" /> 
+            <CircleX size="30px" @click.stop="removeFile(fileItem.id)" class="remove-preview-btn"/>
+          <p v-if="multiple" class="file-name">{{ fileItem.file.name }}</p>
         </div>
       </div>
     </div>
@@ -165,8 +152,10 @@ const triggerFileInput = () => {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-4);
+  width: 100%;
 }
 
+/* Zone d'upload avec votre style d'origine */
 .upload-zone {
   border: 2px dashed var(--color-primary-300);
   border-radius: var(--radius-lg);
@@ -187,8 +176,22 @@ const triggerFileInput = () => {
   background: var(--color-primary-100, #ede9fe);
 }
 
-.upload-zone:active {
-  transform: scale(0.99);
+/* Style spécifique pour le mode photo de profil ronde */
+.upload-zone.profile-mode {
+  border-radius: 50%;
+  width: 100px;
+  height: 100px;
+  margin: 0 auto;
+  padding: var(--spacing-4);
+}
+
+.upload-zone.profile-mode .upload-text {
+  font-size: 11px;
+  text-align: center;
+}
+
+.upload-zone.profile-mode .upload-hint {
+  display: none;
 }
 
 .upload-icon {
@@ -196,14 +199,14 @@ const triggerFileInput = () => {
 }
 
 .upload-text {
-  font-size: var(--body-base-size);
-  font-weight: var(--font-weight-medium);
+  font-size: 14px;
+  font-weight: 500;
   color: var(--color-neutral-900);
   margin: 0;
 }
 
 .upload-hint {
-  font-size: var(--body-sm-size);
+  font-size: 12px;
   color: var(--color-neutral-600);
   margin: 0;
   text-align: center;
@@ -214,7 +217,7 @@ const triggerFileInput = () => {
   color: #991b1b;
   padding: var(--spacing-3);
   border-radius: var(--radius-base);
-  font-size: var(--body-sm-size);
+  font-size: 12px;
   text-align: center;
 }
 
@@ -231,8 +234,8 @@ const triggerFileInput = () => {
 }
 
 .preview-title {
-  font-size: var(--body-base-size);
-  font-weight: var(--font-weight-medium);
+  font-size: 14px;
+  font-weight: 500;
   color: var(--color-neutral-900);
 }
 
@@ -240,27 +243,32 @@ const triggerFileInput = () => {
   background: transparent;
   border: none;
   color: var(--color-error);
-  font-size: var(--body-sm-size);
-  font-weight: var(--font-weight-medium);
+  font-size: 12px;
+  font-weight: 500;
   cursor: pointer;
-  padding: var(--spacing-2);
-}
-
-.clear-all-btn:active {
-  opacity: 0.7;
 }
 
 .preview-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: var(--spacing-3);
+}
+
+.preview-grid.is-profile {
+  justify-content: center;
 }
 
 .preview-item {
   position: relative;
+  width: 100px;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-1);
+  gap: 4px;
+}
+
+/* Photo de profil plus grande et ronde */
+.preview-grid.is-profile .preview-item {
+  width: 150px;
 }
 
 .preview-image {
@@ -268,33 +276,29 @@ const triggerFileInput = () => {
   aspect-ratio: 1;
   object-fit: cover;
   border-radius: var(--radius-lg);
-  background: var(--color-neutral-200);
+  border: 1px solid var(--color-neutral-200);
+}
+
+.preview-grid.is-profile .preview-image {
+  border-radius: 50%;
+  border: 3px solid var(--color-primary-600);
 }
 
 .remove-preview-btn {
   position: absolute;
-  top: var(--spacing-1);
-  right: var(--spacing-1);
+  top: -5px;
+  right: -5px;
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
-  border: none;
+  background: white;
+  color:  var(--color-primary-600);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
-}
-
-.remove-preview-btn:hover {
-  background: rgba(220, 38, 38, 0.9);
-  transform: scale(1.1);
-}
-
-.remove-preview-btn:active {
-  transform: scale(0.95);
+  z-index: 10;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .file-name {

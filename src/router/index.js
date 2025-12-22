@@ -13,7 +13,6 @@ import AdopterSwipe from '../views/Adopter/AdopterSwipe.vue'
 import AdopterAnimalDetails from '../views/Adopter/AdopterAnimalDetails.vue'
 import AdopterDiscussions from '../views/Adopter/AdopterDiscussions.vue'
 import AdopterConversation from '../views/Adopter/AdopterConversation.vue'
-import AdopterProfileOwner from '../views/Adopter/AdopterProfileOwner.vue'
 import AdopterRequests from '../views/Adopter/AdopterRequests.vue'
 
 // Owner
@@ -129,7 +128,7 @@ const routes = [
   {
     path: '/adopter/owner/:id',
     name: 'AdopterProfileOwner',
-    component: AdopterProfileOwner,
+    component: OwnerProfile,
     meta: { requiresAuth: true, userType: 'adopter' }
   },
 

@@ -217,7 +217,7 @@ const isCategorySelected = (categoryId) => {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  padding-bottom: 80px;
+  padding: 0 40px 80px 40px;
 }
 
 .page-header {

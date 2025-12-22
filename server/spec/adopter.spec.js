@@ -20,6 +20,7 @@ const adopterPayload = {
     species: ["chat", "chien"],
     sizePreference: ["petit", "moyen"],
   },
+  image: "https://i.pravatar.cc/150?u=marie.martin@example.com"
 };
 
 beforeEach(async () => await cleanUpDatabase());
@@ -86,6 +87,7 @@ describe("POST /api/auth/register/adopter", function () {
       "address",
       "about",
       "preferences",
+      "image",
       "createdAt",
       "updatedAt",
       "__v",
@@ -166,6 +168,7 @@ describe("GET /api/adopters", function () {
       "address",
       "about",
       "preferences",
+      "image",
       "createdAt",
       "updatedAt",
       "__v",
@@ -370,6 +373,7 @@ describe("GET /api/adopters/:id", function () {
       "address",
       "about",
       "preferences",
+      "image",
       "createdAt",
       "updatedAt",
       "__v",

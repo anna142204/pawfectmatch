@@ -15,7 +15,8 @@ const ownerPayload ={
     city: "Lausanne"
   },
   phoneNumber: "+41 79 123 45 67",
-  about: "Passionné par les animaux, je cherche une famille aimante pour mon compagnon fidèle."
+  about: "Passionné par les animaux, je cherche une famille aimante pour mon compagnon fidèle.",
+  image: "https://i.pravatar.cc/150?u=joanah.doe@example.com"
 };
 
 beforeEach(async () => await cleanUpDatabase());  
@@ -47,6 +48,8 @@ describe("POST /api/auth/register/owner", function () {
     expect(user.address.zip).toEqual(ownerPayload.address.zip);
     expect(user.address.city).toEqual(ownerPayload.address.city);
 
+    expect(user.image).toEqual(ownerPayload.image);
+
     // optional fields
     if (ownerPayload.phoneNumber) expect(user.phoneNumber).toEqual(ownerPayload.phoneNumber);
     if (ownerPayload.societyName) expect(user.societyName).toEqual(ownerPayload.societyName);
@@ -66,6 +69,7 @@ describe("POST /api/auth/register/owner", function () {
       "address",
       "phoneNumber",
       "about",
+      "image",
       "createdAt",
       "updatedAt",
       "__v",
@@ -111,6 +115,8 @@ describe("GET /api/owners", function () {
     expect(first.address.city).toEqual(ownerPayload.address.city);
     expect(first.address.zip).toEqual(ownerPayload.address.zip);
 
+    expect(first.image).toEqual(ownerPayload.image);
+
     // optional fields — assert only if present in the payload
     if (ownerPayload.societyName) expect(first.societyName).toEqual(ownerPayload.societyName);
     if (ownerPayload.phoneNumber) expect(first.phoneNumber).toEqual(ownerPayload.phoneNumber);
@@ -130,6 +136,7 @@ describe("GET /api/owners", function () {
       "address",
       "phoneNumber",
       "about",
+      "image",
       "createdAt",
       "updatedAt",
       "__v",
@@ -201,10 +208,10 @@ describe("DELETE /api/owners/:id", function () {
 
     // 2. Create an animal for this owner
     const animalPayload = {
-      species: "dog",
+      species: "chien",
       race: "Labrador",
       name: "Buddy",
-      age: 3,
+      age: "1-3",
       sex: "male",
       size: "grand",
       weight: "20-30",
@@ -263,9 +270,9 @@ describe("GET /api/owners/:id", function () {
 
     // 2. Create animals for this owner
     const baseAnimal = {
-      species: "dog",
+      species: "chien",
       race: "Labrador",
-      age: 3,
+      age: "1-3",
       sex: "male",
       size: "grand",
       weight: "20-30",

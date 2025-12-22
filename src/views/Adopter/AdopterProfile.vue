@@ -35,8 +35,8 @@ const formattedPreferences = computed(() => {
   if (!prefsRaw) return [[], []];
 
   const prefs = Array.isArray(prefsRaw)
-      ? prefsRaw
-      : Object.values(prefsRaw).flat();
+    ? prefsRaw
+    : Object.values(prefsRaw).flat();
 
   const mid = Math.ceil(prefs.length / 2);
   return [prefs.slice(0, mid), prefs.slice(mid)];
@@ -84,8 +84,8 @@ const handleContact = () => {
 <template>
   <div class="profile-page">
     <div v-if="!isSelfView">
-    <BackButton/>
-  </div>
+      <BackButton variant="overlay"/>
+    </div>
     <!-- Loading -->
     <div v-if="loading" class="loading">
       <p>Chargement...</p>
@@ -98,9 +98,9 @@ const handleContact = () => {
 
     <!-- Profile Content -->
     <div v-else-if="user" class="profile-wrapper">
-      <!-- Full Screen Photo Section -->
+
       <div class="photo-section">
-        <div class="profile-photo">📷</div>
+        <img :src="user.image || '/default-avatar.png'" alt="Photo de profil" class="profile-image-full">
       </div>
 
       <!-- Content Section -->
@@ -111,27 +111,17 @@ const handleContact = () => {
             <h1 class="profile-name">{{ user.firstName }} {{ user.lastName }}</h1>
             <div class="profile-meta">
               <p>{{ user.age }} ans </p>
-              <p class="profile-location"><MapPinIcon size="20px"/> {{ user.address?.city }}</p>
+              <p class="profile-location">
+                <MapPinIcon size="20px" /> {{ user.address?.city }}
+              </p>
             </div>
           </div>
 
-          <Button
-              v-if="isSelfView"
-              variant="primary"
-              size="sm"
-              @click="handleEdit"
-              class="edit-button"
-          >
+          <Button v-if="isSelfView" variant="primary" size="sm" @click="handleEdit" class="edit-button">
             Modifier
           </Button>
 
-          <Button
-              v-else
-              variant="primary"
-              size="sm"
-              @click="handleContact"
-              class="edit-button"
-          >
+          <Button v-else variant="primary" size="sm" @click="handleContact" class="edit-button">
             Contacter
           </Button>
         </div>
@@ -150,10 +140,10 @@ const handleContact = () => {
 
         <!-- About Section -->
         <section class="about-section">
-          <div v-if="user.description">
+          <div v-if="user.about">
             <h2 class="section-title">À propos</h2>
             <p class="about-text">
-              {{ user.description }}
+              {{ user.about }}
             </p>
           </div>
         </section>
@@ -177,11 +167,7 @@ const handleContact = () => {
 
         <!-- Logout Button (uniquement si c'est son propre profil) -->
         <div v-if="isSelfView" class="logout-section">
-          <Button
-              variant="secondary"
-              @click="handleLogout"
-              class="logout-btn"
-          >
+          <Button variant="secondary" @click="handleLogout" class="logout-btn">
             Se déconnecter
           </Button>
         </div>
@@ -199,29 +185,6 @@ const handleContact = () => {
   padding-bottom: 100px;
 }
 
-.back-button {
-  position: fixed;
-  top: 16px;
-  left: 16px;
-  width: 40px;
-  height: 40px;
-  background: rgba(255, 255, 255, 0.9);
-  border: none;
-  border-radius: 50%;
-  font-size: 24px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.back-button:hover {
-  background: white;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
 
 .loading,
 .error-message {
@@ -240,27 +203,24 @@ const handleContact = () => {
   flex-direction: column;
 }
 
-/* Photo Section - Full Width at Top */
 .photo-section {
   width: 100%;
   height: 400px;
-  background: linear-gradient(180deg, #DDD 0%, #AAA 100%);
+  background: #E8E8E8; 
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  position: relative;
 }
 
-.profile-photo {
+.profile-image-full {
   width: 100%;
   height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 120px;
-  background: linear-gradient(180deg, #E8E8E8 0%, #D0D0D0 100%);
+  object-fit: cover; 
+  object-position: center; 
+  display: block;
 }
-
 /* Content Section - White Background */
 .content-section {
   display: flex;
@@ -347,7 +307,7 @@ const handleContact = () => {
 
 /* Section Titles */
 .section-title {
-  margin: 0;
+  margin: 10px 0;
   font-size: 22px;
   font-weight: 700;
   color: #1a1a1a;
@@ -373,7 +333,7 @@ const handleContact = () => {
 .chars {
   display: flex;
   gap: var(--spacing-4);
-  padding: var(--spacing-4) 0;
+  padding: 0 0 var(--spacing-4) 0;
 }
 
 .char-col {
@@ -401,6 +361,7 @@ const handleContact = () => {
   border-radius: var(--radius-full);
   flex-shrink: 0;
 }
+
 .no-preferences {
   margin: 0;
   font-size: 13px;
@@ -420,6 +381,4 @@ const handleContact = () => {
 .logout-btn {
   width: 100%;
 }
-
-
 </style>

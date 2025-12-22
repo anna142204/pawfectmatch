@@ -2,9 +2,11 @@
 import { ref, onMounted } from 'vue';
 import { useToast } from '@/composables/useToast';
 import { MapPin, Trash2, User, Home, PawPrint } from 'lucide-vue-next';
+import Button from '@/components/Button.vue';
+import { useRouter } from 'vue-router';
 
 const { success, error } = useToast();
-
+const router = useRouter();
 // État
 const stats = ref({ totalAdopters: 0, totalOwners: 0, totalAnimals: 0, totalMatches: 0 });
 const adopters = ref([]);
@@ -130,6 +132,9 @@ const deleteAnimal = async (animalId, animalName) => {
         error('Erreur lors de la suppression');
     }
 };
+const handleLogout = () => {
+    router.push('/logout');
+};
 </script>
 
 <template>
@@ -144,11 +149,11 @@ const deleteAnimal = async (animalId, animalName) => {
             <!-- Stats -->
             <section class="stats-section">
                 <div class="stats-grid">
-                    <div class="stat-card" v-for="(value, key) in { 
-                        Adoptants: stats.totalAdopters, 
-                        Propriétaires: stats.totalOwners, 
-                        Animaux: stats.totalAnimals, 
-                        Matches: stats.totalMatches 
+                    <div class="stat-card" v-for="(value, key) in {
+                        Adoptants: stats.totalAdopters,
+                        Propriétaires: stats.totalOwners,
+                        Animaux: stats.totalAnimals,
+                        Matches: stats.totalMatches
                     }" :key="key">
                         <span class="stat-value text-h2 text-primary-700">{{ value }}</span>
                         <span class="stat-label text-label-base text-neutral-600">{{ key }}</span>
@@ -159,15 +164,11 @@ const deleteAnimal = async (animalId, animalName) => {
             <!-- Tabs -->
             <section class="tabs-section">
                 <div class="tabs">
-                    <button 
-                        v-for="tab in [
-                            { id: 'adopters', label: 'Adoptants', count: adopters.length },
-                            { id: 'owners', label: 'Propriétaires', count: owners.length }
-                        ]" 
-                        :key="tab.id"
-                        :class="['tab text-button-sm', { active: activeTab === tab.id }]"
-                        @click="activeTab = tab.id"
-                    >
+                    <button v-for="tab in [
+                        { id: 'adopters', label: 'Adoptants', count: adopters.length },
+                        { id: 'owners', label: 'Propriétaires', count: owners.length }
+                    ]" :key="tab.id" :class="['tab text-button-sm', { active: activeTab === tab.id }]"
+                        @click="activeTab = tab.id">
                         {{ tab.label }} ({{ tab.count }})
                     </button>
                 </div>
@@ -192,7 +193,9 @@ const deleteAnimal = async (animalId, animalName) => {
                             <div class="user-info">
                                 <h3 class="text-body-lg text-neutral-black">{{ a.firstName }} {{ a.lastName }}</h3>
                                 <p class="text-body-sm text-neutral-600">{{ a.email }}</p>
-                                <p class="text-body-sm text-neutral-500 location"><MapPin :size="14" /> {{ a.address?.city }} ({{ a.address?.zip }})</p>
+                                <p class="text-body-sm text-neutral-500 location">
+                                    <MapPin :size="14" /> {{ a.address?.city }} ({{ a.address?.zip }})
+                                </p>
                             </div>
                             <button class="btn-delete" @click="deleteAdopter(a._id)">
                                 <Trash2 :size="18" />
@@ -209,18 +212,19 @@ const deleteAnimal = async (animalId, animalName) => {
                     <template v-else>
                         <div class="users-list">
                             <template v-for="o in owners" :key="o._id">
-                                <div 
-                                    class="user-card" 
-                                    :class="{ selected: selectedOwner?._id === o._id }"
-                                >
+                                <div class="user-card" :class="{ selected: selectedOwner?._id === o._id }">
                                     <div class="user-avatar clickable" @click="selectOwner(o)">
                                         <Home :size="24" />
                                     </div>
                                     <div class="user-info clickable" @click="selectOwner(o)">
-                                        <h3 class="text-body-lg text-neutral-black">{{ o.firstName }} {{ o.lastName }}</h3>
+                                        <h3 class="text-body-lg text-neutral-black">{{ o.firstName }} {{ o.lastName }}
+                                        </h3>
                                         <p class="text-body-sm text-neutral-600">{{ o.email }}</p>
-                                        <p class="text-body-sm text-neutral-500 location"><MapPin :size="14" /> {{ o.address?.city }} ({{ o.address?.zip }})</p>
-                                        <p v-if="o.societyName" class="text-body-sm text-success">{{ o.societyName }}</p>
+                                        <p class="text-body-sm text-neutral-500 location">
+                                            <MapPin :size="14" /> {{ o.address?.city }} ({{ o.address?.zip }})
+                                        </p>
+                                        <p v-if="o.societyName" class="text-body-sm text-success">{{ o.societyName }}
+                                        </p>
                                     </div>
                                     <button class="btn-delete" @click.stop="deleteOwner(o._id)">
                                         <Trash2 :size="18" />
@@ -232,7 +236,7 @@ const deleteAnimal = async (animalId, animalName) => {
                                     <h4 class="section-title text-h5 text-primary-700">
                                         Animaux de {{ o.firstName }}
                                     </h4>
-                                    
+
                                     <div v-if="loadingAnimals" class="loading-container small">
                                         <div class="spinner"></div>
                                     </div>
@@ -241,15 +245,12 @@ const deleteAnimal = async (animalId, animalName) => {
                                     </div>
                                     <div v-else class="animals-grid">
                                         <div class="animal-card" v-for="animal in ownerAnimals" :key="animal._id">
-                                            <button class="btn-delete-animal" @click="deleteAnimal(animal._id, animal.name)">
+                                            <button class="btn-delete-animal"
+                                                @click="deleteAnimal(animal._id, animal.name)">
                                                 <Trash2 :size="14" />
                                             </button>
-                                            <img 
-                                                v-if="animal.image" 
-                                                :src="animal.image" 
-                                                :alt="animal.name"
-                                                class="animal-image"
-                                            />
+                                            <img v-if="animal.image" :src="animal.image" :alt="animal.name"
+                                                class="animal-image" />
                                             <div v-else class="animal-placeholder">
                                                 <PawPrint :size="32" />
                                             </div>
@@ -265,8 +266,13 @@ const deleteAnimal = async (animalId, animalName) => {
                                 </div>
                             </template>
                         </div>
+
                     </template>
+
                 </template>
+                <Button variant="secondary" @click="handleLogout" class="logout-btn">
+                    Se déconnecter
+                </Button>
             </section>
         </div>
     </div>
@@ -461,7 +467,9 @@ const deleteAnimal = async (animalId, animalName) => {
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .empty-message {
@@ -556,5 +564,10 @@ const deleteAnimal = async (animalId, animalName) => {
 
 .animal-info p {
     margin: 0;
+}
+
+.logout-btn {
+    margin: var(--spacing-6) auto 0;
+    display: block;
 }
 </style>

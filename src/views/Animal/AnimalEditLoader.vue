@@ -95,6 +95,7 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   background-color: var(--color-neutral-100);
+  padding: var(--general-padding)
 }
 
 .loading-container {

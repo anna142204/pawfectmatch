@@ -81,6 +81,13 @@ const adopterSchema = new Schema({
             default: [],
         },
     },
+    image: {
+        type: String,
+        required: false,
+        trim: true,
+        maxlength: 500,
+        default: '',
+    },
 }, {
     timestamps: true,
 });
