@@ -8,20 +8,21 @@ import PopupMatch from '../views/PopupMatch.vue'
 
 // Adopter
 import AdopterHomePage from '../views/Adopter/AdopterHomePage.vue'
-import AdopterProfile from '../views/Adopter/AdopterProfile.vue'
 import AdopterSwipe from '../views/Adopter/AdopterSwipe.vue'
 import AdopterAnimalDetails from '../views/Adopter/AdopterAnimalDetails.vue'
 import AdopterDiscussions from '../views/Adopter/AdopterDiscussions.vue'
 import AdopterConversation from '../views/Adopter/AdopterConversation.vue'
-import AdopterRequests from '../views/Adopter/AdopterRequests.vue'
 
 // Owner
 import OwnerHomePage from '../views/Owner/OwnerHomePage.vue'
-import OwnerProfile from '../views/Owner/OwnerProfile.vue'
 import OwnerAnimals from '../views/Owner/OwnerAnimals.vue'
-import OwnerRequests from '../views/Owner/OwnerRequests.vue'
 import OwnerDiscussions from '../views/Owner/OwnerDiscussions.vue'
 import OwnerConversation from '../views/Owner/OwnerConversation.vue'
+
+//General views
+import AdopterProfile from '../views/Adopter/AdopterProfile.vue'
+import OwnerProfile from '../views/Owner/OwnerProfile.vue'
+import RequestsView from '../views/RequestsView.vue'
 
 // Animal Forms
 import AnimalAddFormGeneral from '../views/Animal/AnimalAddFormGeneral.vue'
@@ -122,7 +123,7 @@ const routes = [
   {
     path: '/adopter/requests',
     name: 'AdopterRequests',
-    component: AdopterRequests,
+    component: RequestsView,
     meta: { requiresAuth: true, userType: 'adopter' }
   },
   {
@@ -154,7 +155,7 @@ const routes = [
   {
     path: '/owner/requests',
     name: 'OwnerRequests',
-    component: OwnerRequests,
+    component: RequestsView,
     meta: { requiresAuth: true, userType: 'owner' }
   },
   {

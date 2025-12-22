@@ -115,7 +115,7 @@ export async function getAnimals(req, res) {
 
     // Récupérer tous les animaux sans pagination pour le scoring
     let animals = await Animal.find(query)
-      .populate('ownerId', 'firstName lastName email phoneNumber address societyName');
+      .populate('ownerId', 'firstName lastName email phoneNumber address societyName image');
 console.log(`Nombre d'animaux trouvés: ${animals.length}`);
     if (animals.length > 0) {
       console.log(`Premier animal - Propriétaire: ${animals[0].ownerId?.firstName}, Zip: ${animals[0].ownerId?.address?.zip}`);
@@ -221,7 +221,7 @@ export async function getAnimalById(req, res) {
     const { id } = req.params;
 
     const animal = await Animal.findById(id)
-      .populate('ownerId', 'firstName lastName email phoneNumber address societyName');
+      .populate('ownerId', 'firstName lastName email phoneNumber address societyName image');
 
     if (!animal) {
       return res.status(404).json({ error: 'Animal not found' });

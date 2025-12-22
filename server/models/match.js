@@ -14,7 +14,12 @@ const matchSchema = new Schema({
     },
     isActive: {
         type: Boolean,
-        default: true,
+        default: false,
+    },
+    status: {
+        type: String,
+        enum: ['en_attente', 'refusé', 'validé', 'adopté'],
+        default: 'en_attente'
     },
     discussion: [
         {

@@ -17,8 +17,8 @@ const error = ref('');
 const viewerType = computed(() => localStorage.getItem('user_type'));
 const loggedInUserId = computed(() => localStorage.getItem('user_id'));
 
-// Si l'owner visite: /owner/adopter/:id  -> on prend l'id du profil dans l'URL
-// Sinon (adopter): /adopter/profile      -> on prend son propre id
+// Si l'owner visite: /owner/adopter/:id
+// Sinon (adopter): /adopter/profile 
 const profileAdopterId = computed(() => {
   return route.params?.id ? String(route.params.id) : String(loggedInUserId.value || '');
 });
@@ -27,9 +27,26 @@ const isSelfView = computed(() => {
   return viewerType.value === 'adopter' && profileAdopterId.value && profileAdopterId.value === String(loggedInUserId.value || '');
 });
 
-const adoptedCount = computed(() => 1); // À adapter selon les données réelles
-const requestsCount = computed(() => 2); // À adapter selon les données réelles
+const fetchStats = async () => {
+  try {
+    const response = await fetch(`/api/matches?adopterId=${profileAdopterId.value}`, {
+      credentials: 'include'
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      const matches = data.matches || [];
+      
+      // 1. Demandes en attente (que l'owner n'a pas encore vues/acceptées)
+      requestsCount.value = matches.filter(m => m.isActive === false).length;
 
+      // 2. Adoptions finalisées
+      adoptedCount.value = matches.filter(m => m.isAdopted === true).length;
+    }
+  } catch (err) {
+    console.error('Erreur stats:', err);
+  }
+};
 const formattedPreferences = computed(() => {
   const prefsRaw = user.value?.preferences;
   if (!prefsRaw) return [[], []];
@@ -75,7 +92,7 @@ const handleEdit = () => {
 };
 
 // Action "Contacter" côté owner
-// Ici on redirige vers la liste des discussions owner en passant l'id en query (pour pré-sélectionner plus tard si tu veux)
+// A modifier
 const handleContact = () => {
   router.push({ name: 'OwnerDiscussions', query: { adopterId: profileAdopterId.value } });
 };
@@ -86,26 +103,22 @@ const handleContact = () => {
     <div v-if="!isSelfView">
       <BackButton variant="overlay"/>
     </div>
-    <!-- Loading -->
+
     <div v-if="loading" class="loading">
       <p>Chargement...</p>
     </div>
 
-    <!-- Error -->
     <div v-else-if="error" class="error-message">
       <p>{{ error }}</p>
     </div>
 
-    <!-- Profile Content -->
     <div v-else-if="user" class="profile-wrapper">
 
       <div class="photo-section">
         <img :src="user.image || '/default-avatar.png'" alt="Photo de profil" class="profile-image-full">
       </div>
 
-      <!-- Content Section -->
       <div class="content-section">
-        <!-- Profile Header with Name and Action Button -->
         <div class="profile-header">
           <div class="header-left">
             <h1 class="profile-name">{{ user.firstName }} {{ user.lastName }}</h1>
@@ -126,7 +139,6 @@ const handleContact = () => {
           </Button>
         </div>
 
-        <!-- Stats Section -->
         <div class="stats-section">
           <div class="stat-item">
             <p class="stat-label">Animaux adoptés</p>
@@ -138,7 +150,6 @@ const handleContact = () => {
           </div>
         </div>
 
-        <!-- About Section -->
         <section class="about-section">
           <div v-if="user.about">
             <h2 class="section-title">À propos</h2>
@@ -197,7 +208,6 @@ const handleContact = () => {
   color: #d32f2f;
 }
 
-/* Profile Wrapper */
 .profile-wrapper {
   display: flex;
   flex-direction: column;
@@ -221,7 +231,7 @@ const handleContact = () => {
   object-position: center; 
   display: block;
 }
-/* Content Section - White Background */
+
 .content-section {
   display: flex;
   flex-direction: column;
@@ -234,7 +244,6 @@ const handleContact = () => {
   z-index: 1;
 }
 
-/* Profile Header */
 .profile-header {
   display: flex;
   justify-content: space-between;
@@ -270,10 +279,6 @@ const handleContact = () => {
   gap: 4px;
 }
 
-
-
-
-/* Stats Section */
 .stats-section {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
@@ -304,8 +309,6 @@ const handleContact = () => {
   color: #1a1a1a;
 }
 
-
-/* Section Titles */
 .section-title {
   margin: 10px 0;
   font-size: 22px;
@@ -313,7 +316,6 @@ const handleContact = () => {
   color: #1a1a1a;
 }
 
-/* About Section */
 .about-section {
   display: flex;
   flex-direction: column;
@@ -327,8 +329,6 @@ const handleContact = () => {
   line-height: 1.7;
   text-align: justify;
 }
-
-/* Preferences Section */
 
 .chars {
   display: flex;
@@ -372,7 +372,6 @@ const handleContact = () => {
   border-radius: 8px;
 }
 
-/* Logout Section */
 .logout-section {
   border-top: 1px solid #E8E8E8;
   padding-top: 26px;

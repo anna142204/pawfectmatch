@@ -71,27 +71,21 @@ const formatPrice = (price) => {
 
 <template>
   <div class="animal-page">
-    <!-- Loading -->
     <div v-if="loading" class="loading">
       <p>Chargement...</p>
     </div>
 
-    <!-- Error -->
     <div v-else-if="error" class="error-message">
       <p>{{ error }}</p>
     </div>
 
-    <!-- Animal Content -->
     <div v-else-if="animal" class="profile-wrapper">
-      <!-- Full Screen Photo Section -->
       <div class="photo-section">
         <BackButton @click="goBackToSwipe" variant="overlay" />
         <img :src="animal?.image || '/images/sample-cat.jpg'" alt="photo animal" class="animal-photo"/>
       </div>
 
-      <!-- Content Section -->
       <div class="content-section">
-        <!-- Animal Header with Name and owner Logo -->
         <div class="animal-header">
           <div class="header-left">
             <div class="name-row">
@@ -114,7 +108,7 @@ const formatPrice = (price) => {
               :to="ownerProfileTo"
               :title="ownerName"
           >
-            <img v-if="animal?.ownerId?.avatarUrl" :src="animal.ownerId.avatarUrl" alt="image propriétaire" />
+            <img v-if="animal?.ownerId?.image" :src="animal.ownerId.image" alt="image propriétaire" />
             <div v-else class="owner-placeholder"><User/></div>
 
           </RouterLink>
@@ -122,7 +116,6 @@ const formatPrice = (price) => {
           </div>
         </div>
 
-        <!-- Stats Section -->
         <div class="stats-section">
           <div class="stat-item">
             <p class="stat-label">Race</p>
@@ -138,7 +131,6 @@ const formatPrice = (price) => {
           </div>
         </div>
 
-        <!-- Characteristics Section -->
         <section class="characteristics-section">
           <h2 class="section-title">Caractéristiques</h2>
           <div class="chars">
@@ -150,13 +142,11 @@ const formatPrice = (price) => {
           </div>
         </section>
 
-        <!-- Description Section -->
         <section class="description-section">
           <h2 class="section-title">Description</h2>
           <p class="description-text">{{ animal.description }}</p>
         </section>
 
-        <!-- Favorite Button -->
         <div class="fav-btn-row">
           <button class="fav-btn" aria-label="Favori">
             <Heart size="30" stroke-width="2" />
@@ -187,7 +177,6 @@ const formatPrice = (price) => {
   color: #d32f2f;
 }
 
-/* Profile Wrapper */
 .profile-wrapper {
   display: flex;
   flex-direction: column;
@@ -226,7 +215,6 @@ const formatPrice = (price) => {
   z-index: 1;
 }
 
-/* Animal Header */
 .animal-header {
   display: flex;
   justify-content: space-between;
@@ -310,7 +298,6 @@ display: flex;
 color: #454444;
 }
 
-/* Stats Section */
 .stats-section {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
@@ -341,7 +328,6 @@ color: #454444;
   color: #1a1a1a;
 }
 
-/* Section Titles */
 .section-title {
   margin: 0;
   font-size: 22px;
@@ -349,7 +335,6 @@ color: #454444;
   color: #1a1a1a;
 }
 
-/* Characteristics Section */
 .characteristics-section {
   display: flex;
   flex-direction: column;
@@ -390,7 +375,6 @@ color: #454444;
   flex-shrink: 0;
 }
 
-/* Description Section */
 .description-section {
   display: flex;
   flex-direction: column;
@@ -405,7 +389,6 @@ color: #454444;
   text-align: justify;
 }
 
-/* Favorite Button */
 .fav-btn-row {
   display: flex;
   justify-content: flex-end;

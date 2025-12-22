@@ -10,29 +10,69 @@ const animals = ref([]);
 const currentIndex = ref(0);
 const loading = ref(true);
 const error = ref(null);
+const userId = localStorage.getItem('user_id');
 
-// Charger les animaux depuis l'API
+// Récupérer les IDs des animaux déjà "dislikés" stockés localement
+const getIgnoredAnimalIds = () => {
+  const ignored = localStorage.getItem(`ignored_animals_${userId}`);
+  return ignored ? JSON.parse(ignored) : [];
+};
+
+// Sauvegarder un ID d'animal comme "disliké"
+const saveIgnoredAnimal = (animalId) => {
+  const ignored = getIgnoredAnimalIds();
+  if (!ignored.includes(animalId)) {
+    ignored.push(animalId);
+    localStorage.setItem(`ignored_animals_${userId}`, JSON.stringify(ignored));
+  }
+};
+
 const fetchAnimals = async () => {
   try {
     loading.value = true;
     error.value = null;
-    
-    const response = await fetch('/api/animals?availability=true', {
-      method: 'GET',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
 
-    if (!response.ok) {
-      throw new Error('Erreur lors du chargement des animaux');
+    if (!userId) {
+      throw new Error("Utilisateur non connecté");
     }
 
-    const data = await response.json();
+    // Charger les animaux disponibles
+    const animalsResponse = await fetch('/api/animals?availability=true', {
+      method: 'GET',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    if (!animalsResponse.ok) throw new Error('Erreur lors du chargement des animaux');
+    const animalsData = await animalsResponse.json();
+
+    // Charger les matchs existants pour cet utilisateur (ceux qu'on a déjà likés)
+    const matchesResponse = await fetch(`/api/matches?adopterId=${userId}`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' }
+    });
     
-    // Adapter les données de l'API au format attendu par SwipeCard
-    animals.value = data.animals.map(animal => ({
+    let matchedAnimalIds = [];
+    if (matchesResponse.ok) {
+      const matchesData = await matchesResponse.json();
+      // On récupère les IDs des animaux avec qui on a déjà matché
+      matchedAnimalIds = matchesData.matches.map(m => 
+        typeof m.animalId === 'object' ? m.animalId._id : m.animalId
+      );
+    }
+
+    // Récupérer les animaux ignorés (swipe gauche)
+    const ignoredIds = getIgnoredAnimalIds();
+
+    // Filtrer : On garde seulement les animaux qui ne sont NI matchés NI ignorés
+    const allExcludedIds = [...matchedAnimalIds, ...ignoredIds];
+    
+    const filteredAnimals = animalsData.animals.filter(animal => 
+      !allExcludedIds.includes(animal._id)
+    );
+
+    animals.value = filteredAnimals.map(animal => ({
       id: animal._id,
       name: animal.name,
       description: animal.description,
@@ -40,7 +80,7 @@ const fetchAnimals = async () => {
       distance: animal.distance !== null && animal.distance !== undefined 
         ? `${animal.distance} km` 
         : 'Distance inconnue',
-      urgent: false, // À définir selon vos critères
+      urgent: false,
       tags: [
         ...(animal.characteristics?.environment || []),
         ...(animal.characteristics?.personality || []).slice(0, 2)
@@ -55,7 +95,6 @@ const fetchAnimals = async () => {
   }
 };
 
-// Charger les animaux au montage du composant
 onMounted(() => {
   fetchAnimals();
 });
@@ -68,58 +107,76 @@ const hasMoreAnimals = computed(() => {
   return currentIndex.value < animals.value.length;
 });
 
+// GESTION DU SWIPE GAUCHE (Refus)
 const handleSwipeLeft = (animal) => {
   console.log('Rejected:', animal.name);
+  // On sauvegarde en local pour ne plus le revoir
+  saveIgnoredAnimal(animal.id); 
   nextAnimal();
 };
 
-const handleSwipeRight = (animal) => {
+// GESTION DU SWIPE DROITE (Like/Match)
+const handleSwipeRight = async (animal) => {
   console.log('Liked:', animal.name);
+  
+  try {
+    // Appel API pour créer le match en base de données
+    const response = await fetch('/api/matches', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        adopterId: userId,
+        animalId: animal.id
+      }),
+    });
+
+    if (!response.ok) {
+      console.error("Erreur lors de la création du match");
+    } else {
+       console.log("Match créé avec succès !");
+    }
+  } catch (e) {
+    console.error("Erreur réseau", e);
+  }
+
   nextAnimal();
 };
 
 const nextAnimal = () => {
-  if (currentIndex.value < animals.value.length - 1) {
+  if (currentIndex.value < animals.value.length) {
     currentIndex.value++;
-  } else {
-    currentIndex.value = animals.value.length;
   }
 };
 
 const handleCardClick = (animal) => {
-  // Navigation vers la page de détails de l'animal
   router.push({ name: 'AdopterAnimalDetails', params: { id: animal.id } });
 };
 </script>
 
 <template>
   <div class="swipe-page">
-    <!-- En-tête -->
     <div class="swipe-header">
       <h1 class="swipe-title text-h1 text-primary-700">Swipe</h1>
     </div>
 
-    <!-- Zone de swipe -->
     <div class="swipe-container">
-      <!-- Loader pendant le chargement -->
       <div v-if="loading" class="loading-container">
         <p>Chargement des animaux...</p>
       </div>
 
-      <!-- Message d'erreur -->
       <div v-else-if="error" class="error-container">
         <p>{{ error }}</p>
         <button @click="fetchAnimals" class="retry-button">Réessayer</button>
       </div>
 
-      <!-- Cards stack -->
       <div v-else class="cards-stack">
-        <!-- Message si plus d'animaux -->
         <div v-if="!hasMoreAnimals" class="no-more-cards">
           <p>Plus d'animaux à découvrir pour le moment</p>
         </div>
 
-        <!-- Carte actuelle -->
         <SwipeCard
           v-if="currentAnimal"
           :animal="currentAnimal"
@@ -129,8 +186,6 @@ const handleCardClick = (animal) => {
         />
       </div>
     </div>
-
-    <!-- Menu de navigation -->
     <Menu />
   </div>
 </template>
