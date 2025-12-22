@@ -1,11 +1,10 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { MapPinIcon } from "lucide-vue-next";
+import { MapPinIcon, Clock, PartyPopper } from "lucide-vue-next";
 import Menu from '@/components/Menu.vue';
 import Button from '@/components/Button.vue';
 import BackButton from "../../components/BackButton.vue";
-
 
 const router = useRouter();
 const route = useRoute();
@@ -14,17 +13,18 @@ const user = ref(null);
 const loading = ref(true);
 const error = ref('');
 
+const requestsCount = ref(0);
+const adoptedCount = ref(0);
+
 const viewerType = computed(() => localStorage.getItem('user_type'));
 const loggedInUserId = computed(() => localStorage.getItem('user_id'));
 
-// Si l'owner visite: /owner/adopter/:id
-// Sinon (adopter): /adopter/profile 
 const profileAdopterId = computed(() => {
   return route.params?.id ? String(route.params.id) : String(loggedInUserId.value || '');
 });
 
 const isSelfView = computed(() => {
-  return viewerType.value === 'adopter' && profileAdopterId.value && profileAdopterId.value === String(loggedInUserId.value || '');
+  return viewerType.value === 'adopter' && profileAdopterId.value === String(loggedInUserId.value || '');
 });
 
 const fetchStats = async () => {
@@ -32,21 +32,18 @@ const fetchStats = async () => {
     const response = await fetch(`/api/matches?adopterId=${profileAdopterId.value}`, {
       credentials: 'include'
     });
-    
+
     if (response.ok) {
       const data = await response.json();
       const matches = data.matches || [];
-      
-      // 1. Demandes en attente (que l'owner n'a pas encore vues/acceptées)
-      requestsCount.value = matches.filter(m => m.isActive === false).length;
-
-      // 2. Adoptions finalisées
-      adoptedCount.value = matches.filter(m => m.isAdopted === true).length;
+      requestsCount.value = matches.filter(m => m.status === 'en_attente').length;
+      adoptedCount.value = matches.filter(m => m.status === 'adopté').length;
     }
   } catch (err) {
     console.error('Erreur stats:', err);
   }
 };
+
 const formattedPreferences = computed(() => {
   const prefsRaw = user.value?.preferences;
   if (!prefsRaw) return [[], []];
@@ -65,55 +62,38 @@ onMounted(async () => {
       router.push('/login');
       return;
     }
-
     const response = await fetch(`/api/adopters/${profileAdopterId.value}`, {
       credentials: 'include'
     });
-
-    if (!response.ok) {
-      throw new Error('Erreur lors de la récupération du profil');
-    }
-
+    if (!response.ok) throw new Error('Erreur profil');
     user.value = await response.json();
+    await fetchStats();
   } catch (err) {
     error.value = err.message;
-    console.error('Erreur:', err);
   } finally {
     loading.value = false;
   }
 });
 
-const handleLogout = () => {
-  router.push('/logout');
-};
-
-const handleEdit = () => {
-  router.push('/');
-};
-
-// Action "Contacter" côté owner
-// A modifier
-const handleContact = () => {
-  router.push({ name: 'OwnerDiscussions', query: { adopterId: profileAdopterId.value } });
-};
+const handleLogout = () => router.push('/logout');
+const handleEdit = () => console.log("Edit profile");
+const handleContact = () => router.push({ name: 'OwnerDiscussions', query: { adopterId: profileAdopterId.value } });
 </script>
 
 <template>
   <div class="profile-page">
     <div v-if="!isSelfView">
-      <BackButton variant="overlay"/>
+      <BackButton variant="overlay" />
     </div>
 
     <div v-if="loading" class="loading">
       <p>Chargement...</p>
     </div>
-
     <div v-else-if="error" class="error-message">
       <p>{{ error }}</p>
     </div>
 
     <div v-else-if="user" class="profile-wrapper">
-
       <div class="photo-section">
         <img :src="user.image || '/default-avatar.png'" alt="Photo de profil" class="profile-image-full">
       </div>
@@ -125,7 +105,7 @@ const handleContact = () => {
             <div class="profile-meta">
               <p>{{ user.age }} ans </p>
               <p class="profile-location">
-                <MapPinIcon size="20px" /> {{ user.address?.city }}
+                <MapPinIcon size="16" /> {{ user.address?.city }}
               </p>
             </div>
           </div>
@@ -133,35 +113,42 @@ const handleContact = () => {
           <Button v-if="isSelfView" variant="primary" size="sm" @click="handleEdit" class="edit-button">
             Modifier
           </Button>
-
           <Button v-else variant="primary" size="sm" @click="handleContact" class="edit-button">
             Contacter
           </Button>
         </div>
 
         <div class="stats-section">
-          <div class="stat-item">
-            <p class="stat-label">Animaux adoptés</p>
-            <p class="stat-value">{{ adoptedCount }}</p>
+          <div class="stat-card">
+            <div class="icon-circle">
+              <PartyPopper size="20" />
+            </div>
+            <div class="stat-info">
+              <p class="stat-value">{{ adoptedCount }}</p>
+              <p class="stat-label">Adoptés</p>
+            </div>
           </div>
-          <div class="stat-item">
-            <p class="stat-label">Demandes en cours</p>
-            <p class="stat-value">{{ requestsCount }}</p>
+
+          <div class="stat-card">
+            <div class="icon-circle">
+              <Clock size="20" />
+            </div>
+            <div class="stat-info">
+              <p class="stat-value">{{ requestsCount }}</p>
+              <p class="stat-label">En attente</p>
+            </div>
           </div>
         </div>
 
         <section class="about-section">
           <div v-if="user.about">
             <h2 class="section-title">À propos</h2>
-            <p class="about-text">
-              {{ user.about }}
-            </p>
+            <p class="about-text">{{ user.about }}</p>
           </div>
         </section>
 
         <section class="preferences-section">
           <h2 class="section-title">Préférences</h2>
-
           <div class="preferences-grid" v-if="formattedPreferences.flat().length > 0">
             <div class="chars">
               <div class="char-col" v-for="(col, idx) in formattedPreferences" :key="idx">
@@ -176,7 +163,6 @@ const handleContact = () => {
           <p v-else class="no-preferences">Aucune préférence renseignée</p>
         </section>
 
-        <!-- Logout Button (uniquement si c'est son propre profil) -->
         <div v-if="isSelfView" class="logout-section">
           <Button variant="secondary" @click="handleLogout" class="logout-btn">
             Se déconnecter
@@ -184,7 +170,6 @@ const handleContact = () => {
         </div>
       </div>
     </div>
-
     <Menu />
   </div>
 </template>
@@ -195,7 +180,6 @@ const handleContact = () => {
   background: #FFFFFF;
   padding-bottom: 100px;
 }
-
 
 .loading,
 .error-message {
@@ -215,8 +199,8 @@ const handleContact = () => {
 
 .photo-section {
   width: 100%;
-  height: 400px;
-  background: #E8E8E8; 
+  height: 380px;
+  background: #E8E8E8;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -227,113 +211,139 @@ const handleContact = () => {
 .profile-image-full {
   width: 100%;
   height: 100%;
-  object-fit: cover; 
-  object-position: center; 
-  display: block;
+  object-fit: cover;
 }
 
 .content-section {
   display: flex;
   flex-direction: column;
-  gap: 15px;
-  padding: 24px 40px;
+  gap: 20px;
+  padding: 30px;
   background: white;
-  margin-top: -100px;
-  border-radius: 20px 20px 0 0;
+  margin-top: -60px;
+  border-radius: 24px 24px 0 0;
   position: relative;
   z-index: 1;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
 }
 
 .profile-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  margin-top: 15px;
+  align-items: flex-start;
+  gap: 12px;
+  position: relative; 
 }
 
 .header-left {
-  width: 150%;
+  width: 70%; 
+  max-width: 70%;
+  flex-shrink: 0; 
 }
 
 .profile-name {
   margin: 0;
-  font-size: 28px;
-  font-weight: 700;
-  color: #1a1a1a;
+  font-size: 26px;
+  font-weight: 800;
+  color: #1f2937;
   line-height: 1.2;
+  word-break: break-word; 
 }
+
+.edit-button {
+  width: auto !important;
+  max-width: 30%;
+  min-width: 100px;
+  flex-shrink: 0;
+  display: inline-flex; 
+  justify-content: center;
+}
+
 
 .profile-meta {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin: 4px 0 0 0;
+  gap: 12px;
+  margin: 0;
   font-size: 14px;
-  color: #666;
+  color: #6b7280;
+  font-weight: 500;
 }
 
 .profile-location {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   gap: 4px;
 }
 
 .stats-section {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 16px;
-  text-align: center;
-  padding: 20px 0;
-  border-top: 1px solid #E8E8E8;
-  border-bottom: 1px solid #E8E8E8;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  padding: 0 0 10px 0;
 }
 
-.stat-item {
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.icon-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background-color: #f3f4f6;
+  color: var(--color-primary-600);
+}
+
+.stat-info {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
+}
+
+.stat-value {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1;
+  color: #111827;
 }
 
 .stat-label {
   margin: 0;
   font-size: 12px;
+  color: #6b7280;
   font-weight: 600;
-  color: #999;
-}
-
-.stat-value {
-  margin: 0;
-  font-size: 24px;
-  font-weight: 700;
-  color: #1a1a1a;
 }
 
 .section-title {
-  margin: 10px 0;
-  font-size: 22px;
+  margin: 0 0 12px 0;
+  font-size: 18px;
   font-weight: 700;
-  color: #1a1a1a;
-}
-
-.about-section {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  color: #111827;
 }
 
 .about-text {
   margin: 0;
-  font-size: 14px;
-  color: #555;
-  line-height: 1.7;
-  text-align: justify;
+  font-size: 15px;
+  color: #4b5563;
+  line-height: 1.6;
 }
 
 .chars {
   display: flex;
-  gap: var(--spacing-4);
-  padding: 0 0 var(--spacing-4) 0;
+  gap: 20px;
 }
 
 .char-col {
@@ -349,32 +359,34 @@ const handleContact = () => {
 .char-col li {
   display: flex;
   align-items: center;
-  gap: var(--spacing-2);
-  padding: var(--spacing-1) 0;
-  color: var(--color-neutral-700);
+  gap: 10px;
+  padding: 6px 0;
+  color: #374151;
+  font-size: 14px;
 }
 
 .bullet {
-  width: 12px;
-  height: 12px;
-  background: var(--color-accent-600);
-  border-radius: var(--radius-full);
+  width: 8px;
+  height: 8px;
+  background: var(--color-primary-600);
+  border-radius: 50%;
   flex-shrink: 0;
 }
 
 .no-preferences {
-  margin: 0;
-  font-size: 13px;
-  color: #999;
-  text-align: center;
-  padding: 24px;
-  background: #FAFAFA;
+  font-size: 14px;
+  color: #9ca3af;
+  font-style: italic;
+  background: #f9fafb;
+  padding: 15px;
   border-radius: 8px;
+  text-align: center;
 }
 
 .logout-section {
-  border-top: 1px solid #E8E8E8;
-  padding-top: 26px;
+  border-top: 1px solid #f3f4f6;
+  padding-top: 30px;
+  margin-top: 10px;
 }
 
 .logout-btn {

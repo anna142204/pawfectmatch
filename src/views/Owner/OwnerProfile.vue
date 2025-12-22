@@ -1,7 +1,8 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { MapPinIcon } from "lucide-vue-next";
+// Import des icônes (Patte pour les animaux, Check pour les adoptions)
+import { MapPinIcon, PawPrint, CheckCircle } from "lucide-vue-next";
 import Menu from '@/components/Menu.vue';
 import Button from '@/components/Button.vue';
 import BackButton from "../../components/BackButton.vue";
@@ -84,33 +85,44 @@ const handleContact = () => {
 
       <div class="content-section">
         <div class="profile-header">
-          <div class="header-left">  
-            <h2 v-if="user.societyName" class="profile-name">{{ user.societyName }}</h2>
-            <h2 v-else class="profile-name">{{ user.firstName }} {{ user.lastName }}</h2>
+          <div class="header-left">
+            <h1 v-if="user.societyName" class="profile-name">{{ user.societyName }}</h1>
+            <h1 v-else class="profile-name">{{ user.firstName }} {{ user.lastName }}</h1>
+
             <div class="profile-meta">
-            
               <p class="profile-location">
-                <MapPinIcon size="20px" /> {{ user.address?.city }}
+                <MapPinIcon size="16" /> {{ user.address?.city }}
               </p>
             </div>
           </div>
 
-          <Button v-if="isSelfView" variant="primary" size="sm" @click="handleEdit">
+          <Button v-if="isSelfView" variant="primary" size="sm" @click="handleEdit" class="edit-button">
             Modifier
           </Button>
-          <Button v-else variant="primary" size="sm" @click="handleContact">
+          <Button v-else variant="primary" size="sm" @click="handleContact" class="edit-button">
             Contacter
           </Button>
         </div>
 
         <div class="stats-section">
-          <div class="stat-item">
-            <p class="stat-label">Disponibles</p>
-            <p class="stat-value">{{ availableAnimals.length }}</p>
+          <div class="stat-card">
+            <div class="icon-circle">
+              <PawPrint size="20" />
+            </div>
+            <div class="stat-info">
+              <p class="stat-value">{{ availableAnimals.length }}</p>
+              <p class="stat-label">Disponibles</p>
+            </div>
           </div>
-          <div class="stat-item">
-            <p class="stat-label">Adoptés</p>
-            <p class="stat-value">{{ adoptedAnimalsCount }}</p>
+
+          <div class="stat-card">
+            <div class="icon-circle">
+              <CheckCircle size="20" />
+            </div>
+            <div class="stat-info">
+              <p class="stat-value">{{ adoptedAnimalsCount }}</p>
+              <p class="stat-label">Adoptés</p>
+            </div>
           </div>
         </div>
 
@@ -119,8 +131,8 @@ const handleContact = () => {
           <p class="about-text">{{ user.about }}</p>
         </section>
 
-        <section class="animals-section" v-if="!isSelfView && availableAnimals.length > 0">
-          <h2 class="section-title">Ses animaux à adopter</h2>
+        <section class="animals-section" v-if="availableAnimals.length > 0">
+          <h2 class="section-title">Animaux à adopter</h2>
           <div class="animals-grid">
             <div v-for="animal in availableAnimals" :key="animal._id" class="animal-card"
               @click="router.push(`/adopter/animal/${animal._id}`)">
@@ -129,6 +141,7 @@ const handleContact = () => {
             </div>
           </div>
         </section>
+        <p v-else-if="!loading" class="no-animals">Aucun animal disponible pour le moment.</p>
 
         <div v-if="isSelfView" class="logout-section">
           <Button variant="secondary" @click="handleLogout" class="logout-btn">
@@ -155,6 +168,10 @@ const handleContact = () => {
   color: #999;
 }
 
+.error-message {
+  color: #d32f2f;
+}
+
 .profile-wrapper {
   display: flex;
   flex-direction: column;
@@ -162,8 +179,11 @@ const handleContact = () => {
 
 .photo-section {
   width: 100%;
-  height: 400px;
+  height: 380px;
   background: #E8E8E8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
   position: relative;
 }
@@ -172,111 +192,151 @@ const handleContact = () => {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: block;
 }
 
 .content-section {
   display: flex;
   flex-direction: column;
-  gap: 15px;
-  padding: 24px 40px;
+  gap: 20px;
+  padding: 24px 30px;
   background: white;
-  margin-top: -100px;
-  border-radius: 20px 20px 0 0;
+  margin-top: -60px;
+  border-radius: 24px 24px 0 0;
   position: relative;
   z-index: 1;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
 }
 
 .profile-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-top: 15px;
+  align-items: flex-start;
+  gap: 12px;
+  position: relative;
 }
 
 .header-left {
-  width: 150%;
-  margin-right: 20px;
+  width: 70%;
+  max-width: 70%;
+  flex-shrink: 0;
 }
 
 .profile-name {
-  font-size: 28px;
-  font-weight: 700;
-  color: #1a1a1a;
+  margin: 0;
+  font-size: 26px;
+  font-weight: 800;
+  color: #1f2937;
+  line-height: 1.2;
+  word-break: break-word;
 }
 
-.society-badge {
-  background: #f0ebff;
-  color: #6366f1;
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 600;
-  width: fit-content;
-  margin-bottom: 4px;
+.edit-button {
+  width: auto !important;
+  max-width: 30%;
+  min-width: 100px;
+  flex-shrink: 0;
+  display: inline-flex;
+  justify-content: center;
 }
 
 .profile-meta {
   display: flex;
-  flex-direction: column;
-  color: #666;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 0 0 0;
+  font-size: 14px;
+  color: #6b7280;
+  font-weight: 500;
 }
 
 .profile-location {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 14px;
 }
 
 .stats-section {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  text-align: center;
-  padding: 10px 0;
-  border-top: 1px solid #E8E8E8;
-  border-bottom: 1px solid #E8E8E8;
+  gap: 15px;
+  padding: 0 0 10px 0;
 }
 
-.stat-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: #999;
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.icon-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background-color: #f3f4f6;
+  color: var(--color-primary-600);
+}
+
+.stat-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .stat-value {
-  font-size: 24px;
-  font-weight: 700;
-  color: #1a1a1a;
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1;
+  color: #111827;
+}
+
+.stat-label {
+  margin: 0;
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 600;
 }
 
 .section-title {
-  font-size: 22px;
+  margin: 0 0 12px 0;
+  font-size: 18px;
   font-weight: 700;
-  color: #1a1a1a;
-  margin-bottom: 30px;
+  color: #111827;
 }
 
 .about-text {
-  font-size: 14px;
-  color: #555;
-  line-height: 1.7;
-  text-align: justify;
+  margin: 0;
+  font-size: 15px;
+  color: #4b5563;
+  line-height: 1.6;
 }
 
 .animals-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
   gap: 12px;
-  margin-top: 10px;
+  margin-top: 5px;
 }
 
 .animal-card {
   cursor: pointer;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
+  transition: transform 0.2s;
+}
+
+.animal-card:active {
+  transform: scale(0.98);
 }
 
 .animal-thumb {
@@ -285,18 +345,31 @@ const handleContact = () => {
   object-fit: cover;
   border-radius: 12px;
   background: #f5f5f5;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
 
 .animal-name {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   text-align: center;
-  color: #333;
+  color: #374151;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.no-animals {
+  font-size: 14px;
+  color: #9ca3af;
+  font-style: italic;
+  text-align: center;
+  padding: 20px;
 }
 
 .logout-section {
-  border-top: 1px solid #E8E8E8;
-  padding-top: 26px;
+  border-top: 1px solid #f3f4f6;
+  padding-top: 30px;
+  margin-top: 10px;
 }
 
 .logout-btn {

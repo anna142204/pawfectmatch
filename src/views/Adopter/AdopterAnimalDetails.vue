@@ -101,18 +101,18 @@ const formatPrice = (price) => {
               <span class="tag"><MapPin size="16" /> {{ animal.address.city || '' }}</span>
             </div>
           </div>
-          <div class ="owner-link">
-          <RouterLink
-              v-if="ownerProfileTo"
-              class="owner-logo"
-              :to="ownerProfileTo"
-              :title="ownerName"
-          >
-            <img v-if="animal?.ownerId?.image" :src="animal.ownerId.image" alt="image propriétaire" />
-            <div v-else class="owner-placeholder"><User/></div>
-
-          </RouterLink>
-          <p>{{ ownerName }}</p>
+          
+          <div class="owner-link">
+            <RouterLink
+                v-if="ownerProfileTo"
+                class="owner-logo"
+                :to="ownerProfileTo"
+                :title="ownerName"
+            >
+              <img v-if="animal?.ownerId?.image" :src="animal.ownerId.image" alt="image propriétaire" />
+              <div v-else class="owner-placeholder"><User/></div>
+            </RouterLink>
+            <p class="owner-name-text">{{ ownerName }}</p>
           </div>
         </div>
 
@@ -181,11 +181,7 @@ const formatPrice = (price) => {
   display: flex;
   flex-direction: column;
 }
-.owner-link{
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
+
 .photo-section {
   position: relative;
   width: 100%;
@@ -219,12 +215,23 @@ const formatPrice = (price) => {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 16px;
+  gap: 12px;
   margin-top: 15px;
+  position: relative;
 }
 
 .header-left {
-  flex: 1;
+  width: 70%;
+  max-width: 70%;
+  flex-shrink: 0;
+}
+
+.owner-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  max-width: 30%;
 }
 
 .name-row {
@@ -232,6 +239,7 @@ const formatPrice = (price) => {
   align-items: center;
   gap: 8px;
   margin-bottom: 8px;
+  flex-wrap: wrap;
 }
 
 .animal-name {
@@ -240,6 +248,15 @@ const formatPrice = (price) => {
   font-weight: 700;
   color: #1a1a1a;
   line-height: 1.2;
+  word-break: break-word;
+}
+
+.owner-name-text {
+  margin: 4px 0 0 0;
+  font-size: 12px;
+  text-align: center;
+  color: #666;
+  word-break: break-word;
 }
 
 .gender {
@@ -294,8 +311,8 @@ const formatPrice = (price) => {
 }
 
 .owner-placeholder {
-display: flex;
-color: #454444;
+  display: flex;
+  color: #454444;
 }
 
 .stats-section {
