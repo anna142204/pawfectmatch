@@ -12,13 +12,11 @@ const loading = ref(true);
 const error = ref(null);
 const userId = localStorage.getItem('user_id');
 
-// Récupérer les IDs des animaux déjà "dislikés" stockés localement
 const getIgnoredAnimalIds = () => {
   const ignored = localStorage.getItem(`ignored_animals_${userId}`);
   return ignored ? JSON.parse(ignored) : [];
 };
 
-// Sauvegarder un ID d'animal comme "disliké"
 const saveIgnoredAnimal = (animalId) => {
   const ignored = getIgnoredAnimalIds();
   if (!ignored.includes(animalId)) {
@@ -32,54 +30,42 @@ const fetchAnimals = async () => {
     loading.value = true;
     error.value = null;
 
-    if (!userId) {
-      throw new Error("Utilisateur non connecté");
-    }
+    if (!userId) throw new Error("Utilisateur non connecté");
 
-    // Charger les animaux disponibles
+    // 1. Charger les animaux
     const animalsResponse = await fetch('/api/animals?availability=true', {
-      method: 'GET',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' }
     });
-
-    if (!animalsResponse.ok) throw new Error('Erreur lors du chargement des animaux');
+    if (!animalsResponse.ok) throw new Error('Erreur chargement animaux');
     const animalsData = await animalsResponse.json();
 
-    // Charger les matchs existants pour cet utilisateur (ceux qu'on a déjà likés)
+    // 2. Charger les matchs existants
     const matchesResponse = await fetch(`/api/matches?adopterId=${userId}`, {
-      method: 'GET',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' }
     });
     
-    let matchedAnimalIds = [];
+    let matchedIds = [];
     if (matchesResponse.ok) {
       const matchesData = await matchesResponse.json();
-      // On récupère les IDs des animaux avec qui on a déjà matché
-      matchedAnimalIds = matchesData.matches.map(m => 
+      matchedIds = matchesData.matches.map(m => 
         typeof m.animalId === 'object' ? m.animalId._id : m.animalId
       );
     }
 
-    // Récupérer les animaux ignorés (swipe gauche)
+    // 3. Filtrer (Exclure déjà matchés ou ignorés)
     const ignoredIds = getIgnoredAnimalIds();
-
-    // Filtrer : On garde seulement les animaux qui ne sont NI matchés NI ignorés
-    const allExcludedIds = [...matchedAnimalIds, ...ignoredIds];
+    const excludedIds = [...matchedIds, ...ignoredIds];
     
-    const filteredAnimals = animalsData.animals.filter(animal => 
-      !allExcludedIds.includes(animal._id)
-    );
+    const filtered = animalsData.animals.filter(a => !excludedIds.includes(a._id));
 
-    animals.value = filteredAnimals.map(animal => ({
+    animals.value = filtered.map(animal => ({
       id: animal._id,
       name: animal.name,
       description: animal.description,
       image: animal.image,
-      distance: animal.distance !== null && animal.distance !== undefined 
-        ? `${animal.distance} km` 
-        : 'Distance inconnue',
+      distance: animal.distance ? `${animal.distance} km` : 'Distance inconnue',
       urgent: false,
       tags: [
         ...(animal.characteristics?.environment || []),
@@ -88,8 +74,8 @@ const fetchAnimals = async () => {
     }));
     
   } catch (err) {
-    console.error('Erreur:', err);
-    error.value = err.message;
+    console.error(err);
+    error.value = err.message || "Une erreur est survenue";
   } finally {
     loading.value = false;
   }
@@ -99,56 +85,30 @@ onMounted(() => {
   fetchAnimals();
 });
 
-const currentAnimal = computed(() => {
-  return animals.value[currentIndex.value];
-});
+const currentAnimal = computed(() => animals.value[currentIndex.value]);
+const hasMoreAnimals = computed(() => currentIndex.value < animals.value.length);
 
-const hasMoreAnimals = computed(() => {
-  return currentIndex.value < animals.value.length;
-});
-
-// GESTION DU SWIPE GAUCHE (Refus)
 const handleSwipeLeft = (animal) => {
-  console.log('Rejected:', animal.name);
-  // On sauvegarde en local pour ne plus le revoir
   saveIgnoredAnimal(animal.id); 
   nextAnimal();
 };
 
-// GESTION DU SWIPE DROITE (Like/Match)
 const handleSwipeRight = async (animal) => {
-  console.log('Liked:', animal.name);
-  
   try {
-    // Appel API pour créer le match en base de données
-    const response = await fetch('/api/matches', {
+    await fetch('/api/matches', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({
-        adopterId: userId,
-        animalId: animal.id
-      }),
+      body: JSON.stringify({ adopterId: userId, animalId: animal.id }),
     });
-
-    if (!response.ok) {
-      console.error("Erreur lors de la création du match");
-    } else {
-       console.log("Match créé avec succès !");
-    }
   } catch (e) {
-    console.error("Erreur réseau", e);
+    console.error(e);
   }
-
   nextAnimal();
 };
 
 const nextAnimal = () => {
-  if (currentIndex.value < animals.value.length) {
-    currentIndex.value++;
-  }
+  if (currentIndex.value < animals.value.length) currentIndex.value++;
 };
 
 const handleCardClick = (animal) => {
@@ -157,24 +117,26 @@ const handleCardClick = (animal) => {
 </script>
 
 <template>
-  <div class="swipe-page">
-    <div class="swipe-header">
-      <h1 class="swipe-title text-h1 text-primary-700">Swipe</h1>
-    </div>
+  <div class="viewport">
+    <header class="header">
+      <h1 class="title text-h1 text-primary-700">Swipe</h1>
+    </header>
 
-    <div class="swipe-container">
-      <div v-if="loading" class="loading-container">
-        <p>Chargement des animaux...</p>
+    <main class="main-content">
+      <div v-if="loading" class="state-container">
+        <div class="loader"></div>
+        <p>Recherche de compagnons...</p>
       </div>
 
-      <div v-else-if="error" class="error-container">
+      <div v-else-if="error" class="state-container">
         <p>{{ error }}</p>
-        <button @click="fetchAnimals" class="retry-button">Réessayer</button>
+        <button @click="fetchAnimals" class="btn-retry">Réessayer</button>
       </div>
 
-      <div v-else class="cards-stack">
-        <div v-if="!hasMoreAnimals" class="no-more-cards">
-          <p>Plus d'animaux à découvrir pour le moment</p>
+      <div v-else class="cards-area">
+        <div v-if="!hasMoreAnimals" class="state-container">
+          <p>C'est tout pour le moment ! 🐾</p>
+          <small>Revenez plus tard.</small>
         </div>
 
         <SwipeCard
@@ -183,92 +145,98 @@ const handleCardClick = (animal) => {
           @swipe-left="handleSwipeLeft"
           @swipe-right="handleSwipeRight"
           @click="handleCardClick"
+          class="card-instance" 
         />
       </div>
-    </div>
+    </main>
+    
     <Menu />
   </div>
 </template>
 
 <style scoped>
-.swipe-page {
-  height: 100vh;
+.viewport {
+  position: fixed; 
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100dvh; 
   display: flex;
   flex-direction: column;
   background-color: var(--color-neutral-100);
   overflow: hidden;
 }
 
-.swipe-header {
-  padding: var(--spacing-2) var(--spacing-6);
-  padding-top: var(--spacing-12);
-  background-color: var(--color-neutral-100);
+.header {
   flex-shrink: 0;
-}
-
-.swipe-title {
-  margin: 0;
+  padding: 0;
+  padding-top: max(16px, env(safe-area-inset-top)); 
   text-align: center;
+  background-color: var(--color-neutral-100);
+  z-index: 10;
 }
 
-.swipe-container {
+.main-content {
   flex: 1;
   display: flex;
+  flex-direction: column;
+  position: relative;
+  width: 100%;
+  padding-bottom: calc(80px + 16px + env(safe-area-inset-bottom));
+  padding-left: 16px;
+  padding-right: 16px;
+  box-sizing: border-box;
+}
+
+.cards-area {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
   justify-content: center;
   align-items: center;
-  padding: 0 var(--spacing-6);
-  padding-bottom: 100px;
-  position: relative;
-  overflow: hidden;
 }
 
-.cards-stack {
-  width: 100%;
-  max-width: 400px;
-  height: 100%;
-  max-height: 640px;
-  position: relative;
+:deep(.swipe-card), .card-instance {
+  width: 95%;
+  height: 90%;
+  max-height: 100%;
 }
 
-.loading-container,
-.error-container,
-.no-more-cards {
+.state-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 100%;
+  width: 100%;
   text-align: center;
-  gap: var(--spacing-4);
-}
-
-.loading-container p,
-.error-container p,
-.no-more-cards p {
-  font-family: var(--font-family);
-  font-size: var(--body-lg-size);
+  gap: 16px;
   color: var(--color-neutral-600);
-  margin: 0;
 }
 
-.retry-button {
-  padding: var(--spacing-3) var(--spacing-6);
+.loader {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid var(--color-primary-600);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.btn-retry {
+  padding: 12px 24px;
   background-color: var(--color-primary-600);
-  color: var(--color-neutral-white);
+  color: white;
   border: none;
-  border-radius: var(--radius-full);
-  font-family: var(--font-family);
-  font-size: var(--body-md-size);
-  font-weight: var(--font-weight-semibold);
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.retry-button:hover {
-  background-color: var(--color-primary-700);
-}
-
-.retry-button:active {
-  transform: scale(0.95);
+  border-radius: 50px;
+  font-weight: 600;
+  font-size: 16px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 </style>

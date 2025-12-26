@@ -4,10 +4,11 @@ import OwnersMap from './OwnersMap.vue';
 import OwnersList from './OwnersList.vue';
 import { ref, watch } from 'vue'; 
 import { useRoute, useRouter } from 'vue-router';
-import catHome from '@/images/cat-home.svg';
-import dogHome from '@/images/dog-home.svg';
-import rodentHome from '@/images/rodent-home.svg';
-import { Map, ClipboardList } from 'lucide-vue-next';
+import { Map, ClipboardList, ArrowRight } from 'lucide-vue-next';
+
+import catHome from '@/images/cat-home.webp';
+import dogHome from '@/images/dog-home.webp';
+import rodentHome from '@/images/rodent-home.webp';
 
 const route = useRoute();
 const router = useRouter();
@@ -16,12 +17,8 @@ const showMapView = ref(route.query.view !== 'list');
 
 const toggleView = (isMap) => {
   showMapView.value = isMap;
-  
   router.replace({ 
-    query: { 
-      ...route.query, 
-      view: isMap ? 'map' : 'list' 
-    } 
+    query: { ...route.query, view: isMap ? 'map' : 'list' } 
   });
 };
 
@@ -33,30 +30,38 @@ watch(() => route.query.view, (newView) => {
 <template>
   <div class="home-page">
     <header class="home-header">
-      <h1 class="text-h1 text-primary-700">Home</h1>
+      <h1 class="text-h1 text-primary-700">Découvrir</h1>
+      <p class="subtitle">Trouvez votre futur compagnon</p>
     </header>
 
     <main class="home-content">
-      <router-link
-        to="/adopter/swipe"
-        class="featured-card cats-card"
-        :style="{ backgroundImage: `url(${catHome})`, backgroundSize: 'cover', backgroundPosition: 'center' }"
-      >
+      
+      <router-link to="/adopter/swipe?species=chat" class="card featured-card">
+        <div class="card-bg" :style="{ backgroundImage: `url(${catHome})`}"></div>
+        <div class="card-overlay-cat"></div>
+        <div class="card-content">
+          <div class="card-bottom">
+            <div class="card-icon"><ArrowRight size="20"/></div>
+            <h2>Chats</h2>
+          </div>
+        </div>
       </router-link>
 
       <div class="cards-grid">
-        <router-link
-          to="/adopter/swipe"
-          class="category-card dogs-card"
-          :style="{ backgroundImage: `url(${dogHome})`, backgroundSize: 'cover', backgroundPosition: 'center' }"
-        >
+        <router-link to="/adopter/swipe?species=chien" class="card category-card">
+          <div class="card-bg" :style="{ backgroundImage: `url(${dogHome})` }"></div>
+          <div class="card-overlay-dog"></div>
+          <div class="card-content">
+            <h3>Chiens</h3>
+          </div>
         </router-link>
 
-        <router-link
-          to="/adopter/swipe"
-          class="category-card rabbits-card"
-          :style="{ backgroundImage: `url(${rodentHome})`, backgroundSize: 'cover', backgroundPosition: 'center' }"
-        >
+        <router-link to="/adopter/swipe?species=rongeur" class="card category-card">
+          <div class="card-bg" :style="{ backgroundImage: `url(${rodentHome})` }"></div>
+          <div class="card-overlay-rodent"></div>
+          <div class="card-content">
+            <h3>Rongeurs</h3>
+          </div>
         </router-link>
       </div>
 
@@ -69,14 +74,14 @@ watch(() => route.query.view, (newView) => {
               @click="toggleView(true)"
               title="Voir la carte"
             >
-              <Map />
+              <Map size="18" />
             </button>
             <button
               :class="['toggle-btn', { active: !showMapView }]"
               @click="toggleView(false)"
               title="Voir la liste"
             >
-              <ClipboardList />
+              <ClipboardList size="18" />
             </button>
           </div>
         </div>
@@ -93,186 +98,199 @@ watch(() => route.query.view, (newView) => {
 .home-page {
   display: flex;
   flex-direction: column;
-  padding: 24px 40px;
-  padding-bottom: calc(100px + 24px);
+  padding: 24px 24px 120px 24px;
+  max-width: 600px;
+  margin: 0 auto;
+  background-color: var(--color-neutral-100);
+  min-height: 100vh;
 }
 
 .home-header {
-  margin-top: 8px;
+  margin-bottom: 24px;
+}
+
+.subtitle {
+  color: var(--color-neutral-500);
+  font-size: 16px;
+  margin: 4px 0 0 0;
 }
 
 .home-content {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
 }
 
-/* Featured Card */
-.featured-card {
-  min-height: 200px;
-  border-radius: 16px;
-  padding: 24px;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  overflow: hidden;
+.card {
   position: relative;
+  display: block;
+  border-radius: 24px;
+  overflow: hidden;
   text-decoration: none;
-  transition: transform 0.2s ease;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  transform: translateZ(0);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.featured-card:active {
+.card:active {
   transform: scale(0.98);
+}
+
+.card-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  z-index: 2;
+}
+
+.card:hover .card-bg {
+  transform: scale(1.08);
+}
+
+
+.card-overlay-cat {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, var(--color-secondary-600), rgba(0,0,0,0) 80%);
+  z-index: 1;
+}
+.card-overlay-dog {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, var(--color-primary-700), rgba(0,0,0,0) 80%);
+  z-index: 1;
+}
+.card-overlay-rodent {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, var(--color-secondary-400), rgba(0,0,0,0) 80%);
+  z-index: 1;
+}
+
+.card-content {
+  position: relative;
+  z-index: 2;
+  height: 75%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 20px;
+  color: white;
+}
+
+.featured-card {
+  height: 170px;
+}
+
+.card-label {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(8px);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.card-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  align-content: space-around;
+  gap: 20px;
+}
+
+.featured-card h2 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.card-icon {
+  background: white;
+  color: var(--color-primary-600);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 .cards-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  gap: 16px;
 }
 
 .category-card {
-  min-height: 140px;
-  border-radius: 16px;
-  padding: 20px;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  overflow: hidden;
-  position: relative;
-  text-decoration: none;
-  transition: transform 0.2s ease;
+  height: 130px;
 }
 
-.category-card:active {
-  transform: scale(0.98);
+.category-card h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
-
-
-/* Map Section */
 .map-section {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-top: 8px;
+  gap: 16px;
+  margin-top: 12px;
 }
 
 .map-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
 }
 
 .map-title {
   margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: #1a1a1a;
-  flex: 1;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-neutral-800);
 }
 
 .toggle-container {
   display: flex;
-  gap: 8px;
-  background: #E8E8E8;
-  border-radius: 8px;
+  background: #f1f5f9;
+  border-radius: 12px;
   padding: 4px;
+  gap: 4px;
 }
 
 .toggle-btn {
-  flex: 1;
-  padding: 8px 12px;
-  background: transparent;
-  border: none;
-  border-radius: 6px;
-  font-size: 18px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-weight: 600;
-  color: var(--color-neutral-600);
-}
-
-.toggle-btn:hover {
-  background: rgba(0, 0, 0, 0.05);
-}
-
-.toggle-btn.active {
-  color: var(--color-primary-700);
-  background: #fff;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  transform: scale(1.05);
-}
-
-.view-card {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 16px;
-  background: linear-gradient(135deg, #4CAF50 0%, #81C784 100%);
-  border-radius: 12px;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
-  animation: slideIn 0.3s ease;
-}
-
-.list-view {
-  background: linear-gradient(135deg, #2196F3 0%, #64B5F6 100%);
-  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.2);
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.view-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
-}
-
-.view-card:active {
-  transform: scale(0.98);
-}
-
-.view-icon {
-  font-size: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
+  width: 40px;
+  height: 36px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--color-neutral-500);
+  transition: all 0.2s ease;
 }
 
-.view-info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  flex: 1;
+.toggle-btn:hover {
+  background: rgba(0,0,0,0.05);
 }
 
-.view-title {
-  font-weight: 600;
-  font-size: 16px;
-  color: #fff;
+.toggle-btn.active {
+  background: white;
+  color: var(--color-primary-600);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
-
-.view-subtitle {
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.view-arrow {
-  font-size: 20px;
-  color: #fff;
-  font-weight: 600;
-}
-
 </style>
