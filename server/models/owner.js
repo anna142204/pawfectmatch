@@ -3,6 +3,14 @@ import bcrypt from 'bcryptjs';
 
 const { Schema } = mongoose;
 
+function validateGeoJsonCoordinates(value) {
+    return Array.isArray(value) && 
+           value.length >= 2 && 
+           value.length <= 3 && 
+           value[0] >= -180 && value[0] <= 180 && // Longitude
+           value[1] >= -90 && value[1] <= 90;     // Latitude
+}
+
 const ownerSchema = new Schema({
     firstName: {
         type: String,
@@ -22,7 +30,7 @@ const ownerSchema = new Schema({
         unique: true,
         lowercase: true,
         trim: true,
-        match: [/^\S+@\S+\.\S+$/, 'Invalid email format'],
+        match: [/^\S+@\S+\.\S+$/, 'Format email invalide'],
         maxlength: 254,
     },
     password: {
@@ -32,67 +40,51 @@ const ownerSchema = new Schema({
         maxlength: 128,
     },
     address: {
-        zip: {
+        zip: { type: String, required: true, trim: true, maxlength: 12 },
+        city: { type: String, required: true, trim: true, maxlength: 100 },
+    },
+    location: {
+        type: {
             type: String,
-            required: true,
-            trim: true,
-            maxlength: 12,
+            enum: ['Point'],
+            default: 'Point',
+            required: true
         },
-        city: {
-            type: String,
+        coordinates: {
+            type: [Number], // [Longitude, Latitude]
             required: true,
-            trim: true,
-            maxlength: 100,
-        },
+            validate: {
+                validator: validateGeoJsonCoordinates,
+                message: '{VALUE} n\'est pas un tableau de coordonnées valide'
+            },
+            default: [8.2275, 46.8182]
+        }
     },
-    societyName: {
-        type: String,
-        required: false,
-        trim: true,
-        maxlength: 150,
-    },
-    phoneNumber: {
-        type: String,
-        required: false,
-        trim: true,
-        maxlength: 30,
-    },
-    about: {
-        type: String,
-        required: false,
-        maxlength: 150,
-        trim: true,
-    },
-    image: {
-        type: String,
-        required: false,
-        trim: true,
-        maxlength: 500,
-        default: '',
-    },
+    societyName: { type: String, required: false, trim: true, maxlength: 150 },
+    phoneNumber: { type: String, required: false, trim: true, maxlength: 30 },
+    about: { type: String, required: false, maxlength: 150, trim: true },
+    image: { type: String, required: false, trim: true, maxlength: 500, default: '' },
 }, {
     timestamps: true,
 });
 
-// Hash password before saving
+// Index géospatial pour la carte et les recherches de proximité
+ownerSchema.index({ location: '2dsphere' });
+
+// Hashage du mot de passe
 ownerSchema.pre('save', async function(next) {
     if (!this.isModified('password')) return next();
-    
     try {
         const salt = await bcrypt.genSalt(10);
         this.password = await bcrypt.hash(this.password, salt);
         next();
-    } catch (err) {
-        next(err);
-    }
+    } catch (err) { next(err); }
 });
 
-// Method to compare password for login
 ownerSchema.methods.comparePassword = async function(candidatePassword) {
     return await bcrypt.compare(candidatePassword, this.password);
 };
 
-// Don't return password in JSON responses
 ownerSchema.methods.toJSON = function() {
     const obj = this.toObject();
     delete obj.password;

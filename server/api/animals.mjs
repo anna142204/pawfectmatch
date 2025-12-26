@@ -2,37 +2,44 @@ import Animal from '../models/animal.js';
 import Adopter from '../models/adopter.js';
 import jwt from 'jsonwebtoken';
 import { parseCookies } from '../utils/parseCookies.mjs';
-import { calculateDistance } from '../utils/distanceCalculator.mjs';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
 /**
- * Calcule un score de compatibilité entre un animal et les préférences d'un adoptant
- * @param {Object} animal - L'animal à évaluer
- * @param {Object} preferences - Les préférences de l'adoptant
- * @returns {number} - Score de compatibilité (plus élevé = meilleur match)
+ * Calcule la distance en km entre deux points GeoJSON [lon, lat]
+ * Formule de Haversine
+ */
+function calculateGeoDistance(coords1, coords2) {
+  if (!coords1 || !coords2) return null;
+  
+  const [lon1, lat1] = coords1;
+  const [lon2, lat2] = coords2;
+
+  const R = 6371; // Rayon de la Terre en km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+    
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  const distance = R * c; // Distance en km
+  
+  return Math.round(distance); // Arrondi au km près
+}
+
+/**
+ * Calcule un score de compatibilité
  */
 function calculateMatchScore(animal, preferences) {
   let score = 0;
-
   if (!preferences) return 0;
 
-  // Score pour l'espèce (poids: 3 points par match)
-  if (preferences.species && preferences.species.length > 0) {
-    if (preferences.species.includes(animal.species)) {
-      score += 3;
-    }
-  }
-
-  // Score pour la taille (poids: 2 points par match)
-  if (preferences.sizePreference && preferences.sizePreference.length > 0) {
-    if (animal.size && preferences.sizePreference.includes(animal.size)) {
-      score += 2;
-    }
-  }
-
-  // Score pour l'environnement (poids: 1 point par caractéristique commune)
-  if (preferences.environment && preferences.environment.length > 0 && animal.characteristics?.environment) {
+  if (preferences.species?.includes(animal.species)) score += 3;
+  if (preferences.sizePreference?.includes(animal.size)) score += 2;
+  
+  if (preferences.environment && animal.characteristics?.environment) {
     const commonEnv = preferences.environment.filter(env => 
       animal.characteristics.environment.includes(env)
     );
@@ -46,28 +53,13 @@ export async function getAnimals(req, res) {
   try {
     console.log('\n=== Début getAnimals ===');
     const {
-      species,
-      race,
-      name,
-      minAge,
-      maxAge,
-      sex,
-      city,
-      zip,
-      minPrice,
-      maxPrice,
-      ownerId,
-      availability,
-      environment,
-      dressage,
-      personality,
-      page = 1,
-      limit = 20
+      species, race, name, minAge, maxAge, sex, city, zip,
+      minPrice, maxPrice, ownerId, availability,
+      environment, dressage, personality,
+      page = 1, limit = 20
     } = req.query;
 
     const query = {};
-
-    // Basic filters
     if (species) query.species = new RegExp(species, 'i');
     if (race) query.race = new RegExp(race, 'i');
     if (name) query.name = new RegExp(name, 'i');
@@ -75,56 +67,36 @@ export async function getAnimals(req, res) {
     if (ownerId) query.ownerId = ownerId;
     if (availability !== undefined) query.availability = availability === 'true';
 
-    // Age range
     if (minAge || maxAge) {
       query.age = {};
       if (minAge) query.age.$gte = parseInt(minAge);
       if (maxAge) query.age.$lte = parseInt(maxAge);
     }
 
-    // Address filters
     if (city) query['address.city'] = new RegExp(city, 'i');
     if (zip) query['address.zip'] = zip;
 
-    // Price range
     if (minPrice || maxPrice) {
       query.price = {};
       if (minPrice) query.price.$gte = parseFloat(minPrice);
       if (maxPrice) query.price.$lte = parseFloat(maxPrice);
     }
 
-    // Characteristics filters
-    if (environment) {
-      const envArray = Array.isArray(environment) ? environment : [environment];
-      query['characteristics.environment'] = { $in: envArray };
-    }
-
-    if (dressage) {
-      const dressageArray = Array.isArray(dressage) ? dressage : [dressage];
-      query['characteristics.dressage'] = { $in: dressageArray };
-    }
-
-    if (personality) {
-      const personalityArray = Array.isArray(personality) ? personality : [personality];
-      query['characteristics.personality'] = { $in: personalityArray };
-    }
+    if (environment) query['characteristics.environment'] = { $in: Array.isArray(environment) ? environment : [environment] };
+    if (dressage) query['characteristics.dressage'] = { $in: Array.isArray(dressage) ? dressage : [dressage] };
+    if (personality) query['characteristics.personality'] = { $in: Array.isArray(personality) ? personality : [personality] };
 
     // Pagination
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const total = await Animal.countDocuments(query);
 
-    // Récupérer tous les animaux sans pagination pour le scoring
+    // Récupérer tous les animaux (avec location du owner)
     let animals = await Animal.find(query)
-      .populate('ownerId', 'firstName lastName email phoneNumber address societyName image');
-console.log(`Nombre d'animaux trouvés: ${animals.length}`);
-    if (animals.length > 0) {
-      console.log(`Premier animal - Propriétaire: ${animals[0].ownerId?.firstName}, Zip: ${animals[0].ownerId?.address?.zip}`);
-    }
+      .populate('ownerId', 'firstName lastName email phoneNumber address location societyName image');
 
-    
     // Variables pour l'adoptant connecté
     let adopter = null;
-    let adopterZip = null;
+    let adopterLocation = null;
 
     // Trier par préférences de l'adoptant si connecté
     try {
@@ -133,18 +105,20 @@ console.log(`Nombre d'animaux trouvés: ${animals.length}`);
       
       if (authToken) {
         const decoded = jwt.verify(authToken, JWT_SECRET, { algorithms: ['HS256'] });
-        const adopterId = decoded.userId;
-        const userType = decoded.userType;
         
+        const adopterId = decoded.sub; 
+        const userType = decoded.type; 
+
         // Récupérer l'adoptant si connecté
         if (userType === 'adopter' && adopterId) {
           adopter = await Adopter.findById(adopterId);
-          console.log(`Adoptant trouvé: ${adopter?.firstName} ${adopter?.lastName}`);
-          if (adopter && adopter.address) {
-            adopterZip = adopter.address.zip;
-            console.log(`Code postal de l'adoptant: ${adopterZip}`);
-          } else {
-            console.log(`Pas d'adresse pour l'adoptant`);
+          
+          if (adopter) {
+             console.log(`Adoptant trouvé: ${adopter.firstName}`);
+             // On récupère les coordonnées GPS de l'adoptant (GeoJSON)
+             if (adopter.location && adopter.location.coordinates) {
+                adopterLocation = adopter.location.coordinates;
+             }
           }
           
           if (adopter && adopter.preferences) {
@@ -154,22 +128,18 @@ console.log(`Nombre d'animaux trouvés: ${animals.length}`);
               score: calculateMatchScore(animal, adopter.preferences)
             }));
             
-            // Trier par score décroissant, puis par date de création
+            // Trier par score décroissant
             animalsWithScore.sort((a, b) => {
-              if (b.score !== a.score) {
-                return b.score - a.score;
-              }
+              if (b.score !== a.score) return b.score - a.score;
               return new Date(b.animal.createdAt) - new Date(a.animal.createdAt);
             });
             
-            // Extraire les animaux triés
             animals = animalsWithScore.map(item => item.animal);
           }
         }
       }
     } catch (err) {
-      // En cas d'erreur de token, on continue avec le tri par défaut
-      console.log('Tri par défaut (pas de token valide)');
+      console.log('Utilisateur non connecté ou token invalide');
       animals.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     }
 
@@ -177,25 +147,18 @@ console.log(`Nombre d'animaux trouvés: ${animals.length}`);
     const animalsWithDistance = animals.map(animal => {
       const animalObj = animal.toObject();
       
-      // Calculer la distance si on a le zip de l'adoptant et celui du propriétaire
-      if (adopterZip && animal.ownerId?.address?.zip) {
-        const ownerZip = animal.ownerId.address.zip;
-        console.log(`Calcul distance: adoptant ${adopterZip} -> propriétaire ${ownerZip}`);
-        const distance = calculateDistance(adopterZip, ownerZip);
-        console.log(`Distance calculée: ${distance} km`);
-        animalObj.distance = distance !== null ? distance : null;
+      // On vérifie si on a les coordonnées des deux côtés
+      if (adopterLocation && animal.ownerId?.location?.coordinates) {
+        const ownerLocation = animal.ownerId.location.coordinates;
+        
+        // Calcul via les coordonnées GPS
+        const distance = calculateGeoDistance(adopterLocation, ownerLocation);
+        animalObj.distance = distance;
       } else {
-        console.log(`Distance non calculée: adopterZip=${adopterZip}, ownerZip=${animal.ownerId?.address?.zip}`);
         animalObj.distance = null;
       }
       
       return animalObj;
-    console.log(`Animaux paginés: ${paginatedAnimals.length}`);
-    if (paginatedAnimals.length > 0) {
-      console.log(`Distance du premier animal: ${paginatedAnimals[0].distance}`);
-    }
-    console.log('=== Fin getAnimals ===\n');
-
     });
 
     // Appliquer la pagination après le tri

@@ -3,14 +3,13 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import Button from '@/components/Button.vue';
 import Input from '@/components/Input.vue';
-
-
 import ImageUploader from '@/components/ImageUploader.vue';
+import { MapPin } from 'lucide-vue-next'; // Import déplacé ici
 
 const router = useRouter();
 
-const step = ref(1); // Étape actuelle
-const userType = ref('adopter'); // 'adopter' ou 'owner'
+const step = ref(1);
+const userType = ref('adopter');
 const firstName = ref('');
 const lastName = ref('');
 const email = ref('');
@@ -27,11 +26,13 @@ const preferences = ref({
   species: [],
   sizePreference: []
 });
-const imageFile = ref(null); // Fichier image sélectionné
-const imagePreview = ref(''); // Pour affichage preview
+const imageFile = ref(null);
+const imagePreview = ref('');
 
 const loading = ref(false);
 const error = ref('');
+const locating = ref(false); // Variable pour l'état du bouton localisation
+
 // Gestion de l'image sélectionnée
 const handleImageSelected = (files) => {
   if (files && files.length > 0) {
@@ -43,50 +44,82 @@ const handleImageSelected = (files) => {
   }
 };
 
+// Fonction de géolocalisation CORRIGÉE
+const locateUser = () => {
+  if (!navigator.geolocation) {
+    alert("La géolocalisation n'est pas supportée par votre navigateur.");
+    return;
+  }
+
+  locating.value = true;
+
+  navigator.geolocation.getCurrentPosition(
+    async (position) => {
+      try {
+        const { latitude, longitude } = position.coords;
+
+        // Appel à l'API Nominatim (OpenStreetMap)
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          const addr = data.address;
+
+          // CORRECTION : Utilisation des refs directes zip et city
+          if (addr.postcode) {
+             zip.value = addr.postcode;
+          }
+          city.value = addr.city || addr.town || addr.village || addr.municipality || '';
+        }
+      } catch (e) {
+        console.error("Erreur geocoding inverse:", e);
+      } finally {
+        locating.value = false;
+      }
+    },
+    (error) => {
+      console.error("Erreur géolocalisation:", error);
+      alert("Impossible de récupérer votre position. Vérifiez vos autorisations.");
+      locating.value = false;
+    }
+  );
+};
+
 const handleNextStep = () => {
   error.value = '';
 
   if (step.value === 1) {
-    // Validation étape 1
     if (!firstName.value || !lastName.value || !email.value || !password.value || !confirmPassword.value) {
       error.value = 'Veuillez remplir tous les champs obligatoires';
       return;
     }
-
     if (password.value.length < 6) {
       error.value = 'Le mot de passe doit contenir au moins 6 caractères';
       return;
     }
-
     if (password.value !== confirmPassword.value) {
       error.value = 'Les mots de passe ne correspondent pas';
       return;
     }
-
-    // Passer à l'étape 2
     step.value = 2;
   } else if (step.value === 2) {
-    // Validation étape 2
     if (!zip.value || !city.value) {
       error.value = 'Veuillez remplir tous les champs obligatoires';
       return;
     }
-
     if (userType.value === 'adopter' && !age.value) {
       error.value = 'L\'âge est requis pour les adoptants';
       return;
     }
-
     if (userType.value === 'adopter' && parseInt(age.value) < 18) {
       error.value = 'Vous devez avoir au moins 18 ans pour adopter';
       return;
     }
-
-    // Si owner, finaliser l'inscription
     if (userType.value === 'owner') {
       handleRegister();
     } else {
-      // Si adopter, passer à l'étape 3 (préférences)
       step.value = 3;
     }
   }
@@ -107,7 +140,6 @@ const handleRegister = async () => {
     const endpoint = userType.value === 'adopter'
       ? '/api/auth/register/adopter'
       : '/api/auth/register/owner';
-
 
     let imageUrl = '';
     if (imageFile.value) {
@@ -147,9 +179,7 @@ const handleRegister = async () => {
 
     const response = await fetch(endpoint, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify(body),
     });
@@ -157,11 +187,8 @@ const handleRegister = async () => {
     const data = await response.json();
 
     if (response.ok) {
-      // Stocker les informations utilisateur
       localStorage.setItem('user_type', userType.value);
       localStorage.setItem('user_id', data.user._id);
-
-      // Redirection selon le type d'utilisateur
       router.push(userType.value === 'adopter' ? '/adopter' : '/owner');
     } else {
       error.value = data.error || 'Erreur lors de l\'inscription';
@@ -173,20 +200,16 @@ const handleRegister = async () => {
     loading.value = false;
   }
 };
-
 </script>
 
 <template>
   <div class="register-page">
     <div class="register-container">
-      <!-- En-tête -->
       <div class="register-header">
         <h1 class="register-title">Inscription</h1>
       </div>
 
-      <!-- Formulaire -->
       <div class="register-form-wrapper">
-        <!-- Indicateur d'étapes -->
         <div class="steps-indicator">
           <div :class="['step-dot', { active: step >= 1, completed: step > 1 }]">1</div>
           <div class="step-line" :class="{ active: step > 1 }"></div>
@@ -198,9 +221,7 @@ const handleRegister = async () => {
         </div>
 
         <form @submit.prevent="handleNextStep" class="register-form">
-          <!-- Étape 1: Informations de base -->
           <template v-if="step === 1">
-            <!-- Choix du type d'utilisateur -->
             <div class="user-type-selector">
               <button type="button" :class="['type-btn', { active: userType === 'adopter' }]"
                 @click="userType = 'adopter'">
@@ -211,150 +232,98 @@ const handleRegister = async () => {
               </button>
             </div>
 
-            <!-- Champs communs -->
-               <!-- Ajout image de profil -->
             <div class="input-group">
               <ImageUploader :multiple="false" @filesSelected="handleImageSelected" />
             </div>
             <div class="input-group">
               <Input v-model="firstName" type="text" placeholder="Prénom *" required />
             </div>
-
             <div class="input-group">
               <Input v-model="lastName" type="text" placeholder="Nom *" required />
             </div>
-
             <div class="input-group">
               <Input v-model="email" type="email" placeholder="Adresse e-mail *" icon="email" required />
             </div>
-
             <div class="input-group">
               <Input v-model="password" type="password" placeholder="Mot de passe *" icon="password" required />
             </div>
-
             <div class="input-group">
-              <Input v-model="confirmPassword" type="password" placeholder="Confirmer le mot de passe *" icon="password"
-                required />
+              <Input v-model="confirmPassword" type="password" placeholder="Confirmer le mot de passe *" icon="password" required />
             </div>
-
-          
           </template>
 
-          <!-- Étape 2: Adresse et informations spécifiques -->
           <template v-if="step === 2">
-            <div class="input-group">
-              <Input v-model="zip" type="text" placeholder="Code postal *" required />
+            <div class="form-group input-group" >
+              <label class="field-label">Adresse</label>
+
+              <button type="button" @click="locateUser" class="geo-btn" :disabled="locating">
+                <MapPin size="16" />
+                {{ locating ? 'Localisation...' : 'Utiliser ma position actuelle' }}
+              </button>
+
+              <div class="row">
+                <Input v-model="zip" label="NPA" placeholder="1000" required class="input-group" />
+                <Input v-model="city" label="Ville" placeholder="Lausanne" required class="input-group" />
+              </div>
             </div>
 
-            <div class="input-group">
-              <Input v-model="city" type="text" placeholder="Ville *" required />
-            </div>
-
-            <!-- Champs spécifiques adoptant -->
             <template v-if="userType === 'adopter'">
               <div class="input-group">
                 <Input v-model="age" type="number" placeholder="Âge * (min. 18 ans)" required min="18" />
               </div>
             </template>
 
-            <!-- Champs spécifiques propriétaire -->
             <template v-if="userType === 'owner'">
               <div class="input-group">
                 <Input v-model="societyName" type="text" placeholder="Nom de la société (optionnel)" />
               </div>
-
               <div class="input-group">
-                <Input v-model="phoneNumber" type="tel" placeholder="Numéro de téléphone" />
+                <Input v-model="phoneNumber" type="tel" placeholder="Numéro de téléphone (optionnel)" />
               </div>
             </template>
 
-            <!-- Champ À propos (commun) -->
             <div class="input-group">
-              <textarea v-model="about" placeholder="À propos de vous (optionnel)" class="textarea-input"
-                rows="4"></textarea>
+              <textarea v-model="about" placeholder="À propos de vous (optionnel)" class="textarea-input" rows="4"></textarea>
             </div>
           </template>
 
-          <!-- Étape 3: Préférences (adoptant uniquement) -->
           <template v-if="step === 3">
             <div class="input-group">
               <label class="field-label">Environnement</label>
               <div class="checkbox-group">
-                <label class="checkbox-item">
-                  <input type="checkbox" value="appartement" v-model="preferences.environment" />
-                  <span>Appartement</span>
-                </label>
-                <label class="checkbox-item">
-                  <input type="checkbox" value="voiture" v-model="preferences.environment" />
-                  <span>Voiture</span>
-                </label>
-                <label class="checkbox-item">
-                  <input type="checkbox" value="enfant" v-model="preferences.environment" />
-                  <span>Enfants</span>
-                </label>
-                <label class="checkbox-item">
-                  <input type="checkbox" value="chien" v-model="preferences.environment" />
-                  <span>Chien</span>
-                </label>
-                <label class="checkbox-item">
-                  <input type="checkbox" value="chat" v-model="preferences.environment" />
-                  <span>Chat</span>
-                </label>
-                <label class="checkbox-item">
-                  <input type="checkbox" value="autre animaux" v-model="preferences.environment" />
-                  <span>Autres animaux</span>
-                </label>
+                <label class="checkbox-item"><input type="checkbox" value="appartement" v-model="preferences.environment" /><span>Appartement</span></label>
+                <label class="checkbox-item"><input type="checkbox" value="voiture" v-model="preferences.environment" /><span>Voiture</span></label>
+                <label class="checkbox-item"><input type="checkbox" value="enfant" v-model="preferences.environment" /><span>Enfants</span></label>
+                <label class="checkbox-item"><input type="checkbox" value="chien" v-model="preferences.environment" /><span>Chien</span></label>
+                <label class="checkbox-item"><input type="checkbox" value="chat" v-model="preferences.environment" /><span>Chat</span></label>
+                <label class="checkbox-item"><input type="checkbox" value="autre animaux" v-model="preferences.environment" /><span>Autres animaux</span></label>
               </div>
             </div>
 
             <div class="input-group">
               <label class="field-label">Taille préférée</label>
               <div class="checkbox-group">
-                <label class="checkbox-item">
-                  <input type="checkbox" value="petit" v-model="preferences.sizePreference" />
-                  <span>Petit</span>
-                </label>
-                <label class="checkbox-item">
-                  <input type="checkbox" value="moyen" v-model="preferences.sizePreference" />
-                  <span>Moyen</span>
-                </label>
-                <label class="checkbox-item">
-                  <input type="checkbox" value="grand" v-model="preferences.sizePreference" />
-                  <span>Grand</span>
-                </label>
+                <label class="checkbox-item"><input type="checkbox" value="petit" v-model="preferences.sizePreference" /><span>Petit</span></label>
+                <label class="checkbox-item"><input type="checkbox" value="moyen" v-model="preferences.sizePreference" /><span>Moyen</span></label>
+                <label class="checkbox-item"><input type="checkbox" value="grand" v-model="preferences.sizePreference" /><span>Grand</span></label>
               </div>
             </div>
           </template>
 
-          <!-- Message d'erreur -->
-          <div v-if="error" class="error-message">
-            {{ error }}
-          </div>
+          <div v-if="error" class="error-message">{{ error }}</div>
 
-          <!-- Boutons de navigation -->
           <div class="form-actions">
-            <Button v-if="step > 1" type="button" variant="secondary" size="base" @click="handlePreviousStep"
-              class="btn-back">
-              Retour
-            </Button>
-
-            <Button v-if="step < 3" type="submit" variant="primary" size="base" class="btn-next">
-              Suivant
-            </Button>
-
-            <Button v-else type="button" variant="primary" size="base" :disabled="loading" @click="handleRegister"
-              class="btn-next">
+            <Button v-if="step > 1" type="button" variant="secondary" size="base" @click="handlePreviousStep" class="btn-back">Retour</Button>
+            <Button v-if="step < 3" type="submit" variant="primary" size="base" class="btn-next">Suivant</Button>
+            <Button v-else type="button" variant="primary" size="base" :disabled="loading" @click="handleRegister" class="btn-next">
               <span v-if="loading" class="loader"></span>
               <span v-else>S'inscrire</span>
             </Button>
           </div>
         </form>
 
-        <!-- Lien vers connexion -->
         <div class="login-container-link">
-          <router-link to="/login" class="login-link-text">
-            J'ai déjà un compte
-          </router-link>
+          <router-link to="/login" class="login-link-text">J'ai déjà un compte</router-link>
         </div>
       </div>
     </div>
@@ -383,7 +352,6 @@ const handleRegister = async () => {
   padding-top: var(--spacing-10);
 }
 
-/* En-tête */
 .register-header {
   width: 100%;
   text-align: center;
@@ -401,7 +369,6 @@ const handleRegister = async () => {
   text-shadow: var(--shadow-sm);
 }
 
-/* Formulaire wrapper */
 .register-form-wrapper {
   width: 100%;
   background: var(--color-neutral-white);
@@ -420,7 +387,6 @@ const handleRegister = async () => {
   flex-direction: column;
 }
 
-/* Sélecteur de type d'utilisateur */
 .user-type-selector {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -447,7 +413,6 @@ const handleRegister = async () => {
   color: var(--color-neutral-white);
 }
 
-/* Groupes d'input */
 .input-group {
   margin-bottom: var(--spacing-3);
 }
@@ -504,7 +469,6 @@ const handleRegister = async () => {
   transition: all 0.2s ease;
 }
 
-/* Textarea */
 .textarea-input {
   width: 100%;
   padding: var(--spacing-3);
@@ -527,7 +491,6 @@ const handleRegister = async () => {
   color: var(--color-neutral-400);
 }
 
-/* Message d'erreur */
 .error-message {
   background: var(--color-error);
   color: var(--color-neutral-white);
@@ -538,7 +501,6 @@ const handleRegister = async () => {
   text-align: center;
 }
 
-/* Indicateur d'étapes */
 .steps-indicator {
   display: flex;
   align-items: center;
@@ -583,7 +545,6 @@ const handleRegister = async () => {
   background: var(--color-primary-600);
 }
 
-/* Boutons de navigation */
 .form-actions {
   display: flex;
   gap: var(--spacing-3);
@@ -599,7 +560,6 @@ const handleRegister = async () => {
   flex: 2;
 }
 
-/* Loader */
 .loader {
   display: inline-block;
   width: 20px;
@@ -616,7 +576,6 @@ const handleRegister = async () => {
   }
 }
 
-/* Lien vers connexion */
 .login-container-link {
   text-align: center;
   margin-top: var(--spacing-3);
@@ -639,45 +598,62 @@ const handleRegister = async () => {
 }
 
 /* ========== RESPONSIVE ========== */
-
-/* Petits écrans uniquement (iPhone SE) */
 @media (max-height: 670px) {
   .register-container {
     padding-top: var(--spacing-6);
   }
-
   .register-header {
     margin-bottom: var(--spacing-3);
   }
-
   .register-title {
     font-size: var(--heading-h2-size);
   }
-
   .register-form-wrapper {
     padding: var(--spacing-6);
   }
-
   .steps-indicator {
     margin-bottom: var(--spacing-3);
   }
-
   .step-dot {
     width: 28px;
     height: 28px;
     font-size: var(--body-xs-size);
   }
-
   .step-line {
     width: 24px;
   }
-
   .input-group {
     margin-bottom: var(--spacing-2);
   }
-
   .user-type-selector {
     margin-bottom: var(--spacing-3);
   }
+}
+
+.geo-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  color: #4b5563;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-bottom: 12px;
+  transition: all 0.2s;
+  width: fit-content;
+}
+
+.geo-btn:hover {
+  background-color: #e5e7eb;
+  color: #1f2937;
+}
+
+.geo-btn:disabled {
+  opacity: 0.7;
+  cursor: wait;
 }
 </style>

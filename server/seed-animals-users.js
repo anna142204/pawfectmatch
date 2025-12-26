@@ -5,6 +5,7 @@ import Owner from './models/owner.js';
 import Admin from './models/admin.js';
 import Animal from './models/animal.js';
 import Match from './models/match.js';
+import { getGeoJSON } from './utils/geocoder.mjs';
 
 const DATABASE_URL = process.env.DATABASE_URL || 'mongodb://127.0.0.1:27017/pawfect_match';
 
@@ -23,45 +24,74 @@ const seed = async () => {
             Match.deleteMany({})
         ]);
 
-        // Création des Owners
-        const ownersData = [
+        // --- 1. CRÉATION DES OWNERS ---
+        console.log('Création des Owners...');
+        
+        const ownersSource = [
             { firstName: 'Marc', lastName: 'Rochat', email: 'marc@refuge.ch', societyName: 'Refuge de Cossonay', city: 'Cossonay', zip: '1304', imgId: 'marc' },
             { firstName: 'Julie', lastName: 'Bernasconi', email: 'julie@asso.ch', societyName: 'Pattes Genevoises', city: 'Genève', zip: '1201', imgId: 'julie' },
             { firstName: 'Thomas', lastName: 'Dubois', email: 'thomas@particulier.ch', societyName: null, city: 'Neuchâtel', zip: '2000', imgId: 'thomas' },
             { firstName: 'Elena', lastName: 'Monnier', email: 'elena@paws.ch', societyName: 'Fribourg Animaux', city: 'Fribourg', zip: '1700', imgId: 'elena' },
             { firstName: 'Sébastien', lastName: 'Fournier', email: 'seb@particulier.ch', societyName: null, city: 'Sion', zip: '1950', imgId: 'seb' }
-        ].map(o => ({
-            ...o,
-            password: 'password123',
-            address: { zip: o.zip, city: o.city },
-            phoneNumber: '079' + Math.floor(1000000 + Math.random() * 9000000),
-            image: `https://ui-avatars.com/api/?name=${o.firstName}+${o.lastName}&background=random&size=200`,
-            about: o.societyName ? `Structure professionnelle : ${o.societyName}.` : `Particulier passionné d'animaux.`
-        }));
+        ];
 
-        const createdOwners = await Owner.create(ownersData);
-        console.log(`✓ ${createdOwners.length} Owners créés`);
+        const ownersToCreate = [];
 
-        // Création des Adopters
-        const adoptersData = [
+        for (const o of ownersSource) {
+            const location = await getGeoJSON(o.zip, o.city);
+            
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            ownersToCreate.push({
+                ...o,
+                password: 'password123',
+                address: { zip: o.zip, city: o.city },
+                location: location, 
+                phoneNumber: '079' + Math.floor(1000000 + Math.random() * 9000000),
+                image: `https://ui-avatars.com/api/?name=${o.firstName}+${o.lastName}&background=random&size=200`,
+                about: o.societyName ? `Structure professionnelle : ${o.societyName}.` : `Particulier passionné d'animaux.`
+            });
+            console.log(`> Préparé: ${o.firstName} (${o.city})`);
+        }
+
+        const createdOwners = await Owner.create(ownersToCreate);
+        console.log(`✓ ${createdOwners.length} Owners créés avec succès`);
+
+
+        // --- 2. CRÉATION DES ADOPTERS ---
+        console.log('Création des Adopters...');
+
+        const adoptersSource = [
             { firstName: 'Alice', lastName: 'Martin', email: 'alice@adopter.ch', city: 'Lausanne', zip: '1003', age: 24, env: ['appartement'] },
             { firstName: 'Benoit', lastName: 'Favre', email: 'ben@adopter.ch', city: 'Delémont', zip: '2800', age: 35, env: ['voiture', 'chien'] },
             { firstName: 'Chloé', lastName: 'Blanc', email: 'chloe@adopter.ch', city: 'Montreux', zip: '1820', age: 29, env: ['enfant', 'appartement'] },
             { firstName: 'David', lastName: 'Girard', email: 'david@adopter.ch', city: 'Bienne', zip: '2500', age: 42, env: ['voiture'] },
             { firstName: 'Emma', lastName: 'Schneider', email: 'emma@adopter.ch', city: 'Bulle', zip: '1630', age: 31, env: ['chat', 'enfant'] }
-        ].map(a => ({
-            ...a,
-            password: 'password123',
-            address: { zip: a.zip, city: a.city },
-            about: 'Je cherche un nouveau membre pour ma famille.',
-            image: `https://ui-avatars.com/api/?name=${a.firstName}+${a.lastName}&background=random&size=200`,
-            preferences: { environment: a.env, species: ['chien', 'chat'], sizePreference: ['petit', 'moyen'] }
-        }));
+        ];
 
-        await Adopter.create(adoptersData);
-        console.log(`✓ ${adoptersData.length} Adopters créés`);
+        const adoptersToCreate = [];
 
-        // Liste statique des animaux
+        for (const a of adoptersSource) {
+            const location = await getGeoJSON(a.zip, a.city);
+            await new Promise(resolve => setTimeout(resolve, 1000)); 
+
+            adoptersToCreate.push({
+                ...a,
+                password: 'password123',
+                address: { zip: a.zip, city: a.city },
+                location: location,
+                about: 'Je cherche un nouveau membre pour ma famille.',
+                image: `https://ui-avatars.com/api/?name=${a.firstName}+${a.lastName}&background=random&size=200`,
+                preferences: { environment: a.env, species: ['chien', 'chat'], sizePreference: ['petit', 'moyen'] }
+            });
+            console.log(`> Préparé: ${a.firstName} (${a.city})`);
+        }
+
+        await Adopter.create(adoptersToCreate);
+        console.log(`✓ ${adoptersToCreate.length} Adopters créés avec succès`);
+
+
+        // --- 3. CRÉATION DES ANIMAUX (Liés aux Owners existants) ---
         const animalsSource = [
             // CHIENS
             {

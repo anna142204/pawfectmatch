@@ -6,20 +6,18 @@ import { ref } from 'vue';
 import catHome from '@/images/cat-home.svg';
 import dogHome from '@/images/dog-home.svg';
 import rodentHome from '@/images/rodent-home.svg';
+import { Map, ClipboardList } from 'lucide-vue-next';
 
 const showMapView = ref(true);
 </script>
 
 <template>
   <div class="home-page">
-    <!-- Header -->
     <header class="home-header">
       <h1 class="text-h1 text-primary-700">Home</h1>
     </header>
 
-    <!-- Main Content -->
     <main class="home-content">
-      <!-- Featured Section - Chats -->
       <router-link
         to="/adopter/swipe"
         class="featured-card cats-card"
@@ -28,7 +26,6 @@ const showMapView = ref(true);
 
       </router-link>
 
-      <!-- Grid Section - Chiens & Rongeurs -->
       <div class="cards-grid">
         <router-link
           to="/adopter/swipe"
@@ -47,7 +44,6 @@ const showMapView = ref(true);
         </router-link>
       </div>
 
-      <!-- Map Section -->
       <section class="map-section">
         <div class="map-header">
           <h3 class="map-title">Propriétaires près de vous</h3>
@@ -57,14 +53,14 @@ const showMapView = ref(true);
               @click="showMapView = true"
               title="Voir la carte"
             >
-              🗺️
+              <Map />
             </button>
             <button
               :class="['toggle-btn', { active: !showMapView }]"
               @click="showMapView = false"
               title="Voir la liste"
             >
-              📋
+              <ClipboardList />
             </button>
           </div>
         </div>
@@ -86,7 +82,6 @@ const showMapView = ref(true);
   flex-direction: column;
   padding: 24px 40px;
   padding-bottom: calc(100px + 24px);
-  gap: 32px;
 }
 
 .home-header {
@@ -103,7 +98,7 @@ const showMapView = ref(true);
 .featured-card {
   min-height: 200px;
   border-radius: 16px;
-  padding: 32px;
+  padding: 24px;
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
@@ -117,7 +112,6 @@ const showMapView = ref(true);
   transform: scale(0.98);
 }
 
-/* Grid Cards */
 .cards-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -184,6 +178,7 @@ const showMapView = ref(true);
   cursor: pointer;
   transition: all 0.3s ease;
   font-weight: 600;
+  color: var(--color-neutral-600);
 }
 
 .toggle-btn:hover {
@@ -191,6 +186,7 @@ const showMapView = ref(true);
 }
 
 .toggle-btn.active {
+  color: var(--color-primary-700);
   background: #fff;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   transform: scale(1.05);

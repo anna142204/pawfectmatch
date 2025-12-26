@@ -1,25 +1,32 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
+import { useRouter } from 'vue-router';
+import { MapPin, User, ChevronRight, PawPrint } from 'lucide-vue-next';
 
+const router = useRouter();
 const owners = ref([]);
 const loading = ref(true);
 const currentPage = ref(1);
-const itemsPerPage = 5;
+const itemsPerPage = 5; // On en affiche peu pour ne pas trop allonger la Home
 
 onMounted(async () => {
   try {
-    const response = await fetch('/api/owners');
+    const response = await fetch('/api/owners', { credentials: 'include' });
     if (response.ok) {
       const data = await response.json();
-      // L'API retourne { owners, pagination }
       owners.value = data.owners || data;
     }
   } catch (error) {
-    console.error('Erreur lors du chargement des propriétaires:', error);
+    console.error('Erreur chargement:', error);
   } finally {
     loading.value = false;
   }
 });
+
+const getDisplayName = (owner) => {
+  if (owner.societyName) return owner.societyName;
+  return `${owner.firstName} ${owner.lastName}`;
+};
 
 const paginatedOwners = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage;
@@ -31,202 +38,226 @@ const totalPages = computed(() => {
   return Math.ceil(owners.value.length / itemsPerPage);
 });
 
-const goToPage = (page) => {
-  if (page >= 1 && page <= totalPages.value) {
-    currentPage.value = page;
-  }
+const goToOwnerProfile = (id) => {
+  router.push(`/adopter/owner/${id}`);
+};
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) currentPage.value++;
+};
+
+const prevPage = () => {
+  if (currentPage.value > 1) currentPage.value--;
 };
 </script>
 
 <template>
-  <div class="owners-list">
-    <div v-if="loading" class="loading">
-      <p>Chargement des propriétaires...</p>
+  <div class="list-container">
+    
+    <div v-if="loading" class="loading-state">
+      <p>Chargement...</p>
     </div>
 
-    <div v-else-if="owners.length === 0" class="empty">
-      <p>Aucun propriétaire trouvé</p>
+    <div v-else-if="owners.length === 0" class="empty-state">
+      <p>Aucun propriétaire trouvé.</p>
     </div>
 
-    <div v-else>
-      <div class="owners-container">
-        <div v-for="owner in paginatedOwners" :key="owner._id" class="owner-card">
-          <div class="owner-header">
-            <h3 class="owner-name">{{ owner.firstName }} {{ owner.lastName }}</h3>
-            <span class="owner-animals">{{ owner.animals?.length || 0 }} 🐾</span>
+    <div v-else class="content">
+      <div class="list-items">
+        <div 
+          v-for="owner in paginatedOwners" 
+          :key="owner._id" 
+          class="owner-card"
+          @click="goToOwnerProfile(owner._id)"
+        >
+          <div class="avatar-wrapper">
+            <img 
+              v-if="owner.image" 
+              :src="owner.image" 
+              class="owner-avatar" 
+              alt="Avatar" 
+            />
+            <div v-else class="owner-avatar placeholder">
+              <User size="20" />
+            </div>
           </div>
-          <p class="owner-location">📍 {{ owner.address?.city || 'Localisation inconnue' }}</p>
-          <p class="owner-contact">{{ owner.email }}</p>
-          <router-link :to="`/adopter/owner/${owner._id}`" class="view-btn">
-            Voir les animaux
-          </router-link>
+
+          <div class="info-wrapper">
+            <h4 class="owner-name">{{ getDisplayName(owner) }}</h4>
+            
+            <div class="meta-row">
+              <span class="location">
+                <MapPin size="12" /> {{ owner.address?.city || 'Suisse' }}
+              </span>
+              <span v-if="owner.animals?.length > 0" class="dot">•</span>
+              <span v-if="owner.animals?.length > 0" class="animal-count">
+                 {{ owner.animals.length }} animaux
+              </span>
+            </div>
+          </div>
+
+          <div class="action-icon">
+            <ChevronRight size="18" color="#9ca3af" />
+          </div>
         </div>
       </div>
 
-      <!-- Pagination -->
-      <div v-if="totalPages > 1" class="pagination">
-        <button
-          @click="goToPage(currentPage - 1)"
-          :disabled="currentPage === 1"
-          class="pagination-btn"
-          title="Page précédente"
+      <div v-if="totalPages > 1" class="pagination-controls">
+        <button 
+          @click="prevPage" 
+          :disabled="currentPage === 1" 
+          class="page-btn"
         >
-          ←
+          Précédent
         </button>
-        <span class="page-info">
-          <strong>Page {{ currentPage }} / {{ totalPages }}</strong>
-          <span class="items-info">({{ paginatedOwners.length }} / {{ owners.length }} propriétaires)</span>
-        </span>
-        <button
-          @click="goToPage(currentPage + 1)"
-          :disabled="currentPage === totalPages"
-          class="pagination-btn"
-          title="Page suivante"
+        <span class="page-count">{{ currentPage }} / {{ totalPages }}</span>
+        <button 
+          @click="nextPage" 
+          :disabled="currentPage === totalPages" 
+          class="page-btn"
         >
-          →
+          Suivant
         </button>
-      </div>
-      <div v-else-if="owners.length > 0" class="pagination">
-        <span class="page-info">
-          <strong>Page 1 / 1</strong>
-        </span>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.owners-list {
+.list-container {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  width: 100%;
 }
 
-.loading,
-.empty {
+.loading-state, .empty-state {
   text-align: center;
-  padding: 32px 0;
-  color: #999;
+  color: var(--color-neutral-500);
+  padding: 20px 0;
+  font-size: 14px;
+  font-style: italic;
 }
 
-.owners-container {
+.list-items {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
+/* CARTE PROPRIÉTAIRE */
 .owner-card {
-  padding: 16px;
-  background: #FAFAFA;
-  border-radius: 12px;
-  border: 1px solid #E8E8E8;
-  transition: all 0.3s ease;
-}
-
-.owner-card:hover {
-  background: #F5F5F5;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  transform: translateY(-2px);
-}
-
-.owner-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  background: white;
+  padding: 12px;
+  border-radius: 12px;
+  /* Ombre légère pour ressortir sur le fond gris de la Home */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s;
+  border: 1px solid transparent;
+}
+
+.owner-card:active {
+  transform: scale(0.98);
+  background-color: #f9fafb;
+}
+
+/* Avatar */
+.avatar-wrapper {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  margin-right: 12px;
+}
+
+.owner-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #f3f4f6;
+}
+
+.owner-avatar.placeholder {
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+}
+
+/* Info Text */
+.info-wrapper {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .owner-name {
   margin: 0;
-  font-weight: 600;
-  font-size: 16px;
-  color: #1a1a1a;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1f2937;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.owner-animals {
-  font-size: 14px;
-  background: #E8F5E9;
-  padding: 4px 8px;
-  border-radius: 6px;
-}
-
-.owner-location {
-  margin: 4px 0;
-  font-size: 14px;
-  color: #666;
-}
-
-.owner-contact {
-  margin: 4px 0;
+.meta-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 13px;
-  color: #888;
+  color: #6b7280;
 }
 
-.view-btn {
-  display: inline-block;
-  margin-top: 12px;
-  padding: 8px 16px;
-  background: linear-gradient(135deg, #4CAF50 0%, #81C784 100%);
-  color: #fff;
-  border-radius: 6px;
-  text-decoration: none;
-  font-size: 13px;
-  font-weight: 600;
-  transition: all 0.2s ease;
+.location {
+  display: flex;
+  align-items: center;
+  gap: 3px;
 }
 
-.view-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+.dot {
+  color: #d1d5db;
 }
 
-.pagination {
+.animal-count {
+  color: var(--color-primary-600);
+  font-weight: 500;
+  font-size: 12px;
+}
+
+/* Pagination */
+.pagination-controls {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 16px;
-  margin-top: 20px;
-  padding: 16px;
-  background: #F9F9F9;
-  border-radius: 12px;
-  border: 1px solid #E8E8E8;
+  gap: 15px;
+  margin-top: 16px;
+  padding-top: 8px;
+  border-top: 1px solid #e5e7eb;
 }
 
-.pagination-btn {
-  padding: 10px 16px;
-  background: linear-gradient(135deg, #2196F3 0%, #64B5F6 100%);
-  color: #fff;
+.page-btn {
+  background: none;
   border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 16px;
+  font-size: 13px;
+  color: var(--color-primary-600);
   font-weight: 600;
-  transition: all 0.2s ease;
+  cursor: pointer;
+  padding: 4px 8px;
 }
 
-.pagination-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
-}
-
-.pagination-btn:disabled {
-  opacity: 0.5;
+.page-btn:disabled {
+  color: #9ca3af;
   cursor: not-allowed;
 }
 
-.page-info {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  font-size: 15px;
-  color: #333;
-  font-weight: 600;
-}
-
-.items-info {
+.page-count {
   font-size: 12px;
-  color: #888;
-  font-weight: 400;
+  color: #6b7280;
 }
 </style>

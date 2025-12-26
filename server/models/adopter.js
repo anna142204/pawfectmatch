@@ -3,6 +3,10 @@ import bcrypt from 'bcryptjs';
 
 const { Schema } = mongoose;
 
+function validateGeoJsonCoordinates(value) {
+    return Array.isArray(value) && value.length >= 2 && value.length <= 3 && value[0] >= -180 && value[0] <= 180 && value[1] >= -90 && value[1] <= 90;
+} 
+
 const adopterSchema = new Schema({
     firstName: {
         type: String,
@@ -44,6 +48,21 @@ const adopterSchema = new Schema({
             trim: true,
             maxlength: 100,
         },
+    },
+    location: {
+        type: { 
+            type: String, 
+            enum: ['Point'], 
+            default: 'Point' 
+        },
+        coordinates: {
+            type: [Number], // [Longitude, Latitude]
+            validate: {
+                validator: validateGeoJsonCoordinates,
+                message: '{VALUE} n\'est pas valide.'
+            },
+            default: [8.2275, 46.8182]
+        }
     },
     age: {
         type: Number,
@@ -91,6 +110,8 @@ const adopterSchema = new Schema({
 }, {
     timestamps: true,
 });
+
+adopterSchema.index({ location: '2dsphere' });
 
 // Hash password before saving
 adopterSchema.pre('save', async function(next) {

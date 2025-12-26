@@ -1,6 +1,9 @@
 <script setup>
 import { ref, onMounted, nextTick } from 'vue';
+import { useRouter } from 'vue-router';
+import { X, User } from 'lucide-vue-next';
 
+const router = useRouter();
 const owners = ref([]);
 const loading = ref(true);
 const selectedOwner = ref(null);
@@ -8,38 +11,19 @@ const mapContainer = ref(null);
 const map = ref(null);
 const markers = ref(new Map());
 
-// Coordonnées par défaut (Suisse centre)
-const defaultCenter = [46.8182, 8.2275];
+// Coordonnées par défaut (Vaud)
+const defaultCenter = [46.5197, 6.6323];
 const defaultZoom = 8;
-
-// Données de géolocalisation approximatives des villes suisses
-const cityCoordinates = {
-  'Zurich': [47.3769, 8.5472],
-  'Berne': [46.9479, 7.4474],
-  'Genève': [46.2017, 6.1432],
-  'Lausanne': [46.5197, 6.6323],
-  'Bâle': [47.5596, 7.5886],
-  'Lucerne': [47.0502, 8.3093],
-  'Saint-Gall': [47.4235, 9.3768],
-  'Neuchâtel': [46.9916, 6.9271],
-  'Fribourg': [46.8044, 7.1607],
-  'Sion': [46.2355, 7.3591],
-  'Montreux': [46.4268, 6.9101],
-  'Yverdon': [46.6813, 6.6438],
-  'Nyon': [46.3834, 6.2381],
-  'Martigny': [46.4020, 7.7585],
-  'Aarau': [47.3929, 8.0451],
-};
 
 onMounted(async () => {
   try {
-    const response = await fetch('/api/owners');
+    const response = await fetch('/api/owners', { credentials: 'include' });
     if (response.ok) {
       const data = await response.json();
       owners.value = data.owners || data;
     }
   } catch (error) {
-    console.error('Erreur lors du chargement des propriétaires:', error);
+    console.error('Erreur chargement map:', error);
   } finally {
     loading.value = false;
     await nextTick();
@@ -50,296 +34,251 @@ onMounted(async () => {
 const initMap = () => {
   if (!mapContainer.value) return;
 
-  // Charger Leaflet dynamiquement
   const script = document.createElement('script');
   script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+  
   script.onload = () => {
     const link = document.createElement('link');
     link.rel = 'stylesheet';
     link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
     document.head.appendChild(link);
 
-    // Initialiser la carte
     setTimeout(() => {
       const L = window.L;
-      map.value = L.map(mapContainer.value).setView(defaultCenter, defaultZoom);
+      if (!L) return;
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors',
+      // Création de la carte
+      map.value = L.map(mapContainer.value, {
+        zoomControl: false 
+      }).setView(defaultCenter, defaultZoom);
+
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; OpenStreetMap &copy; CARTO',
         maxZoom: 19
       }).addTo(map.value);
 
-      // Ajouter les marqueurs des propriétaires
       owners.value.forEach(owner => {
-        const city = owner.address?.city || '';
-        const coords = cityCoordinates[city];
+        // On vérifie si le propriétaire a bien des coordonnées GeoJSON valides
+        if (owner.location && 
+            owner.location.coordinates && 
+            Array.isArray(owner.location.coordinates) &&
+            owner.location.coordinates.length === 2) {
+          
+          // GeoJSON stocke [Longitude, Latitude]
+          // Leaflet attend [Latitude, Longitude]
+          const [lon, lat] = owner.location.coordinates;
 
-        if (coords) {
-          const marker = L.circleMarker(coords, {
+          // Petit décalage aléatoire
+          const jitterLat = lat + (Math.random() - 0.5) * 0.005;
+          const jitterLon = lon + (Math.random() - 0.5) * 0.005;
+
+          const marker = L.circleMarker([jitterLat, jitterLon], {
             radius: 8,
-            fillColor: '#4CAF50',
-            color: '#2E7D32',
+            fillColor: 'var(--color-primary-700)',
+            color: '#ffffff',
             weight: 2,
-            opacity: 0.8,
-            fillOpacity: 0.7
+            opacity: 1,
+            fillOpacity: 0.8
           })
-            .bindPopup(`<strong>${owner.firstName} ${owner.lastName}</strong><br>${city}`)
-            .addTo(map.value)
-            .on('click', () => selectOwner(owner));
+          .addTo(map.value)
+          .on('click', () => selectOwner(owner));
 
           markers.value.set(owner._id, marker);
         }
       });
-
-      // Adapter la vue à tous les marqueurs
-      if (markers.value.size > 0) {
-        const group = new L.FeatureGroup(Array.from(markers.value.values()));
-        map.value.fitBounds(group.getBounds().pad(0.1));
-      }
     }, 100);
   };
   document.body.appendChild(script);
 };
 
 const selectOwner = (owner) => {
-  selectedOwner.value = selectedOwner.value?._id === owner._id ? null : owner;
-  if (selectedOwner.value && map.value) {
-    const marker = markers.value.get(owner._id);
-    if (marker) {
-      marker.openPopup();
-    }
-  }
+  selectedOwner.value = owner;
 };
 
 const closeDetails = () => {
   selectedOwner.value = null;
 };
+
+const goToProfile = () => {
+  if (selectedOwner.value) {
+    router.push(`/adopter/owner/${selectedOwner.value._id}`);
+  }
+};
+
+const getDisplayName = (owner) => {
+  return owner.societyName || `${owner.firstName} ${owner.lastName}`;
+};
 </script>
 
 <template>
-  <div class="map-view">
-    <div v-if="loading" class="loading">
-      <p>Chargement de la carte...</p>
+  <div class="map-wrapper">
+    <div v-if="loading" class="loading-state">
+      Chargement de la carte...
     </div>
 
-    <div v-else class="map-container">
-      <!-- Carte Leaflet -->
-      <div ref="mapContainer" class="map-leaflet"></div>
+    <div v-else class="map-frame">
+      <div ref="mapContainer" class="map-render"></div>
 
-      <!-- Owner Details Panel -->
-      <transition name="slide-up">
-        <div v-if="selectedOwner" class="owner-details">
-          <div class="details-header">
-            <h3>{{ selectedOwner.firstName }} {{ selectedOwner.lastName }}</h3>
-            <button @click="closeDetails" class="close-btn">✕</button>
-          </div>
-          <div class="details-content">
-            <p><strong>📍 Localisation:</strong> {{ selectedOwner.address?.city || 'Non spécifiée' }}</p>
-            <p><strong>✉️ Email:</strong> {{ selectedOwner.email }}</p>
-            <p><strong>🐾 Animaux:</strong> {{ selectedOwner.animals?.length || 0 }}</p>
-            <router-link :to="`/adopter/owner/${selectedOwner._id}`" class="profile-btn">
-              Voir le profil complet
-            </router-link>
+      <Transition name="slide-up">
+        <div v-if="selectedOwner" class="owner-popup" @click="goToProfile">
+          
+          <button @click.stop="closeDetails" class="close-btn">
+            <X size="20" />
+          </button>
+
+          <div class="popup-content">
+            <div class="avatar-box">
+              <img 
+                v-if="selectedOwner.image" 
+                :src="selectedOwner.image" 
+                class="popup-avatar"
+              />
+              <div v-else class="popup-avatar placeholder">
+                <User size="20" />
+              </div>
+            </div>
+
+            <div class="info-box">
+              <h4 class="popup-name">{{ getDisplayName(selectedOwner) }}</h4>
+              <p class="popup-location">{{ selectedOwner.address?.city || 'Suisse' }}</p>
+              <div class="popup-badges" v-if="selectedOwner.animals?.length">
+                <span class="badge">{{ selectedOwner.animals.length }} animaux</span>
+              </div>
+            </div>
           </div>
         </div>
-      </transition>
-
-      <!-- Legend -->
-      <div class="map-legend">
-        <div class="legend-item">
-          <div class="legend-marker"></div>
-          <span>Propriétaire</span>
-        </div>
-        <div class="legend-text">Total: {{ owners.length }} propriétaires</div>
-      </div>
+      </Transition>
     </div>
   </div>
 </template>
 
 <style scoped>
-.map-view {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.loading {
-  text-align: center;
-  padding: 32px 0;
-  color: #999;
-}
-
-.map-container {
-  position: relative;
-  height: 400px;
-  border-radius: 12px;
+.map-wrapper {
+  width: 100%;
+  height: 350px;
+  border-radius: 16px;
   overflow: hidden;
-  border: 1px solid #E8E8E8;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  background: #f3f4f6;
+  position: relative;
 }
 
-.map-leaflet {
+.loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+.map-frame {
   width: 100%;
   height: 100%;
-  background: #f0f0f0;
+  position: relative;
 }
 
-:deep(.leaflet-container) {
-  font-family: inherit;
+.map-render {
+  width: 100%;
+  height: 100%;
+  z-index: 1;
 }
 
-:deep(.leaflet-popup-content) {
-  font-size: 13px;
-}
-
-.owner-details {
+.owner-popup {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: #FAFAFA;
-  border-top: 1px solid #E8E8E8;
-  border-radius: 12px 12px 0 0;
-  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.1);
+  bottom: 12px;
+  left: 12px;
+  right: 12px;
+  background: white;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
   z-index: 1000;
-  animation: slideUp 0.3s ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
 }
 
-@keyframes slideUp {
-  from {
-    transform: translateY(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+.close-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: #f3f4f6;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  cursor: pointer;
 }
 
+.popup-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar-box {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+}
+
+.popup-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid white;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.popup-avatar.placeholder {
+  background: #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+}
+
+.info-box {
+  flex: 1;
+}
+
+.popup-name {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.popup-location {
+  margin: 2px 0 4px 0;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.badge {
+  font-size: 11px;
+  background-color: #ecfdf5;
+  color: #059669;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+/* Animations */
 .slide-up-enter-active,
 .slide-up-leave-active {
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .slide-up-enter-from,
 .slide-up-leave-to {
-  transform: translateY(100%);
+  transform: translateY(20px);
   opacity: 0;
-}
-
-.details-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px;
-  background: #F5F5F5;
-  border-bottom: 1px solid #E8E8E8;
-}
-
-.details-header h3 {
-  margin: 0;
-  font-size: 18px;
-  color: #1a1a1a;
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  color: #666;
-  transition: color 0.2s ease;
-}
-
-.close-btn:hover {
-  color: #1a1a1a;
-}
-
-.details-content {
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.details-content p {
-  margin: 0;
-  font-size: 14px;
-  color: #333;
-}
-
-.profile-btn {
-  display: inline-block;
-  margin-top: 8px;
-  padding: 10px 16px;
-  background: linear-gradient(135deg, #2196F3 0%, #64B5F6 100%);
-  color: #fff;
-  border-radius: 6px;
-  text-decoration: none;
-  font-weight: 600;
-  text-align: center;
-  transition: all 0.2s ease;
-}
-
-.profile-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
-}
-
-.map-legend {
-  position: absolute;
-  bottom: 16px;
-  right: 16px;
-  background: #fff;
-  border-radius: 8px;
-  padding: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  z-index: 500;
-  font-size: 13px;
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.legend-item:last-child {
-  margin-bottom: 0;
-}
-
-.legend-marker {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: #4CAF50;
-  border: 2px solid #2E7D32;
-}
-
-.legend-text {
-  color: #666;
-  font-weight: 500;
-}
-
-@media (max-width: 480px) {
-  .map-container {
-    height: 300px;
-  }
-
-  .map-legend {
-    bottom: 12px;
-    right: 12px;
-    padding: 10px;
-    font-size: 12px;
-  }
-
-  .details-content {
-    padding: 12px;
-  }
-
-  .profile-btn {
-    padding: 8px 12px;
-    font-size: 13px;
-  }
 }
 </style>

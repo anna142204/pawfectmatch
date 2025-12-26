@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken';
 import Adopter from '../models/adopter.js';
 import Owner from '../models/owner.js';
 import Admin from '../models/admin.js';
+import { getGeoJSON } from '../utils/geocoder.mjs';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '15m';
@@ -22,6 +23,8 @@ export async function registerAdopter(req, res) {
       return res.status(409).json({ error: 'Cet email est déjà enregistré' });
     }
 
+const location = await getGeoJSON(address.zip, address.city);
+
     // Create new adopter (about and preferences are optional)
     const adopter = new Adopter({
       firstName,
@@ -29,6 +32,7 @@ export async function registerAdopter(req, res) {
       email,
       password,
       address,
+      location,
       age,
       ...(about && { about }),
       ...(preferences && { preferences }),
@@ -74,18 +78,19 @@ export async function registerOwner(req, res) {
       return res.status(409).json({ error: 'Cet email est déjà enregistré' });
     }
 
-    // Create new owner
+const location = await getGeoJSON(address.zip, address.city);
+
     const owner = new Owner({
       firstName,
       lastName,
       email,
       password,
-      address,
+      address,     
+      location,     
       phoneNumber,
       about,
       image: image || ''
     });
-
     await owner.save();
 
     // Generate JWT token
