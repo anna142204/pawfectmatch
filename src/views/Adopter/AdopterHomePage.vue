@@ -2,13 +2,32 @@
 import Menu from '@/components/Menu.vue';
 import OwnersMap from './OwnersMap.vue';
 import OwnersList from './OwnersList.vue';
-import { ref } from 'vue';
+import { ref, watch } from 'vue'; 
+import { useRoute, useRouter } from 'vue-router';
 import catHome from '@/images/cat-home.svg';
 import dogHome from '@/images/dog-home.svg';
 import rodentHome from '@/images/rodent-home.svg';
 import { Map, ClipboardList } from 'lucide-vue-next';
 
-const showMapView = ref(true);
+const route = useRoute();
+const router = useRouter();
+
+const showMapView = ref(route.query.view !== 'list');
+
+const toggleView = (isMap) => {
+  showMapView.value = isMap;
+  
+  router.replace({ 
+    query: { 
+      ...route.query, 
+      view: isMap ? 'map' : 'list' 
+    } 
+  });
+};
+
+watch(() => route.query.view, (newView) => {
+  showMapView.value = newView !== 'list';
+});
 </script>
 
 <template>
@@ -23,7 +42,6 @@ const showMapView = ref(true);
         class="featured-card cats-card"
         :style="{ backgroundImage: `url(${catHome})`, backgroundSize: 'cover', backgroundPosition: 'center' }"
       >
-
       </router-link>
 
       <div class="cards-grid">
@@ -32,7 +50,6 @@ const showMapView = ref(true);
           class="category-card dogs-card"
           :style="{ backgroundImage: `url(${dogHome})`, backgroundSize: 'cover', backgroundPosition: 'center' }"
         >
-
         </router-link>
 
         <router-link
@@ -40,7 +57,6 @@ const showMapView = ref(true);
           class="category-card rabbits-card"
           :style="{ backgroundImage: `url(${rodentHome})`, backgroundSize: 'cover', backgroundPosition: 'center' }"
         >
-      
         </router-link>
       </div>
 
@@ -50,14 +66,14 @@ const showMapView = ref(true);
           <div class="toggle-container">
             <button
               :class="['toggle-btn', { active: showMapView }]"
-              @click="showMapView = true"
+              @click="toggleView(true)"
               title="Voir la carte"
             >
               <Map />
             </button>
             <button
               :class="['toggle-btn', { active: !showMapView }]"
-              @click="showMapView = false"
+              @click="toggleView(false)"
               title="Voir la liste"
             >
               <ClipboardList />
@@ -65,10 +81,7 @@ const showMapView = ref(true);
           </div>
         </div>
 
-        <!-- Map View Component -->
         <OwnersMap v-if="showMapView" />
-
-        <!-- List View Component -->
         <OwnersList v-else />
       </section>
     </main>

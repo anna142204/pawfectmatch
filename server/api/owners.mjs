@@ -4,36 +4,82 @@ import Animal from '../models/animal.js';
 export async function getOwners(req, res) {
   try {
     const {
-      firstName,
-      lastName,
-      email,
-      city,
-      zip,
-      phoneNumber,
-      page = 1,
+      search,
+      type,   // 'society' ou 'private'
+      page = 1, 
       limit = 20
     } = req.query;
 
-    const query = {};
+    const filters = [];
 
-    // Basic filters
-    if (firstName) query.firstName = new RegExp(firstName, 'i');
-    if (lastName) query.lastName = new RegExp(lastName, 'i');
-    if (email) query.email = new RegExp(email, 'i');
-    if (phoneNumber) query.phoneNumber = new RegExp(phoneNumber, 'i');
+    // Recherche Globale
+    if (search) {
+      const regex = new RegExp(search, 'i');
+      filters.push({
+        $or: [
+          { firstName: regex },
+          { lastName: regex },
+          { societyName: regex },
+          { 'address.city': regex },
+          { 'address.zip': regex }
+        ]
+      });
+    }
 
-    // Address filters
-    if (city) query['address.city'] = new RegExp(city, 'i');
-    if (zip) query['address.zip'] = zip;
+    // Filtre par type
+    if (type === 'society') {
+      // Doit exister, ne pas être null, et ne pas être vide
+      filters.push({
+        societyName: { $exists: true, $nin: [null, ""] }
+      });
+    } else if (type === 'private') {
+      // Soit n'existe pas, soit est null, soit est vide
+      filters.push({
+        $or: [
+          { societyName: { $exists: false } },
+          { societyName: null },
+          { societyName: "" }
+        ]
+      });
+    }
 
-    // Pagination
+    const matchStage = filters.length > 0 ? { $and: filters } : {};
+
     const skip = (parseInt(page) - 1) * parseInt(limit);
-    const total = await Owner.countDocuments(query);
 
-    const owners = await Owner.find(query)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(parseInt(limit));
+    // Agrégation avec pagination et comptage des animaux
+    const owners = await Owner.aggregate([
+      { $match: matchStage }, 
+      
+      { $sort: { createdAt: -1, _id: 1 } }, 
+
+      { $skip: skip },
+      { $limit: parseInt(limit) },
+      
+      // Jointure pour compter les animaux
+      {
+        $lookup: {
+          from: 'animals',
+          localField: '_id',
+          foreignField: 'ownerId',
+          as: 'animalsList'
+        }
+      },
+      {
+        $addFields: {
+          animalCount: { $size: "$animalsList" }
+        }
+      },
+      {
+        $project: {
+          password: 0,
+          animalsList: 0,
+          __v: 0
+        }
+      }
+    ]);
+
+    const total = await Owner.countDocuments(matchStage);
 
     res.json({
       owners,
@@ -44,12 +90,12 @@ export async function getOwners(req, res) {
         pages: Math.ceil(total / parseInt(limit))
       }
     });
+
   } catch (error) {
     console.error('Get owners error:', error);
     res.status(500).json({ error: 'Failed to fetch owners' });
   }
 }
-
 export async function getOwnerById(req, res) {
   try {
     const { id } = req.params;
@@ -60,7 +106,6 @@ export async function getOwnerById(req, res) {
       return res.status(404).json({ error: 'Owner not found' });
     }
 
-    // Get owner's animals
     const animals = await Animal.find({ ownerId: id });
 
     res.json({
@@ -78,7 +123,6 @@ export async function updateOwner(req, res) {
     const { id } = req.params;
     const updates = req.body;
 
-    // Don't allow password update through this route
     delete updates.password;
 
     const owner = await Owner.findByIdAndUpdate(
@@ -105,7 +149,7 @@ export async function deleteOwner(req, res) {
   try {
     const { id } = req.params;
 
-    // Check if owner has animals
+    // Vérifier s'il y a des animaux associés avant de supprimer
     const animalsCount = await Animal.countDocuments({ ownerId: id });
     if (animalsCount > 0) {
       return res.status(400).json({ 
