@@ -118,7 +118,7 @@ const isActive = (routePath) => {
 
 .menu-label {
     display: block;
-    font-size: 10px;
+    font-size: 13px;
     font-weight: var(--font-weight-normal);
     transition: all 0.3s ease;
     text-align: center;
@@ -128,9 +128,8 @@ const isActive = (routePath) => {
     flex-shrink: 0;
 }
 
-/* Active state */
-.menu-item.active .icon-wrapper {
-    background-color: var(--color-primary-100);
+.menu-item.active {
+    background-color: var(--color-primary-50);
 }
 
 .menu-item.active .icon {
@@ -142,7 +141,6 @@ const isActive = (routePath) => {
     font-weight: var(--font-weight-semibold);
 }
 
-/* Hover state (for desktop) */
 .menu-item:hover .icon-wrapper {
     background-color: var(--color-primary-50);
 }

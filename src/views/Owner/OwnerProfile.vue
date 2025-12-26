@@ -1,7 +1,6 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-// Import des icônes (Patte pour les animaux, Check pour les adoptions)
 import { MapPinIcon, PawPrint, CheckCircle } from "lucide-vue-next";
 import Menu from '@/components/Menu.vue';
 import Button from '@/components/Button.vue';

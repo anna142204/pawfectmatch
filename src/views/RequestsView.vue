@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import Menu from '@/components/Menu.vue';
 import ConfirmModal from '@/components/ConfirmModal.vue';
-import { CheckIcon, XIcon, MessageCircleIcon, Trash2Icon, User, PartyPopper } from 'lucide-vue-next';
+import { CheckIcon, XIcon, MessageCircleIcon, Trash2Icon, User } from 'lucide-vue-next';
 
 const router = useRouter();
 const requests = ref([]);
@@ -318,18 +318,14 @@ onMounted(fetchRequests);
 </template>
 
 <style scoped>
-:root {
-    --header-height: 110px;
-}
 
 .page-container {
     min-height: 100vh;
-    padding-top: var(--header-height);
     padding-bottom: 90px;
 }
 
 .sticky-header {
-    position: fixed;
+    position: sticky;
     top: 0;
     left: 0;
     right: 0;
@@ -340,7 +336,7 @@ onMounted(fetchRequests);
 }
 
 .content-wrapper {
-    padding: 20vh 20px 20px 20px;
+    padding: 20px;
 }
 
 .cards-container {
@@ -424,15 +420,15 @@ onMounted(fetchRequests);
 }
 
 .tab-btn.active {
-    color: var(--color-primary-600);
+    color: var(--color-primary-700);
 }
 
 .tab-btn.active::after {
-    background: var(--color-primary-600);
+    background: var(--color-primary-700);
 }
 
 .badge-count {
-    background: var(--color-primary-600);
+    background: var(--color-primary-700);
     color: white;
     font-size: 10px;
     font-weight: 700;
@@ -443,7 +439,7 @@ onMounted(fetchRequests);
 }
 
 .separator-x {
-    color: var(--color-primary-600);
+    color: var(--color-primary-700);
     font-weight: 400;
     margin: 0 4px;
 }
