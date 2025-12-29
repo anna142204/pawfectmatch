@@ -105,8 +105,8 @@ const getTextClass = (size) => {
 
 /* Danger variant */
 .btn-danger {
-  background-color: transparent;
-  color: #dc2626;
+  background-color: #dc2626;
+  color: #ffffff;
   border-color: #dc2626;
 }
 

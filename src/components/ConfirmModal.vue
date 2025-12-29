@@ -59,7 +59,7 @@ const handleBackdropClick = (event) => {
         </div>
         
         <div class="modal-body">
-          <p class="modal-message text-body-base text-neutral-700">{{ message }}</p>
+          <p class="modal-message text-body-lg text-neutral-700">{{ message }}</p>
         </div>
 
         <div class="modal-footer">

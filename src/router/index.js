@@ -12,12 +12,14 @@ import AdopterSwipe from '../views/Adopter/AdopterSwipe.vue'
 import AdopterAnimalDetails from '../views/Adopter/AdopterAnimalDetails.vue'
 import AdopterDiscussions from '../views/Adopter/AdopterDiscussions.vue'
 import AdopterConversation from '../views/Adopter/AdopterConversation.vue'
+import AdopterProfileEdit from '../views/Adopter/AdopterProfileEdit.vue'
 
 // Owner
 import OwnerHomePage from '../views/Owner/OwnerHomePage.vue'
 import OwnerAnimals from '../views/Owner/OwnerAnimals.vue'
 import OwnerDiscussions from '../views/Owner/OwnerDiscussions.vue'
 import OwnerConversation from '../views/Owner/OwnerConversation.vue'
+import OwnerProfileEdit from '../views/Owner/OwnerProfileEdit.vue'
 
 //General views
 import AdopterProfile from '../views/Adopter/AdopterProfile.vue'
@@ -89,8 +91,15 @@ const routes = [
     path: '/adopter/profile',
     name: 'AdopterProfile',
     component: AdopterProfile,
-    meta: { requiresAuth: true, userType: 'adopter'}
+    meta: { requiresAuth: true, userType: 'adopter' }
   },
+   {
+    path: '/adopter/profile/edit',
+    name: 'AdopterProfileEdit',
+    component: AdopterProfileEdit,
+    meta: { requiresAuth: true, userType: 'adopter' }
+  },
+  
   {
     path: '/adopter/swipe',
     name: 'AdopterSwipe',
@@ -101,7 +110,7 @@ const routes = [
     path: '/adopter/animal/:id',
     name: 'AdopterAnimalDetails',
     component: AdopterAnimalDetails,
-    meta: { requiresAuth: true, userType: 'adopter'}
+    meta: { requiresAuth: true, userType: 'adopter' }
   },
   {
     path: '/adopter/discussions',
@@ -139,6 +148,12 @@ const routes = [
     path: '/owner/profile',
     name: 'OwnerProfile',
     component: OwnerProfile,
+    meta: { requiresAuth: true, userType: 'owner' }
+  },
+  {
+    path: '/owner/profile/edit',
+    name: 'OwnerProfileEdit',
+    component: OwnerProfileEdit,
     meta: { requiresAuth: true, userType: 'owner' }
   },
   {

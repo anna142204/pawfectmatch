@@ -76,7 +76,7 @@ onMounted(async () => {
 });
 
 const handleLogout = () => router.push('/logout');
-const handleEdit = () => console.log("Edit profile");
+const handleEdit = () => router.push('/adopter/profile/edit');
 const handleContact = () => router.push({ name: 'OwnerDiscussions', query: { adopterId: profileAdopterId.value } });
 </script>
 

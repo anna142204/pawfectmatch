@@ -1,10 +1,16 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
-import { Plus, Edit, Trash2, MapPin } from 'lucide-vue-next';
+import { Edit } from 'lucide-vue-next';
 import Menu from '@/components/Menu.vue';
 import Button from '@/components/Button.vue';
 import { useToast } from '@/composables/useToast';
+
+import dogImg from '@/images/dog.webp';
+import catImg from '@/images/cat.webp';
+import birdImg from '@/images/bird.webp';
+import rodentImg from '@/images/rodent.webp';
+import otherImg from '@/images/other.webp';
 
 const router = useRouter();
 const { success, error } = useToast();
@@ -14,23 +20,12 @@ const loading = ref(true);
 const ownerId = ref(null);
 const selectedCategory = ref(null);
 
-const hasAnimals = computed(() => animals.value.length > 0);
-
-const speciesEmojis = {
-  'chat': '🐱',
-  'chien': '🐶',
-  'lapin': '🐰',
-  'oiseau': '🐦',
-  'rongeur': '🐹',
-  'autre': '🦎'
-};
-
 const categories = [
-  { id: 'chien', label: 'Chiens', icon: '🐶' },
-  { id: 'chat', label: 'Chats', icon: '🐱' },
-  { id: 'oiseau', label: 'Oiseaux', icon: '🐦' },
-  { id: 'rongeur', label: 'Rongeurs', icon: '🐹' },
-  { id: 'autre', label: 'Autres', icon: '🦎' }
+  { id: 'chien', label: 'Chiens', image: dogImg },
+  { id: 'chat', label: 'Chats', image: catImg },
+  { id: 'lapin', label: 'Lapins', image: rodentImg },
+  { id: 'oiseau', label: 'Oiseaux', image: birdImg },
+  { id: 'autre', label: 'Autres', image: otherImg }
 ];
 
 const filteredAnimals = computed(() => {
@@ -105,8 +100,6 @@ const deleteAnimal = async (animal) => {
   }
 };
 
-const getSpeciesEmoji = (species) => speciesEmojis[species] || '🐾';
-
 const getAvailabilityText = (available) => available ? 'Disponible' : 'Adopté';
 
 const getAvailabilityClass = (available) => available ? 'available' : 'adopted';
@@ -124,17 +117,13 @@ const isCategorySelected = (categoryId) => {
 };
 </script>
 
-<template>
+ <template>
   <div class="owner-animals-page">
-    <!-- En-tête -->
     <div class="page-header">
       <h2 class="page-title text-h2 text-primary-700">Animaux</h2>
     </div>
 
-    <!-- Contenu -->
     <div class="page-content">
-
-      <!-- Catégories -->
       <section class="categories-section">
         <h4 class="section-title text-h4 text-primary-700">Catégories</h4>
         <div class="categories-grid">
@@ -145,48 +134,35 @@ const isCategorySelected = (categoryId) => {
             :class="{ 'category-active': isCategorySelected(category.id) }"
             @click="selectCategory(category.id)"
           >
-            <div class="category-icon">{{ category.icon }}</div>
+            <div class="category-icon">
+              <img :src="category.image" :alt="category.label" class="category-img" />
+            </div>
+            
             <p class="category-label text-body-sm text-neutral-black">{{ category.label }}</p>
           </div>
         </div>
       </section>
 
-      <!-- Mes annonces -->
       <section class="announcements-section">
         <div class="section-header">
           <h4 class="section-title text-h4 text-primary-700">Mes annonces</h4>
           <button class="btn-filters text-body-base text-primary-600">Filtres</button>
         </div>
 
-        <!-- Loading -->
         <div v-if="loading" class="loading-container">
           <div class="spinner"></div>
         </div>
 
-        <!-- Liste des animaux -->
         <div v-else-if="hasFilteredAnimals" class="animals-grid">
-          <div 
-            v-for="animal in filteredAnimals" 
-            :key="animal._id" 
-            class="animal-card"
-          >
-            <img 
-              :src="animal.images[0]" 
-              :alt="animal.name"
-              class="animal-image"
-            />
+          <div v-for="animal in filteredAnimals" :key="animal._id" class="animal-card">
+            <img :src="animal.images[0]" :alt="animal.name" class="animal-image" />
             <h3 class="animal-name text-body-lg text-neutral-white">{{ animal.name }}</h3>
-            <button 
-              class="btn-edit-card" 
-              @click="editAnimal(animal._id)"
-              title="Modifier"
-            >
+            <button class="btn-edit-card" @click="editAnimal(animal._id)">
               <Edit :size="20" :stroke-width="2.5" />
             </button>
           </div>
         </div>
 
-        <!-- État vide -->
         <div v-else class="empty-message">
           <p class="text-body-base text-neutral-500">
             {{ selectedCategory ? 'Aucun animal de cette catégorie' : 'Aucune annonce pour le moment' }}
@@ -195,19 +171,12 @@ const isCategorySelected = (categoryId) => {
       </section>
     </div>
 
-    <!-- Bouton ajouter flottant -->
     <div class="floating-add-button">
-      <Button 
-        variant="primary"
-        size="base"
-        @click="goToAddAnimal"
-        class="btn-add-animal"
-      >
+      <Button variant="primary" size="base" @click="goToAddAnimal" class="btn-add-animal">
         Ajouter un animal
       </Button>
     </div>
 
-    <!-- Menu de navigation -->
     <Menu />
   </div>
 </template>
@@ -217,7 +186,7 @@ const isCategorySelected = (categoryId) => {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  padding: 0 40px 80px 40px;
+  padding-bottom: 80px;
 }
 
 .page-header {
@@ -243,19 +212,19 @@ const isCategorySelected = (categoryId) => {
 }
 
 /* Catégories */
+
 .categories-section {
   margin-bottom: var(--spacing-3);
   overflow: hidden;
+  padding-left: var(--spacing-7);
 }
 
 .categories-grid {
   display: flex;
   gap: var(--spacing-4);
   overflow-x: auto;
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
   padding-bottom: var(--spacing-2);
+  scrollbar-width: none;
 }
 
 .categories-grid::-webkit-scrollbar {
@@ -277,16 +246,6 @@ const isCategorySelected = (categoryId) => {
   transform: scale(0.95);
 }
 
-.category-active .category-icon {
-  background: var(--color-primary-600);
-  box-shadow: 0 4px 12px rgba(255, 100, 46, 0.3);
-}
-
-.category-active .category-label {
-  color: var(--color-primary-600);
-  font-weight: var(--font-weight-semibold);
-}
-
 .category-icon {
   width: 70px;
   height: 70px;
@@ -295,14 +254,30 @@ const isCategorySelected = (categoryId) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 40px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: all 0.2s ease;
+  overflow: hidden;
+  padding: 10px;
+}
+
+.category-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.category-active .category-icon {
+  background: var(--color-primary-600);
+  box-shadow: 0 4px 12px rgba(255, 100, 46, 0.3);
 }
 
 .category-label {
   margin: 0;
   text-align: center;
+}
+
+.announcements-section {
+  padding: 0 var(--spacing-7);
 }
 
 .section-header {
@@ -337,7 +312,9 @@ const isCategorySelected = (categoryId) => {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Grid des animaux */
