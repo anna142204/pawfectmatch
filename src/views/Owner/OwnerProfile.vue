@@ -85,8 +85,8 @@ const handleContact = () => {
       <div class="content-section">
         <div class="profile-header">
           <div class="header-left">
-            <h1 v-if="user.societyName" class="profile-name">{{ user.societyName }}</h1>
-            <h1 v-else class="profile-name">{{ user.firstName }} {{ user.lastName }}</h1>
+            <h2 v-if="user.societyName" class="profile-name">{{ user.societyName }}</h2>
+            <h2 v-else class="profile-name">{{ user.firstName }} {{ user.lastName }}</h2>
 
             <div class="profile-meta">
               <p class="profile-location">
@@ -135,7 +135,7 @@ const handleContact = () => {
           <div class="animals-grid">
             <div v-for="animal in availableAnimals" :key="animal._id" class="animal-card"
               @click="router.push(`/adopter/animal/${animal._id}`)">
-              <img :src="animal.image || '/default-animal.png'" class="animal-thumb">
+              <img :src="animal.images && animal.images.length ? animal.images[0] : '/default-animal.png'" class="animal-thumb">
               <span class="animal-name">{{ animal.name }}</span>
             </div>
           </div>

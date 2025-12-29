@@ -26,7 +26,7 @@ export async function getMatches(req, res) {
       .populate('adopterId', 'firstName lastName email image') 
       .populate({
         path: 'animalId',
-        select: 'name species race age image',
+        select: 'name species race age images',
         populate: {
           path: 'ownerId',
           select: 'firstName lastName email phoneNumber societyName image' 
@@ -239,7 +239,6 @@ export async function getMatchDiscussion(req, res) {
 
     const match = await Match.findById(id)
       .select('discussion adopterId animalId isActive')
-      // CORRECTION ICI
       .populate('discussion.sender', 'firstName lastName image');
 
     if (!match) {

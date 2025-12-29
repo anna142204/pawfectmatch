@@ -101,7 +101,7 @@ const handleContact = () => router.push({ name: 'OwnerDiscussions', query: { ado
       <div class="content-section">
         <div class="profile-header">
           <div class="header-left">
-            <h1 class="profile-name">{{ user.firstName }} {{ user.lastName }}</h1>
+            <h2 class="profile-name">{{ user.firstName }} {{ user.lastName }}</h2>
             <div class="profile-meta">
               <p>{{ user.age }} ans </p>
               <p class="profile-location">

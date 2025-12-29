@@ -1,14 +1,15 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, computed, onMounted, watch } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import Menu from '@/components/Menu.vue';
 import ConfirmModal from '@/components/ConfirmModal.vue';
-import { CheckIcon, XIcon, MessageCircleIcon, Trash2Icon, User } from 'lucide-vue-next';
+import { CheckIcon, XIcon, MessageCircleIcon, Trash2Icon, User, PawPrint } from 'lucide-vue-next';
 
 const router = useRouter();
+const route = useRoute();
 const requests = ref([]);
 const loading = ref(true);
-const activeTab = ref('pending');
+const activeTab = ref(route.query.tab || 'pending');
 const imageErrors = ref({});
 
 const userId = localStorage.getItem('user_id');
@@ -17,6 +18,15 @@ const isOwner = computed(() => userType === 'owner');
 
 const confirmModal = ref({
     show: false, title: '', message: '', confirmText: 'Confirmer', type: 'warning', pendingAction: null
+});
+
+watch(activeTab, (newTab) => {
+    router.replace({ 
+        query: { 
+            ...route.query,
+            tab: newTab 
+        } 
+    });
 });
 
 // --- NAVIGATION VERS LE PROFIL ---
@@ -49,8 +59,13 @@ const fetchRequests = async () => {
 };
 
 // --- HELPERS ---
-const getMainImage = (req) => isOwner.value ? req.adopterId?.image : req.animalId?.image;
-const getSubImage = (req) => isOwner.value ? req.animalId?.image : req.animalId?.ownerId?.image;
+const getMainImage = (req) => isOwner.value
+    ? (req.adopterId?.image || null)
+    : (req.animalId?.images?.[0] || null);
+
+const getSubImage = (req) => isOwner.value
+    ? (req.animalId?.images?.[0] || null)
+    : (req.animalId?.ownerId?.image || null);
 const handleImageError = (id) => { imageErrors.value[id] = true; };
 
 // --- FONCTION DE FORMATAGE DE DATE ---
@@ -124,11 +139,11 @@ onMounted(fetchRequests);
 <template>
     <div class="page-container bg-gray-50">
         <div class="sticky-header">
-            <h1 class="page-title text-h1">{{ isOwner ? 'Demandes reçues' : 'Mes demandes' }}</h1>
+            <h1 class="page-title text-h1">Demandes</h1>
             <div class="tabs-container">
                 <button class="tab-btn" :class="{ active: activeTab === 'pending' }" @click="activeTab = 'pending'">
                     En attente <span class="badge-count" v-if="pendingRequests.length">{{ pendingRequests.length
-                    }}</span>
+                        }}</span>
                 </button>
                 <button class="tab-btn" :class="{ active: activeTab === 'history' }" @click="activeTab = 'history'">
                     Historique
@@ -151,13 +166,15 @@ onMounted(fetchRequests);
                         <img v-if="getMainImage(req) && !imageErrors[req._id + '_main']" :src="getMainImage(req)"
                             class="main-avatar" @error="handleImageError(req._id + '_main')" />
                         <div v-else class="main-avatar placeholder-style">
-                            <User :size="24" />
+                            <User v-if="isOwner" :size="24" />
+                            <PawPrint v-else :size="24" />
                         </div>
 
                         <img v-if="getSubImage(req) && !imageErrors[req._id + '_sub']" :src="getSubImage(req)"
                             class="sub-avatar" @error="handleImageError(req._id + '_sub')" />
                         <div v-else class="sub-avatar placeholder-style small">
-                            <User :size="12" />
+                            <PawPrint v-if="isOwner" :size="12" />
+                            <User v-else :size="12" />
                         </div>
                     </div>
 
@@ -318,7 +335,6 @@ onMounted(fetchRequests);
 </template>
 
 <style scoped>
-
 .page-container {
     min-height: 100vh;
     padding-bottom: 90px;
@@ -329,7 +345,7 @@ onMounted(fetchRequests);
     top: 0;
     left: 0;
     right: 0;
-    background: white;
+    background-color: var(--color-neutral-100);
     z-index: 10;
     padding: 3vh 20px 0 20px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
@@ -374,14 +390,6 @@ onMounted(fetchRequests);
 .adopted-bg {
     background-color: #f0fdf4;
     border: 1px solid #dcfce7;
-}
-
-.page-title {
-    margin: 0;
-    padding: 15px 20px 20px 20px;
-    color: var(--color-primary-800);
-    justify-content: center;
-    display: flex;
 }
 
 .tabs-container {

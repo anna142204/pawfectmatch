@@ -3,13 +3,16 @@ import { ref, computed, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import Menu from '@/components/Menu.vue';
 import BackButton from '@/components/BackButton.vue';
-import { Cat, MapPin, Mars, Venus, Heart, User } from 'lucide-vue-next';
+import { Cat, MapPin, Mars, Venus, Heart, User, PawPrint } from 'lucide-vue-next';
 
 const router = useRouter();
 const route = useRoute();
 const animal = ref(null);
 const loading = ref(true);
 const error = ref(null);
+
+const imageErrors = ref({});
+const handleImageError = (id) => { imageErrors.value[id] = true; };
 
 const goBackToSwipe = () => {
   router.push({ name: 'AdopterSwipe' });
@@ -82,14 +85,21 @@ const formatPrice = (price) => {
     <div v-else-if="animal" class="profile-wrapper">
       <div class="photo-section">
         <BackButton @click="goBackToSwipe" variant="overlay" />
-        <img :src="animal?.image || '/images/sample-cat.jpg'" alt="photo animal" class="animal-photo"/>
+        <img v-if="animal?.images && animal.images.length && !imageErrors['main']" :src="animal.images[0]"
+          alt="photo animal" class="animal-photo" @error="handleImageError('main')" />
+        <div v-else class="animal-placeholder">
+          <div class="placeholder-content">
+            <PawPrint :size="80" stroke-width="1.5" />
+            <span>Aucune photo disponible</span>
+          </div>
+        </div>
       </div>
 
       <div class="content-section">
         <div class="animal-header">
           <div class="header-left">
             <div class="name-row">
-              <h1 class="animal-name">{{ animal.name }}</h1>
+              <h2 class="animal-name">{{ animal.name }}</h2>
               <div class="gender" :title="animal.gender">
                 <Mars size="20" v-if="animal.gender === 'male'" />
                 <Venus size="20" v-else />
@@ -97,20 +107,26 @@ const formatPrice = (price) => {
             </div>
 
             <div class="tags">
-              <span class="tag"><Cat size="16" /> {{ animal.species || 'Animal' }}</span>
-              <span class="tag"><MapPin size="16" /> {{ animal.address.city || '' }}</span>
+              <span class="tag">
+                <Cat size="16" /> {{ animal.species || 'Animal' }}
+              </span>
+              <span class="tag">
+                <MapPin size="16" /> {{ animal.address.city || '' }}
+              </span>
             </div>
           </div>
-          
+
           <div class="owner-link">
-            <RouterLink
-                v-if="ownerProfileTo"
-                class="owner-logo"
-                :to="ownerProfileTo"
-                :title="ownerName"
-            >
-              <img v-if="animal?.ownerId?.image" :src="animal.ownerId.image" alt="image propriétaire" />
-              <div v-else class="owner-placeholder"><User/></div>
+            <RouterLink v-if="ownerProfileTo" class="owner-logo" :to="ownerProfileTo" :title="ownerName">
+              <img 
+                v-if="animal?.ownerId?.image && !imageErrors['owner']" 
+                :src="animal.ownerId.image" 
+                alt="image propriétaire" 
+                @error="handleImageError('owner')"
+              />
+              <div v-else class="owner-placeholder">
+                <User />
+              </div>
             </RouterLink>
             <p class="owner-name-text">{{ ownerName }}</p>
           </div>
@@ -199,12 +215,47 @@ const formatPrice = (price) => {
   object-fit: cover;
 }
 
+.animal-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--color-secondary-100, #fdf2f8) 0%, #ffffff 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.placeholder-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: var(--color-secondary-300, #fda4af);
+}
+
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+
+  50% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+}
+
 .content-section {
   display: flex;
   flex-direction: column;
   gap: 10px;
   padding: 25px 40px;
-  background: white ;
+  background: white;
   margin-top: -60px;
   border-radius: 20px 20px 0 0;
   position: relative;
@@ -278,7 +329,7 @@ const formatPrice = (price) => {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: linear-gradient(var(--color-secondary-200),var(--color-secondary-100));
+  background: linear-gradient(var(--color-secondary-200), var(--color-secondary-100));
   color: #6b2335;
   padding: 4px 12px;
   border-radius: 20px;
@@ -300,7 +351,7 @@ const formatPrice = (price) => {
   justify-content: center;
   overflow: hidden;
   border: 2px solid #fff;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   flex-shrink: 0;
 }
 
@@ -420,7 +471,7 @@ const formatPrice = (price) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(var(--color-secondary-600),var(--color-secondary-300));
+  background: linear-gradient(var(--color-secondary-600), var(--color-secondary-300));
   cursor: pointer;
   transition: transform 0.2s ease;
 }

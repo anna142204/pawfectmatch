@@ -73,14 +73,14 @@ const fetchAnimals = async () => {
 };
 
 const goToAddAnimal = () => {
-  // Nettoyer le localStorage pour être en mode création
-  ['animalFormData', 'animalFormMediaData', 'animalFormAffinityData', 'animalFormDetailsData', 'editingAnimalId']
-    .forEach(key => localStorage.removeItem(key));
+  localStorage.removeItem('editingAnimalId');
+  localStorage.removeItem('animal_add_draft');
   router.push('/owner/animal/add');
 };
 
 const editAnimal = (animalId) => {
-  router.push(`/owner/animal/edit/${animalId}`);
+  localStorage.setItem('editingAnimalId', animalId);
+  router.push('/owner/animal/edit/' + animalId);
 };
 
 const deleteAnimal = async (animal) => {
@@ -171,7 +171,7 @@ const isCategorySelected = (categoryId) => {
             class="animal-card"
           >
             <img 
-              :src="animal.image" 
+              :src="animal.images[0]" 
               :alt="animal.name"
               class="animal-image"
             />

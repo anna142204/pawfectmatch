@@ -31,7 +31,6 @@ watch(() => route.query.view, (newView) => {
   <div class="home-page">
     <header class="home-header">
       <h1 class="text-h1 text-primary-700">Découvrir</h1>
-      <p class="subtitle">Trouvez votre futur compagnon</p>
     </header>
 
     <main class="home-content">
@@ -103,10 +102,6 @@ watch(() => route.query.view, (newView) => {
   margin: 0 auto;
   background-color: var(--color-neutral-100);
   min-height: 100vh;
-}
-
-.home-header {
-  margin-bottom: 24px;
 }
 
 .subtitle {

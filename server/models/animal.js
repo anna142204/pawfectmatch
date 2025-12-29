@@ -58,12 +58,16 @@ const animalSchema = new Schema({
             maxlength: 12,
         },
     },
-    image: {
-        type: String,
-        required: true, // URL ou chemin d’image obligatoire
-        trim: true,
-        maxlength: 500,
-    },
+    images: {
+    type: [String],
+    required: true,
+    validate: {
+        validator: function(v) {
+            return v && v.length > 0;
+        },
+        message: 'Vous devez ajouter au moins une image.'
+    }
+},
     price: {
         type: Number,
         required: true,

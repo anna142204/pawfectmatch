@@ -96,49 +96,49 @@ const seed = async () => {
             // CHIENS
             {
                 name: 'Rocky', species: 'chien', race: 'Golden Retriever', age: '1-3', sex: 'male', size: 'grand', weight: '20-30',
-                image: 'https://images.unsplash.com/photo-1633722715463-d30f4f325e24?auto=format&fit=crop&w=800&q=80',
+                images: ['https://images.unsplash.com/photo-1633722715463-d30f4f325e24?auto=format&fit=crop&w=800&q=80'],
                 desc: 'Un Golden Retriever plein d\'énergie, adore les balades en forêt et nager.',
                 env: ['enfant', 'voiture', 'chien'], dress: ['éduqué'], pers: ['énergique', 'joueur', 'sociable']
             },
             {
                 name: 'Bella', species: 'chien', race: 'Bulldog Français', age: '3-7', sex: 'female', size: 'petit', weight: '10-20',
-                image: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=800&q=80',
+                images: ['https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=800&q=80'],
                 desc: 'Une petite boule d\'amour qui préfère le canapé aux longues randonnées.',
                 env: ['appartement'], dress: ['têtu'], pers: ['calme', 'câlin', 'timide']
             },
             {
                 name: 'Max', species: 'chien', race: 'Berger Allemand', age: '3-7', sex: 'male', size: 'grand', weight: '30+',
-                image: 'https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?auto=format&fit=crop&w=800&q=80',
+                images: ['https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?auto=format&fit=crop&w=800&q=80'],
                 desc: 'Chien très intelligent et loyal. Il a besoin d\'un maître expérimenté.',
                 env: ['voiture', 'autre animaux'], dress: ['éduqué', 'habitué à la laisse'], pers: ['protecteur', 'curieux', 'territorial']
             },
             {
                 name: 'Daisy', species: 'chien', race: 'Corgi', age: '1-3', sex: 'female', size: 'petit', weight: '10-20',
-                image: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=800&q=80',
+                images: ['https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=800&q=80'],
                 desc: 'Toujours joyeuse, Daisy adore tout le monde. Parfaite pour une première adoption.',
                 env: ['appartement', 'enfant'], dress: ['facile à dresser'], pers: ['joueur', 'sociable', 'curieux']
             },
             {
                 name: 'Thor', species: 'chien', race: 'Husky', age: '1-3', sex: 'male', size: 'grand', weight: '20-30',
-                image: 'https://images.unsplash.com/photo-1599839575945-a9e5af0c3fa5?auto=format&fit=crop&w=800&q=80',
+                images: ['https://images.unsplash.com/photo-1599839575945-a9e5af0c3fa5?auto=format&fit=crop&w=800&q=80'],
                 desc: 'Un grand sportif ! Il a besoin de courir tous les jours. Très bavard.',
                 env: ['voiture', 'chien'], dress: ['têtu'], pers: ['énergique', 'bavard', 'indépendant']
             },
             {
                 name: 'Ruby', species: 'chien', race: 'Cavalier King Charles', age: '7+', sex: 'female', size: 'petit', weight: '5-10',
-                image: 'https://images.unsplash.com/photo-1599889959407-598566c6e1f1?auto=format&fit=crop&w=800&q=80',
+                images: ['https://images.unsplash.com/photo-1599889959407-598566c6e1f1?auto=format&fit=crop&w=800&q=80'],
                 desc: 'Une dame âgée très douce qui cherche un panier retraite confortable.',
                 env: ['appartement', 'chat'], dress: ['éduqué'], pers: ['calme', 'affectueux', 'timide']
             },
             {
                 name: 'Cooper', species: 'chien', race: 'Labrador', age: '0-1', sex: 'male', size: 'grand', weight: '20-30',
-                image: 'https://images.unsplash.com/photo-1605897472359-8d6d60a95d13?auto=format&fit=crop&w=800&q=80',
+                images: ['https://images.unsplash.com/photo-1605897472359-8d6d60a95d13?auto=format&fit=crop&w=800&q=80'],
                 desc: 'Encore un chiot dans sa tête, il fait quelques bêtises mais est adorable.',
                 env: ['enfant', 'chien'], dress: ['facile à dresser'], pers: ['joueur', 'curieux', 'sociable']
             },
             {
                 name: 'Lola', species: 'chien', race: 'Beagle', age: '3-7', sex: 'female', size: 'moyen', weight: '10-20',
-                image: 'https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?auto=format&fit=crop&w=800&q=80',
+                images: ['https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?auto=format&fit=crop&w=800&q=80'],
                 desc: 'Un nez incroyable ! Attention à ne pas laisser traîner de nourriture.',
                 env: ['voiture', 'enfant'], dress: ['têtu', 'habitué à la laisse'], pers: ['curieux', 'indépendant', 'sociable']
             },
@@ -146,37 +146,37 @@ const seed = async () => {
             // CHATS
             {
                 name: 'Misty', species: 'chat', race: 'Européen', age: '1-3', sex: 'female', size: 'moyen', weight: '0-5',
-                image: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=800&q=80',
+                images: ['https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=800&q=80'],
                 desc: 'Une chatte tigrée très indépendante mais qui vient réclamer des câlins le soir.',
                 env: ['appartement', 'chat'], dress: ['éduqué'], pers: ['indépendant', 'calme']
             },
             {
                 name: 'Garfield', species: 'chat', race: 'Roux', age: '7+', sex: 'male', size: 'grand', weight: '5-10',
-                image: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?auto=format&fit=crop&w=800&q=80',
+                images: ['https://images.unsplash.com/photo-1574158622682-e40e69881006?auto=format&fit=crop&w=800&q=80'],
                 desc: 'Un gros pépère qui passe ses journées à dormir au soleil.',
                 env: ['appartement'], dress: ['éduqué'], pers: ['calme', 'affectueux']
             },
             {
                 name: 'Salem', species: 'chat', race: 'Noir', age: '0-1', sex: 'male', size: 'petit', weight: '0-5',
-                image: 'https://images.unsplash.com/photo-1573865526739-10659fec78a5?auto=format&fit=crop&w=800&q=80',
+                images: ['https://images.unsplash.com/photo-1573865526739-10659fec78a5?auto=format&fit=crop&w=800&q=80'],
                 desc: 'Un petit diable noir, très joueur et parfois un peu griffu quand il s\'excite.',
                 env: ['appartement'], dress: ['têtu'], pers: ['énergique', 'joueur', 'curieux']
             },
             {
                 name: 'Duchesse', species: 'chat', race: 'Persan', age: '3-7', sex: 'female', size: 'moyen', weight: '0-5',
-                image: 'https://images.unsplash.com/photo-1610996872580-c24430e3714b?auto=format&fit=crop&w=800&q=80',
+                images: ['https://images.unsplash.com/photo-1610996872580-c24430e3714b?auto=format&fit=crop&w=800&q=80'],
                 desc: 'Une princesse qui demande beaucoup d\'entretien pour son pelage.',
                 env: ['appartement'], dress: ['éduqué'], pers: ['calme', 'indépendant']
             },
             {
                 name: 'Leo', species: 'chat', race: 'Maine Coon', age: '1-3', sex: 'male', size: 'grand', weight: '10-20',
-                image: 'https://images.unsplash.com/photo-1587132924196-85750d5272c7?auto=format&fit=crop&w=800&q=80',
+                images: ['https://images.unsplash.com/photo-1587132924196-85750d5272c7?auto=format&fit=crop&w=800&q=80'],
                 desc: 'Un géant doux. Il s\'entend bien avec les chiens et adore l\'eau.',
                 env: ['chien', 'autre animaux'], dress: ['facile à dresser'], pers: ['sociable', 'affectueux', 'bavard']
             },
             {
                 name: 'Nala', species: 'chat', race: 'Siamois', age: '3-7', sex: 'female', size: 'petit', weight: '0-5',
-                image: 'https://images.unsplash.com/photo-1513245543132-31f507417b26?auto=format&fit=crop&w=800&q=80',
+                images: ['https://images.unsplash.com/photo-1513245543132-31f507417b26?auto=format&fit=crop&w=800&q=80'],
                 desc: 'Très vocale, elle vous racontera toute sa journée quand vous rentrez.',
                 env: ['appartement'], dress: ['éduqué'], pers: ['bavard', 'affectueux', 'curieux']
             },
@@ -184,25 +184,25 @@ const seed = async () => {
             // AUTRES
             {
                 name: 'Panpan', species: 'lapin', race: 'Bélier', age: '0-1', sex: 'male', size: 'petit', weight: '0-5',
-                image: 'https://images.unsplash.com/photo-1589952283406-b53a7d1347e8?auto=format&fit=crop&w=800&q=80',
+                images: ['https://images.unsplash.com/photo-1589952283406-b53a7d1347e8?auto=format&fit=crop&w=800&q=80'],
                 desc: 'Un lapin bélier adorable. Il vit en liberté dans l\'appartement (propre).',
                 env: ['appartement'], dress: ['éduqué'], pers: ['timide', 'curieux']
             },
             {
                 name: 'Bugs', species: 'lapin', race: 'Nain', age: '1-3', sex: 'female', size: 'petit', weight: '0-5',
-                image: 'https://images.unsplash.com/photo-1591382386627-349b692688ff?auto=format&fit=crop&w=800&q=80',
+                images: ['https://images.unsplash.com/photo-1591382386627-349b692688ff?auto=format&fit=crop&w=800&q=80'],
                 desc: 'Elle adore grignoter les carottes et faire des bonds dans l\'appartement.',
                 env: ['appartement', 'enfant'], dress: ['têtu'], pers: ['énergique', 'joueur']
             },
             {
                 name: 'Coco', species: 'oiseau', race: 'Perroquet', age: '7+', sex: 'male', size: 'petit', weight: '0-5',
-                image: 'https://images.unsplash.com/photo-1549402636-c60317e0828e?auto=format&fit=crop&w=800&q=80',
+                images: ['https://images.unsplash.com/photo-1549402636-c60317e0828e?auto=format&fit=crop&w=800&q=80'],
                 desc: 'Un perroquet qui sait dire "Bonjour" et siffler la Marseillaise.',
                 env: ['appartement'], dress: ['facile à dresser'], pers: ['bavard', 'curieux']
             },
             {
                 name: 'Rio', species: 'oiseau', race: 'Ara', age: '7+', sex: 'male', size: 'moyen', weight: '0-5',
-                image: 'https://images.unsplash.com/photo-1552071379-05006b5276e0?auto=format&fit=crop&w=800&q=80',
+                images: ['https://images.unsplash.com/photo-1552071379-05006b5276e0?auto=format&fit=crop&w=800&q=80'],
                 desc: 'Magnifique plumage. Il a besoin de beaucoup d\'attention et d\'espace.',
                 env: ['autre animaux'], dress: ['têtu'], pers: ['bavard', 'territorial']
             }
@@ -222,7 +222,7 @@ const seed = async () => {
                 sex: data.sex,
                 size: data.size,
                 weight: data.weight,
-                image: data.image,
+                images: data.images,
                 description: data.desc,
                 address: owner.address,
                 price: Math.floor(Math.random() * 200) + 50,

@@ -249,7 +249,7 @@ const handleLogout = () => {
                                                 @click="deleteAnimal(animal._id, animal.name)">
                                                 <Trash2 :size="14" />
                                             </button>
-                                            <img v-if="animal.image" :src="animal.image" :alt="animal.name"
+                                            <img v-if="animal.images && animal.images.length" :src="animal.images[0]" :alt="animal.name"
                                                 class="animal-image" />
                                             <div v-else class="animal-placeholder">
                                                 <PawPrint :size="32" />

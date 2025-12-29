@@ -111,7 +111,7 @@ const handleMouseUp = () => {
 
     <!-- Image de l'animal avec overlay gradient -->
     <div class="card-image">
-      <img :src="animal.image" :alt="animal.name" />
+      <img :src="animal.images[0]" :alt="animal.name" />
       <div class="image-overlay"></div>
     </div>
 

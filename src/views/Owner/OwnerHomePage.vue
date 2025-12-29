@@ -16,7 +16,7 @@ import Menu from '@/components/Menu.vue';
 <style scoped>
 .owner-home {
   min-height: 100vh;
-  padding-bottom: 80px; /* Espace pour le menu fixe */
+  padding-bottom: 80px;
 }
 
 .content {

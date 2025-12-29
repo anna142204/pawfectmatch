@@ -64,7 +64,7 @@ const fetchAnimals = async () => {
       id: animal._id,
       name: animal.name,
       description: animal.description,
-      image: animal.image,
+      images: animal.images,
       distance: animal.distance ? `${animal.distance} km` : 'Distance inconnue',
       urgent: false,
       tags: [
@@ -119,7 +119,7 @@ const handleCardClick = (animal) => {
 <template>
   <div class="viewport">
     <header class="header">
-      <h1 class="title text-h1 text-primary-700">Swipe</h1>
+      <h1 class="title text-h1">Swipe</h1>
     </header>
 
     <main class="main-content">
@@ -194,7 +194,7 @@ const handleCardClick = (animal) => {
   position: relative;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
 }
 
 :deep(.swipe-card), .card-instance {

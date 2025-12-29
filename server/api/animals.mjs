@@ -208,7 +208,7 @@ export async function createAnimal(req, res) {
       size,
       weight,
       address,
-      image,
+      images,
       price,
       ownerId,
       availability,
@@ -217,14 +217,14 @@ export async function createAnimal(req, res) {
     } = req.body;
 
     // Validate required fields
-    if (!species || !name || age === undefined || !sex || !address || !image || price === undefined || !ownerId || !description || !characteristics) {
+    if (!species || !name || age === undefined || !sex || !address || !images || images.length === 0 || price === undefined || !ownerId || !description || !characteristics) {
       console.log('Champs manquants:', {
         species: !species,
         name: !name,
         age: age === undefined,
         sex: !sex,
         address: !address,
-        image: !image,
+        images: !images,
         price: price === undefined,
         ownerId: !ownerId,
         description: !description,
@@ -242,7 +242,7 @@ export async function createAnimal(req, res) {
       size,
       weight,
       address,
-      image,
+      images,
       price,
       ownerId,
       availability,

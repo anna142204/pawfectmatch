@@ -24,13 +24,8 @@ import AdopterProfile from '../views/Adopter/AdopterProfile.vue'
 import OwnerProfile from '../views/Owner/OwnerProfile.vue'
 import RequestsView from '../views/RequestsView.vue'
 
-// Animal Forms
-import AnimalAddFormGeneral from '../views/Animal/AnimalAddFormGeneral.vue'
-import AnimalAddFormAffinity from '../views/Animal/AnimalAddFormAffinity.vue'
-import AnimalAddFormMedia from '../views/Animal/AnimalAddFormMedia.vue'
-import AnimalAddFormDetails from '../views/Animal/AnimalAddFormDetails.vue'
-import AnimalAddFormResume from '../views/Animal/AnimalAddFormResume.vue'
-import AnimalEditLoader from '../views/Animal/AnimalEditLoader.vue'
+// Animal Form
+import AnimalAddForm from '../views/Animal/AnimalAddForm.vue'
 
 // Admin
 import AdminDashboard from '../views/Admin/AdminDashboard.vue'
@@ -180,40 +175,16 @@ const routes = [
   // Animal Edit
   {
     path: '/owner/animal/edit/:id',
-    name: 'AnimalEdit',
-    component: AnimalEditLoader,
+    name: 'AnimalEditForm',
+    component: AnimalAddForm,
     meta: { requiresAuth: true, userType: 'owner' }
   },
 
   // Animal Add Forms
   {
     path: '/owner/animal/add',
-    name: 'AnimalAddGeneral',
-    component: AnimalAddFormGeneral,
-    meta: { requiresAuth: true, userType: 'owner' }
-  },
-  {
-    path: '/owner/animal/add/affinity',
-    name: 'AnimalAddAffinity',
-    component: AnimalAddFormAffinity,
-    meta: { requiresAuth: true, userType: 'owner' }
-  },
-  {
-    path: '/owner/animal/add/media',
-    name: 'AnimalAddMedia',
-    component: AnimalAddFormMedia,
-    meta: { requiresAuth: true, userType: 'owner' }
-  },
-  {
-    path: '/owner/animal/add/details',
-    name: 'AnimalAddDetails',
-    component: AnimalAddFormDetails,
-    meta: { requiresAuth: true, userType: 'owner' }
-  },
-  {
-    path: '/owner/animal/add/resume',
-    name: 'AnimalAddResume',
-    component: AnimalAddFormResume,
+    name: 'AnimalAddForm',
+    component: AnimalAddForm,
     meta: { requiresAuth: true, userType: 'owner' }
   },
 
