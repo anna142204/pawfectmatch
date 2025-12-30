@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import BackButton from '@/components/BackButton.vue';
+import Menu from '@/components/Menu.vue';
 import Toast from '@/components/Toast.vue';
 import { useWebSocket } from '@/composables/useWebSocket';
 import { ChevronRight, Send } from 'lucide-vue-next';
@@ -313,19 +314,23 @@ onUnmounted(async () => {
         </button>
       </div>
     </div>
-
-    <!-- Error Toast -->
-    <Toast v-if="errorMessage" :message="errorMessage" type="error" />
   </div>
+  
+  <!-- Navigation Menu (outside conversation-container) -->
+  <Menu :userType="'owner'" />
+  
+  <!-- Error Toast -->
+  <Toast v-if="errorMessage" :message="errorMessage" type="error" />
 </template>
 
 <style scoped>
 .conversation-container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: calc(100vh - 90px); /* Subtract menu height */
   background: linear-gradient(180deg, var(--color-primary-50, #fcf3ff) 0%, #ffffff 100%);
   position: relative;
+  padding-bottom: 0;
 }
 
 /* Header */
@@ -386,9 +391,11 @@ onUnmounted(async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-primary-200, #e8d4f5);
+  background: var(--color-primary-200, #d9b3f0);
   color: var(--color-primary-700, #8d0fbc);
-  font-weight: bold;
+  font-family: 'Comfortaa', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
 }
 
 /* Messages Container */
@@ -448,6 +455,17 @@ onUnmounted(async () => {
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
+}
+
+.message-avatar.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-primary-200, #d9b3f0);
+  color: var(--color-primary-700, #8d0fbc);
+  font-family: 'Comfortaa', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
 }
 
 .message-content {
