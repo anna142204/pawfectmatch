@@ -21,63 +21,103 @@ export function useWebSocket() {
       
       wsClient = new WSClient(wsUrl);
       
-      // Get auth token from localStorage
+      // Try to get token from localStorage, or rely on cookies with credentials: 'include'
       const token = localStorage.getItem('token');
       
-      await wsClient.connect(token).catch(err => {
+      // Connect - if no token, let the browser send cookies automatically
+      // The server's authCallback will extract it from cookies or the token parameter
+      await wsClient.connect(token || undefined).catch(err => {
         console.error('WebSocket connection error:', err);
-        connectionError.value = 'Failed to connect to WebSocket server';
+        connectionError.value = 'WebSocket connection failed (offline mode enabled)';
+        // Don't throw - allow offline mode
         throw err;
       });
       
       isConnected.value = true;
       connectionError.value = null;
-      console.log('WebSocket connected');
+      console.log('WebSocket connected successfully');
       
       return wsClient;
     } catch (err) {
       console.error('WebSocket initialization error:', err);
-      connectionError.value = err.message;
-      throw err;
+      // Don't throw - continue with offline mode
+      isConnected.value = false;
+      wsClient = null;
+      connectionError.value = 'WebSocket unavailable - working in offline mode';
     }
   };
 
-  // Subscribe to chat messages
-  const subscribeToChatMessages = async (callback) => {
+  // Subscribe to chat messages for a specific match
+  const subscribeToChatMessages = async (matchId, callback) => {
     try {
+      if (!matchId) {
+        throw new Error('matchId is required for subscribing to chat');
+      }
+
       if (!wsClient || !isConnected.value) {
         await initializeWebSocket();
       }
       
-      await wsClient.sub('chat', (message) => {
-        console.log('Received message:', message);
-        callback(message);
-      });
+      // Only subscribe if connection was successful
+      if (wsClient && isConnected.value) {
+        const channelName = `match:${matchId}`;
+        await wsClient.sub(channelName, (message) => {
+          console.log('Received message:', message);
+          callback(message);
+        });
+        console.log(`Subscribed to ${channelName}`);
+      }
     } catch (err) {
       console.error('Chat subscription error:', err);
-      throw err;
+      // Silently fail - offline mode
     }
   };
 
-  // Publish a chat message
-  const sendChatMessage = async (messageData) => {
+  // Unsubscribe from a match channel
+  const unsubscribeFromChat = async (matchId) => {
     try {
+      if (wsClient && isConnected.value && matchId) {
+        const channelName = `match:${matchId}`;
+        await wsClient.unsub(channelName);
+        console.log(`Unsubscribed from ${channelName}`);
+      }
+    } catch (err) {
+      console.error('Unsubscribe error:', err);
+    }
+  };
+
+  // Publish a chat message to a specific match
+  const sendChatMessage = async (matchId, messageData) => {
+    try {
+      if (!matchId) {
+        throw new Error('matchId is required for sending chat message');
+      }
+
       if (!wsClient || !isConnected.value) {
+        // Try to reconnect
         await initializeWebSocket();
       }
       
-      // messageData should contain: { matchId, sender, senderModel, message }
-      await wsClient.pub('chat', messageData);
+      // Only send if connection is active
+      if (wsClient && isConnected.value) {
+        const channelName = `match:${matchId}`;
+        await wsClient.pub(channelName, messageData);
+        console.log(`Message sent to ${channelName}`);
+      }
     } catch (err) {
       console.error('Message publish error:', err);
-      throw err;
+      // Non-critical error - message is already saved via REST API
     }
   };
 
   // Disconnect WebSocket
   const disconnect = () => {
     if (wsClient) {
-      wsClient.disconnect();
+      try {
+        wsClient.disconnect();
+      } catch (err) {
+        console.error('Disconnect error:', err);
+      }
       wsClient = null;
       isConnected.value = false;
     }
@@ -88,6 +128,7 @@ export function useWebSocket() {
       await initializeWebSocket();
     } catch (err) {
       console.error('WebSocket mount error:', err);
+      // Continue without WebSocket - offline mode
     }
   });
 
@@ -100,6 +141,7 @@ export function useWebSocket() {
     connectionError,
     initializeWebSocket,
     subscribeToChatMessages,
+    unsubscribeFromChat,
     sendChatMessage,
     disconnect
   };

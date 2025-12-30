@@ -1,11 +1,12 @@
 <script setup>
-import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, onMounted, watch } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import { ChevronRight, CheckCheck } from 'lucide-vue-next';
 import Menu from '@/components/Menu.vue';
 import Toast from '@/components/Toast.vue';
 
 const router = useRouter();
+const route = useRoute();
 const toast = ref(null);
 
 const selectedAnimal = ref(null);
@@ -13,8 +14,16 @@ const animals = ref([]);
 const conversations = ref([]);
 const isLoading = ref(true);
 
-onMounted(async () => {
+// Watch for route changes to refresh data when returning from conversation
+watch(() => route.path, async (newPath) => {
+  if (newPath === '/owner/discussions') {
+    await refreshData();
+  }
+});
+
+const refreshData = async () => {
   try {
+    isLoading.value = true;
     const ownerId = localStorage.getItem('user_id');
     
     // Fetch owner's animals
@@ -29,14 +38,19 @@ onMounted(async () => {
       animals.value = data.animals || [];
     }
     
-    // Fetch all matches/conversations for the owner
+    // Reset selected animal and load all conversations
+    selectedAnimal.value = null;
     await loadConversations();
   } catch (error) {
-    console.error('Error loading data:', error);
+    console.error('Error refreshing data:', error);
     toast.value?.show('Erreur au chargement des données', 'error');
   } finally {
     isLoading.value = false;
   }
+};
+
+onMounted(async () => {
+  await refreshData();
 });
 
 const loadConversations = async (animalId = null) => {

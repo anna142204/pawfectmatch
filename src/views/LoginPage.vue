@@ -50,6 +50,9 @@ const handleLogin = async () => {
     // Stocker les informations utilisateur
     localStorage.setItem('user_type', data.type);
     localStorage.setItem('user_id', data.user._id);
+    if (data.token) {
+      localStorage.setItem('token', data.token);
+    }
     
     // Redirection selon le type d'utilisateur
     if (data.type === 'admin') {

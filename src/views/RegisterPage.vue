@@ -189,6 +189,9 @@ const handleRegister = async () => {
     if (response.ok) {
       localStorage.setItem('user_type', userType.value);
       localStorage.setItem('user_id', data.user._id);
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+      }
       router.push(userType.value === 'adopter' ? '/adopter' : '/owner');
     } else {
       error.value = data.error || 'Erreur lors de l\'inscription';

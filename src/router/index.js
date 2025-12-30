@@ -68,6 +68,7 @@ const routes = [
         // Nettoyer le localStorage
         localStorage.removeItem('user_type');
         localStorage.removeItem('user_id');
+        localStorage.removeItem('token'); // Clear the JWT token
         // Rediriger vers la page de connexion
         next('/login');
       }

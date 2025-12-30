@@ -164,7 +164,8 @@ export async function login(req, res) {
 
     res.json({ 
       user,
-      type
+      type,
+      token // Return token so client can store it in localStorage for WebSocket
     });
   } catch (error) {
     console.error('Login error:', error);

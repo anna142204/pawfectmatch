@@ -18,7 +18,7 @@ const errorMessage = ref('');
 const messagesList = ref(null);
 
 // WebSocket
-const { subscribeToChatMessages, sendChatMessage, isConnected } = useWebSocket();
+const { subscribeToChatMessages, unsubscribeFromChat, sendChatMessage, isConnected } = useWebSocket();
 
 // Get current user data
 const currentUser = computed(() => ({
@@ -92,19 +92,17 @@ const loadConversation = async () => {
 
 // Handle incoming real-time messages
 const handleNewMessage = (message) => {
-  // Only add messages for this specific conversation
-  if (message.matchId === conversationId.value) {
-    const msgExists = messages.value.some(m => m.timestamp === message.timestamp && m.sender === message.sender);
-    
-    if (!msgExists) {
-      messages.value.push({
-        sender: message.sender,
-        senderModel: message.senderModel,
-        message: message.message,
-        timestamp: message.timestamp
-      });
-      scrollToBottom();
-    }
+  // Message is already filtered by channel subscription
+  const msgExists = messages.value.some(m => m.timestamp === message.timestamp && m.sender === message.sender);
+  
+  if (!msgExists) {
+    messages.value.push({
+      sender: message.sender,
+      senderModel: message.senderModel,
+      message: message.message,
+      timestamp: message.timestamp
+    });
+    scrollToBottom();
   }
 };
 
@@ -140,9 +138,7 @@ const sendMessage = async () => {
 
     // 2. Broadcast via WebSocket for real-time delivery
     if (isConnected.value) {
-      await sendChatMessage({
-        matchId: conversationId.value,
-        sender: senderId,
+      await sendChatMessage(conversationId.value, {
         senderModel: 'Owner',
         message: msgContent
       });
@@ -181,16 +177,32 @@ const animalInfo = computed(() => {
 onMounted(async () => {
   await loadConversation();
   
+  // Check if user is authenticated
+  const token = localStorage.getItem('token');
+  const userId = localStorage.getItem('user_id');
+  
+  if (!token || !userId) {
+    console.warn('No authentication token found. WebSocket disabled. Please log in.');
+    errorMessage.value = 'Please log in to enable real-time messaging.';
+    return;
+  }
+  
   try {
-    await subscribeToChatMessages(handleNewMessage);
+    await subscribeToChatMessages(conversationId.value, handleNewMessage);
   } catch (err) {
     console.error('WebSocket subscription error:', err);
     // Continue without WebSocket, offline mode
+    // Don't show error to user - offline mode is fine
   }
 });
 
-onUnmounted(() => {
-  // Cleanup handled by WebSocket composable
+onUnmounted(async () => {
+  // Unsubscribe from match channel
+  try {
+    await unsubscribeFromChat(conversationId.value);
+  } catch (err) {
+    console.error('Unsubscribe error:', err);
+  }
 });
 </script>
 
@@ -198,7 +210,7 @@ onUnmounted(() => {
   <div class="conversation-container">
     <!-- Header -->
     <div class="conversation-header">
-      <BackButton />
+      <BackButton to="/owner/discussions" />
       <div class="header-content">
         <div class="header-info">
           <h1 class="header-title">
