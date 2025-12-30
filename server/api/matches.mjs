@@ -1,6 +1,7 @@
 import Match from '../models/match.js';
 import Animal from '../models/animal.js';
 import Adopter from '../models/adopter.js';
+import { ensureMatchChannel } from '../store/wsStore.mjs';
 
 export async function getMatches(req, res) {
   try {
@@ -70,6 +71,9 @@ export async function getMatchById(req, res) {
       return res.status(404).json({ error: 'Match not found' });
     }
 
+    // Ensure WebSocket channel exists for this match
+    await ensureMatchChannel(id);
+
     res.json(match);
   } catch (error) {
     console.error('Get match by id error:', error);
@@ -106,7 +110,10 @@ export async function createMatch(req, res) {
       isActive: false,
       discussion: []
     });
+// Create WebSocket channel for this match
+    await ensureMatchChannel(match._id.toString());
 
+    
     await match.save();
 
     const populatedMatch = await Match.findById(match._id)
@@ -242,6 +249,9 @@ export async function getMatchDiscussion(req, res) {
       .populate('discussion.sender', 'firstName lastName image');
 
     if (!match) {
+    // Ensure WebSocket channel exists for this match
+    await ensureMatchChannel(id);
+
       return res.status(404).json({ error: 'Match not found' });
     }
 
