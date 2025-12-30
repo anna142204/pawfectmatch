@@ -92,8 +92,12 @@ const loadConversation = async () => {
 
 // Handle incoming real-time messages
 const handleNewMessage = (message) => {
-  // Message is already filtered by channel subscription
-  const msgExists = messages.value.some(m => m.timestamp === message.timestamp && m.sender === message.sender);
+  // Check for duplicates by timestamp, sender AND message content
+  const msgExists = messages.value.some(m => 
+    m.timestamp === message.timestamp && 
+    m.sender === message.sender &&
+    m.message === message.message
+  );
   
   if (!msgExists) {
     messages.value.push({
@@ -142,18 +146,18 @@ const sendMessage = async () => {
         senderModel: 'Owner',
         message: msgContent
       });
+    } else {
+      // 3. Only add message locally if WebSocket is NOT connected (offline mode)
+      messages.value.push({
+        sender: senderId,
+        senderModel: 'Owner',
+        message: msgContent,
+        timestamp: new Date().toISOString()
+      });
+      scrollToBottom();
     }
 
-    // 3. Add message to local list
-    messages.value.push({
-      sender: senderId,
-      senderModel: 'Owner',
-      message: msgContent,
-      timestamp: new Date().toISOString()
-    });
-
     messageInput.value = '';
-    scrollToBottom();
   } catch (err) {
     console.error('Send message error:', err);
     errorMessage.value = 'Failed to send message. Please try again.';
@@ -246,24 +250,38 @@ onUnmounted(async () => {
           :key="`msg-${index}`"
           :class="['message-item', msg.senderModel === 'Owner' ? 'own-message' : 'other-message']"
         >
-          <!-- Avatar for other messages -->
+          <!-- Avatar for other messages (Adopter) -->
           <img 
-            v-if="msg.senderModel !== 'Owner'" 
-            :src="adopterInfo?.image || 'https://via.placeholder.com/54'"
-            :alt="msg.sender"
+            v-if="msg.senderModel !== 'Owner' && adopterInfo?.image" 
+            :src="adopterInfo.image"
+            :alt="adopterInfo.firstName"
             class="message-avatar"
           />
+          <div 
+            v-else-if="msg.senderModel !== 'Owner'" 
+            class="message-avatar placeholder"
+          >
+            <span>{{ adopterInfo?.firstName?.charAt(0) || 'A' }}</span>
+          </div>
+
+          <!-- Avatar for own messages (Owner) -->
           <img 
-            v-else 
-            src="https://via.placeholder.com/54"
-            alt="You"
+            v-if="msg.senderModel === 'Owner' && conversationData?.animalId?.ownerId?.image" 
+            :src="conversationData.animalId.ownerId.image"
+            :alt="conversationData.animalId.ownerId.firstName"
             class="message-avatar"
           />
+          <div 
+            v-else-if="msg.senderModel === 'Owner'" 
+            class="message-avatar placeholder"
+          >
+            <span>{{ conversationData?.animalId?.ownerId?.firstName?.charAt(0) || 'M' }}</span>
+          </div>
 
           <div class="message-content">
             <div class="message-header">
               <p v-if="msg.senderModel === 'Owner'" class="time">{{ formatTime(msg.timestamp) }}</p>
-              <p v-else class="name">{{ msg.sender }}</p>
+              <p v-else class="name">{{ adopterInfo?.firstName || 'Adopter' }}</p>
               <p v-if="msg.senderModel !== 'Owner'" class="time">{{ formatTime(msg.timestamp) }}</p>
               <p v-else class="name-right">Moi</p>
             </div>
