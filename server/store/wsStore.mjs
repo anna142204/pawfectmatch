@@ -31,3 +31,32 @@ export const wsServer = new WSServerPubSub({
   origins,
   authCallback,
 });
+
+// Add chat channels for real-time messaging
+// Channel format: "chat:{matchId}" - enables one channel per conversation
+wsServer.addChannel('chat', {
+  usersCanPub: true,
+  usersCanSub: true,
+  hookSub: (clientMetadata, wsServer) => {
+    console.log(`User ${clientMetadata.username} subscribed to chat`);
+    return true;
+  },
+  hookPub: (msg, clientMetadata, wsServer) => {
+    if (!msg.matchId || !msg.sender || !msg.senderModel || !msg.message) {
+      throw new Error('Message must contain: matchId, sender, senderModel, message');
+    }
+    
+    // Validate message size
+    if (msg.message.length > 1000) {
+      throw new Error('Message too long (max 1000 chars)');
+    }
+
+    return {
+      matchId: msg.matchId,
+      sender: msg.sender,
+      senderModel: msg.senderModel,
+      message: msg.message,
+      timestamp: Date.now()
+    };
+  }
+});
