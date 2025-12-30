@@ -114,26 +114,31 @@ export function useWebSocket() {
   const disconnect = () => {
     if (wsClient) {
       try {
-        wsClient.disconnect();
+        // Use close() method for WebSocket disconnection
+        if (typeof wsClient.close === 'function') {
+          wsClient.close();
+        }
+        console.log('WebSocket déconnecté avec succès');
       } catch (err) {
-        console.error('Disconnect error:', err);
+        // Silently ignore disconnect errors
+        console.warn('WebSocket disconnect warning:', err.message);
+      } finally {
+        wsClient = null;
+        isConnected.value = false;
       }
-      wsClient = null;
-      isConnected.value = false;
     }
   };
 
-  onMounted(async () => {
-    try {
-      await initializeWebSocket();
-    } catch (err) {
-      console.error('WebSocket mount error:', err);
-      // Continue without WebSocket - offline mode
-    }
-  });
+  // Note: We don't automatically initialize WebSocket on mount
+  // It will be initialized when needed (on subscribeToChatMessages)
 
   onUnmounted(() => {
-    disconnect();
+    // Silently disconnect without throwing errors
+    try {
+      disconnect();
+    } catch (err) {
+      // Ignore errors during cleanup
+    }
   });
 
   return {
