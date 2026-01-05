@@ -25,16 +25,18 @@ function authCallback(token, request) {
       return false;
     }
 
-    console.log(`[WS Auth] ✓ User authenticated: ${userId}`);
-    
-    // Return authenticated user metadata
-    return { 
+    const metadata = { 
       id: userId,
       userId,
       username: decoded.username || 'User',
       role: decoded.role || 'user',
       type: decoded.type || 'unknown'
     };
+    
+    console.log(`[WS Auth] ✓ User authenticated. userId: ${userId}, metadata.id: ${metadata.id}, role: ${metadata.role}`);
+    
+    // Return authenticated user metadata
+    return metadata;
   } catch (err) {
     console.error('[WS Auth] ✗ Authentication failed:', err.message);
     return false;
