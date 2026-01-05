@@ -10,7 +10,8 @@ const props = defineProps({
   required: Boolean,
   disabled: Boolean,
   error: String,
-  label: String 
+  label: String,
+  strictMode: { type: Boolean, default: true }
 });
 
 const emit = defineEmits(['update:modelValue', 'blur', 'focus']);
@@ -32,7 +33,10 @@ const filteredOptions = computed(() => {
 const handleInput = (value) => {
   searchQuery.value = value;
   isOpen.value = true;
-  emit('update:modelValue', value);
+  
+  if (!props.strictMode) {
+    emit('update:modelValue', value);
+  }
 };
 
 const selectOption = (option) => {
@@ -41,9 +45,24 @@ const selectOption = (option) => {
   isOpen.value = false;
 };
 
+const handleBlur = () => {
+  setTimeout(() => {
+    if (props.strictMode && searchQuery.value) {
+      const exactMatch = props.options.find(
+        opt => opt.toLowerCase() === searchQuery.value.toLowerCase()
+      );
+      
+      if (!exactMatch) {
+        searchQuery.value = props.modelValue || '';
+      }
+    }
+  }, 200);
+};
+
 const handleClickOutside = (event) => {
   if (containerRef.value && !containerRef.value.contains(event.target)) {
     isOpen.value = false;
+    handleBlur();
   }
 };
 
@@ -64,6 +83,7 @@ onUnmounted(() => document.removeEventListener('click', handleClickOutside));
       :disabled="disabled"
       :error="error"
       @focus="isOpen = true"
+      @blur="handleBlur"
     >
       <template #suffix>
         <ChevronDown 
@@ -100,8 +120,8 @@ onUnmounted(() => document.removeEventListener('click', handleClickOutside));
 
 .form-label {
   font-weight: 600;
-  font-size: 14px;
-  color: var(--color-neutral-900);
+  font-size: 16px;
+  color: var(--color-neutral-black);
 }
 
 .chevron-icon {

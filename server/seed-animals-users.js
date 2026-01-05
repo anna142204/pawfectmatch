@@ -62,11 +62,11 @@ const seed = async () => {
         console.log('Création des Adopters...');
 
         const adoptersSource = [
-            { firstName: 'Alice', lastName: 'Martin', email: 'alice@adopter.ch', city: 'Lausanne', zip: '1003', age: 24, env: ['appartement'] },
-            { firstName: 'Benoit', lastName: 'Favre', email: 'ben@adopter.ch', city: 'Delémont', zip: '2800', age: 35, env: ['voiture', 'chien'] },
-            { firstName: 'Chloé', lastName: 'Blanc', email: 'chloe@adopter.ch', city: 'Montreux', zip: '1820', age: 29, env: ['enfant', 'appartement'] },
-            { firstName: 'David', lastName: 'Girard', email: 'david@adopter.ch', city: 'Bienne', zip: '2500', age: 42, env: ['voiture'] },
-            { firstName: 'Emma', lastName: 'Schneider', email: 'emma@adopter.ch', city: 'Bulle', zip: '1630', age: 31, env: ['chat', 'enfant'] }
+            { firstName: 'Alice', lastName: 'Martin', email: 'alice@adopter.ch', city: 'Lausanne', zip: '1003', age: 24, env: ['appartement'], species: ['chien', 'chat'], size: ['petit', 'moyen'], animalAge: ['1-3'], weight: [], sex: [], dress: [], pers: ['calme', 'affectueux'], maxPrice: 2000, maxDistance: 50 },
+            { firstName: 'Benoit', lastName: 'Favre', email: 'ben@adopter.ch', city: 'Delémont', zip: '2800', age: 35, env: ['voiture', 'chien'], species: ['chien'], size: ['grand'], animalAge: [], weight: ['20-30', '30+'], sex: ['male'], dress: ['éduqué'], pers: ['protecteur', 'sociable'], maxPrice: 3000, maxDistance: 100 },
+            { firstName: 'Chloé', lastName: 'Blanc', email: 'chloe@adopter.ch', city: 'Montreux', zip: '1820', age: 29, env: ['enfant', 'appartement'], species: ['chat', 'lapin'], size: ['petit'], animalAge: ['0-1', '1-3'], weight: [], sex: ['female'], dress: [], pers: ['affectueux', 'sociable', 'joueur'], maxPrice: 1500, maxDistance: 30 },
+            { firstName: 'David', lastName: 'Girard', email: 'david@adopter.ch', city: 'Bienne', zip: '2500', age: 42, env: ['voiture'], species: ['chien'], size: ['moyen', 'grand'], animalAge: ['3-7', '7+'], weight: [], sex: [], dress: ['habitué à la laisse'], pers: ['calme', 'indépendant'], maxPrice: 2500, maxDistance: 80 },
+            { firstName: 'Emma', lastName: 'Schneider', email: 'emma@adopter.ch', city: 'Bulle', zip: '1630', age: 31, env: ['chat', 'enfant'], species: ['chat', 'rongeur'], size: ['petit'], animalAge: [], weight: [], sex: ['female'], dress: [], pers: ['affectueux', 'câlin', 'timide'], maxPrice: 1000, maxDistance: 40 }
         ];
 
         const adoptersToCreate = [];
@@ -76,13 +76,27 @@ const seed = async () => {
             await new Promise(resolve => setTimeout(resolve, 1000)); 
 
             adoptersToCreate.push({
-                ...a,
+                firstName: a.firstName,
+                lastName: a.lastName,
+                email: a.email,
                 password: 'password123',
                 address: { zip: a.zip, city: a.city },
                 location: location,
+                age: a.age,
                 about: 'Je cherche un nouveau membre pour ma famille.',
                 image: `https://ui-avatars.com/api/?name=${a.firstName}+${a.lastName}&background=random&size=200`,
-                preferences: { environment: a.env, species: ['chien', 'chat'], sizePreference: ['petit', 'moyen'] }
+                preferences: { 
+                    environment: a.env, 
+                    species: a.species,
+                    size: a.size,
+                    age: a.animalAge,
+                    weight: a.weight,
+                    sex: a.sex,
+                    dressage: a.dress,
+                    personality: a.pers,
+                    maxPrice: a.maxPrice,
+                    maxDistance: a.maxDistance
+                }
             });
             console.log(`> Préparé: ${a.firstName} (${a.city})`);
         }

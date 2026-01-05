@@ -321,8 +321,13 @@ const handleModalConfirm = () => {
                     <Dropdown v-model="form.species" :options="SPECIES_OPTIONS" placeholder="Choisir" />
                 </div>
                 <div class="form-group" v-if="currentBreedOptions.length > 0">
-                    <BaseAutocomplete v-model="form.race" label="Race" :options="currentBreedOptions"
-                        placeholder="Rechercher..." />
+                    <BaseAutocomplete 
+                        v-model="form.race" 
+                        label="Race" 
+                        :options="currentBreedOptions"
+                        placeholder="Rechercher..." 
+                        :strict-mode="true"
+                    />
                 </div>
                 <div class="form-group" v-else>
                     <label class="form-label text-body-lg text-neutral-black">Race / Type</label>

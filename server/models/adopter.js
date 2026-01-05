@@ -5,7 +5,7 @@ const { Schema } = mongoose;
 
 function validateGeoJsonCoordinates(value) {
     return Array.isArray(value) && value.length >= 2 && value.length <= 3 && value[0] >= -180 && value[0] <= 180 && value[1] >= -90 && value[1] <= 90;
-} 
+}
 
 const adopterSchema = new Schema({
     firstName: {
@@ -50,10 +50,10 @@ const adopterSchema = new Schema({
         },
     },
     location: {
-        type: { 
-            type: String, 
-            enum: ['Point'], 
-            default: 'Point' 
+        type: {
+            type: String,
+            enum: ['Point'],
+            default: 'Point'
         },
         coordinates: {
             type: [Number], // [Longitude, Latitude]
@@ -76,6 +76,69 @@ const adopterSchema = new Schema({
         trim: true,
     },
     preferences: {
+        species: {
+            type: [{ type: String, maxlength: 50 }],
+            required: false,
+            default: [],
+        },
+        size: {
+            type: [{
+                type: String,
+                maxlength: 10,
+                enum: ['petit', 'moyen', 'grand'],
+            }],
+            required: false,
+            default: [],
+        },
+        age: {
+            type: [{
+                type: String,
+                maxlength: 10,
+                enum: ['0-1', '1-3', '3-7', '7+'],
+            }],
+            required: false,
+            default: [],
+        },
+        weight: {
+            type: [{
+                type: String,
+                maxlength: 10,
+                enum: ['0-5', '5-10', '10-20', '20-30', '30+'],
+            }],
+            required: false,
+            default: [],
+        },
+        sex: {
+            type: [{
+                type: String,
+                maxlength: 10,
+                enum: ['male', 'female'],
+            }],
+            required: false,
+            default: [],
+        },
+        dressage: {
+            type: [{
+                type: String,
+                maxlength: 30,
+                enum: ['éduqué', 'facile à dresser', 'habitué à la laisse', 'têtu'],
+            }],
+            required: false,
+            default: [],
+        },
+        personality: {
+            type: [{
+                type: String,
+                maxlength: 30,
+                enum: [
+                    'calme', 'énergique', 'indépendant', 'affectueux', 'curieux',
+                    'joueur', 'bavard', 'explorateur', 'câlin', 'protecteur',
+                    'territorial', 'sociable', 'timide', 'peureux'
+                ],
+            }],
+            required: false,
+            default: [],
+        },
         environment: {
             type: [{
                 type: String,
@@ -85,19 +148,15 @@ const adopterSchema = new Schema({
             required: false,
             default: [],
         },
-        species: {
-            type: [{ type: String, maxlength: 50 }],
+        maxPrice: {
+            type: Number,
             required: false,
-            default: [],
+            min: 0,
         },
-        sizePreference: {
-            type: [{
-                type: String,
-                maxlength: 10,
-                enum: ['petit', 'moyen', 'grand'],
-            }],
+        maxDistance: {
+            type: Number,
             required: false,
-            default: [],
+            min: 0,
         },
     },
     image: {
@@ -114,9 +173,9 @@ const adopterSchema = new Schema({
 adopterSchema.index({ location: '2dsphere' });
 
 // Hash password before saving
-adopterSchema.pre('save', async function(next) {
+adopterSchema.pre('save', async function (next) {
     if (!this.isModified('password')) return next();
-    
+
     try {
         const salt = await bcrypt.genSalt(10);
         this.password = await bcrypt.hash(this.password, salt);
@@ -127,12 +186,12 @@ adopterSchema.pre('save', async function(next) {
 });
 
 // Method to compare password for login
-adopterSchema.methods.comparePassword = async function(candidatePassword) {
+adopterSchema.methods.comparePassword = async function (candidatePassword) {
     return await bcrypt.compare(candidatePassword, this.password);
 };
 
 // Don't return password in JSON responses
-adopterSchema.methods.toJSON = function() {
+adopterSchema.methods.toJSON = function () {
     const obj = this.toObject();
     delete obj.password;
     return obj;

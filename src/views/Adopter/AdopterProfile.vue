@@ -56,6 +56,26 @@ const formattedPreferences = computed(() => {
   return [prefs.slice(0, mid), prefs.slice(mid)];
 });
 
+const preferencesByCategory = computed(() => {
+  const prefs = user.value?.preferences;
+  if (!prefs) {
+    return { species: [], environment: [], size: [], age: [], weight: [], sex: [], dressage: [], personality: [], maxPrice: null, maxDistance: null };
+  }
+  
+  return {
+    species: prefs.species || [],
+    environment: prefs.environment || [],
+    size: prefs.size || [],
+    age: prefs.age || [],
+    weight: prefs.weight || [],
+    sex: prefs.sex || [],
+    dressage: prefs.dressage || [],
+    personality: prefs.personality || [],
+    maxPrice: prefs.maxPrice || null,
+    maxDistance: prefs.maxDistance || null
+  };
+});
+
 onMounted(async () => {
   try {
     if (!profileAdopterId.value) {
@@ -152,18 +172,92 @@ const handleContact = () => router.push({ name: 'OwnerDiscussions', query: { ado
 
         <section class="preferences-section">
           <h2 class="section-title">Préférences</h2>
-          <div class="preferences-grid" v-if="formattedPreferences.flat().length > 0">
-            <div class="chars">
-              <div class="char-col" v-for="(col, idx) in formattedPreferences" :key="idx">
-                <ul>
-                  <li v-for="(c, i) in col" :key="i" class="text-body-base">
-                    <span class="bullet"></span>{{ c }}
-                  </li>
-                </ul>
-              </div>
+          
+          <div v-if="preferencesByCategory.species.length > 0" class="preference-group">
+            <h3 class="category-title">Espèces</h3>
+            <div class="tags-list">
+              <span v-for="item in preferencesByCategory.species" :key="item" class="pref-tag">
+                {{ item }}
+              </span>
             </div>
           </div>
-          <p v-else class="no-preferences">Aucune préférence renseignée</p>
+
+          <div v-if="preferencesByCategory.size.length > 0" class="preference-group">
+            <h3 class="category-title">Taille</h3>
+            <div class="tags-list">
+              <span v-for="item in preferencesByCategory.size" :key="item" class="pref-tag">
+                {{ item }}
+              </span>
+            </div>
+          </div>
+
+          <div v-if="preferencesByCategory.age.length > 0" class="preference-group">
+            <h3 class="category-title">Âge</h3>
+            <div class="tags-list">
+              <span v-for="item in preferencesByCategory.age" :key="item" class="pref-tag">
+                {{ item }}
+              </span>
+            </div>
+          </div>
+
+          <div v-if="preferencesByCategory.weight.length > 0" class="preference-group">
+            <h3 class="category-title">Poids</h3>
+            <div class="tags-list">
+              <span v-for="item in preferencesByCategory.weight" :key="item" class="pref-tag">
+                {{ item }}
+              </span>
+            </div>
+          </div>
+
+          <div v-if="preferencesByCategory.sex.length > 0" class="preference-group">
+            <h3 class="category-title">Sexe</h3>
+            <div class="tags-list">
+              <span v-for="item in preferencesByCategory.sex" :key="item" class="pref-tag">
+                {{ item === 'male' ? 'Mâle' : item === 'female' ? 'Femelle' : item }}
+              </span>
+            </div>
+          </div>
+
+          <div v-if="preferencesByCategory.environment.length > 0" class="preference-group">
+            <h3 class="category-title">Environnement</h3>
+            <div class="tags-list">
+              <span v-for="item in preferencesByCategory.environment" :key="item" class="pref-tag">
+                {{ item }}
+              </span>
+            </div>
+          </div>
+
+          <div v-if="preferencesByCategory.dressage.length > 0" class="preference-group">
+            <h3 class="category-title">Dressage</h3>
+            <div class="tags-list">
+              <span v-for="item in preferencesByCategory.dressage" :key="item" class="pref-tag">
+                {{ item }}
+              </span>
+            </div>
+          </div>
+
+          <div v-if="preferencesByCategory.personality.length > 0" class="preference-group">
+            <h3 class="category-title">Personnalité</h3>
+            <div class="tags-list">
+              <span v-for="item in preferencesByCategory.personality" :key="item" class="pref-tag">
+                {{ item }}
+              </span>
+            </div>
+          </div>
+
+          <div v-if="preferencesByCategory.maxPrice || preferencesByCategory.maxDistance" class="preference-group">
+            <h3 class="category-title">Critères additionnels</h3>
+            <div class="tags-list">
+              <span v-if="preferencesByCategory.maxPrice" class="pref-tag">
+                Budget max: {{ preferencesByCategory.maxPrice }} CHF
+              </span>
+              <span v-if="preferencesByCategory.maxDistance" class="pref-tag">
+                Distance max: {{ preferencesByCategory.maxDistance }} km
+              </span>
+            </div>
+          </div>
+
+          <p v-if="!preferencesByCategory.species.length && !preferencesByCategory.environment.length && !preferencesByCategory.size.length && !preferencesByCategory.age.length && !preferencesByCategory.weight.length && !preferencesByCategory.sex.length && !preferencesByCategory.dressage.length && !preferencesByCategory.personality.length && !preferencesByCategory.maxPrice && !preferencesByCategory.maxDistance" class="no-preferences">Aucune préférence renseignée</p>
         </section>
 
         <div v-if="isSelfView" class="logout-section">
@@ -354,6 +448,43 @@ const handleContact = () => router.push({ name: 'OwnerDiscussions', query: { ado
   font-size: 15px;
   color: #4b5563;
   line-height: 1.6;
+}
+
+.preferences-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.preference-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.category-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tags-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pref-tag {
+  display: inline-block;
+  padding: 6px 12px;
+  background-color: var(--color-primary-100);
+  color: var(--color-primary-700);
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: 500;
 }
 
 .chars {

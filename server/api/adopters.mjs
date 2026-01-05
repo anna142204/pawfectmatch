@@ -10,9 +10,16 @@ export async function getAdopters(req, res) {
       zip,
       minAge,
       maxAge,
-      environment,
       species,
-      sizePreference,
+      environment,
+      size,
+      age,
+      weight,
+      sex,
+      dressage,
+      personality,
+      maxPrice,
+      maxDistance,
       page = 1,
       limit = 20
     } = req.query;
@@ -36,19 +43,52 @@ export async function getAdopters(req, res) {
     }
 
     // Preferences filters
-    if (environment) {
-      const envArray = Array.isArray(environment) ? environment : [environment];
-      query['preferences.environment'] = { $in: envArray };
-    }
-
     if (species) {
       const speciesArray = Array.isArray(species) ? species : [species];
       query['preferences.species'] = { $in: speciesArray };
     }
 
-    if (sizePreference) {
-      const sizeArray = Array.isArray(sizePreference) ? sizePreference : [sizePreference];
-      query['preferences.sizePreference'] = { $in: sizeArray };
+    if (environment) {
+      const envArray = Array.isArray(environment) ? environment : [environment];
+      query['preferences.environment'] = { $in: envArray };
+    }
+
+    if (size) {
+      const sizeArray = Array.isArray(size) ? size : [size];
+      query['preferences.size'] = { $in: sizeArray };
+    }
+
+    if (age) {
+      const ageArray = Array.isArray(age) ? age : [age];
+      query['preferences.age'] = { $in: ageArray };
+    }
+
+    if (weight) {
+      const weightArray = Array.isArray(weight) ? weight : [weight];
+      query['preferences.weight'] = { $in: weightArray };
+    }
+
+    if (sex) {
+      const sexArray = Array.isArray(sex) ? sex : [sex];
+      query['preferences.sex'] = { $in: sexArray };
+    }
+
+    if (dressage) {
+      const dressageArray = Array.isArray(dressage) ? dressage : [dressage];
+      query['preferences.dressage'] = { $in: dressageArray };
+    }
+
+    if (personality) {
+      const personalityArray = Array.isArray(personality) ? personality : [personality];
+      query['preferences.personality'] = { $in: personalityArray };
+    }
+
+    if (maxPrice) {
+      query['preferences.maxPrice'] = { $gte: parseInt(maxPrice) };
+    }
+
+    if (maxDistance) {
+      query['preferences.maxDistance'] = { $gte: parseInt(maxDistance) };
     }
 
     // Pagination
