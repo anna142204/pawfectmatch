@@ -474,7 +474,7 @@ const seed = async () => {
                 name: 'Nica', species: 'autre', race: 'Boa Constrictor', age: '0-1', sex: 'female', size: 'moyen', weight: '0-5',
                 images: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767623504/Boa_constructor_Nica_de_9_meses_ipkxn0.jpg'],
                 desc: 'Une jeune femelle curieuse qui se laisse facilement manipuler et apprécie explorer les bras de ses soigneurs.',
-                env: ['autre animaux'], dress: ['éduqué'], pers: ['calme', 'curieux', 'docile']
+                env: ['autre animaux'], dress: ['éduqué'], pers: ['calme', 'curieux', 'affectueux']
             }
         ];
 
