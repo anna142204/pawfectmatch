@@ -436,7 +436,7 @@ const seed = async () => {
                 name: 'Ratatouille', species: 'rongeur', race: 'Rat Domestique', age: '1-3', sex: 'male', size: 'petit', weight: '0-5',
                 images: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767622731/Pet_rat_eating_salad_leaves_n9icue.jpg'],
                 desc: 'Un petit compagnon très intelligent et sociable qui adore grignoter des feuilles de salade fraîche.',
-                env: ['appartement', 'enfant'], dress: ['facile à dresser'], pers: ['curieux', 'sociable', 'intelligent']
+                env: ['appartement', 'enfant'], dress: ['facile à dresser'], pers: ['curieux', 'sociable']
             },
 
             //AUTRES
