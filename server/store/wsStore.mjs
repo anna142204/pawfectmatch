@@ -29,6 +29,7 @@ function authCallback(token, request) {
     
     // Return authenticated user metadata
     return { 
+      id: userId,
       userId,
       username: decoded.username || 'User',
       role: decoded.role || 'user',

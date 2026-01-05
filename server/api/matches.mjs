@@ -1,7 +1,7 @@
 import Match from '../models/match.js';
 import Animal from '../models/animal.js';
 import Adopter from '../models/adopter.js';
-import { ensureMatchChannel } from '../store/wsStore.mjs';
+import { ensureMatchChannel, wsServer } from '../store/wsStore.mjs';
 
 export async function getMatches(req, res) {
   try {
@@ -110,7 +110,7 @@ export async function createMatch(req, res) {
       isActive: false,
       discussion: []
     });
-// Create WebSocket channel for this match
+    // Create WebSocket channel for this match
     await ensureMatchChannel(match._id.toString());
 
     
@@ -125,6 +125,31 @@ export async function createMatch(req, res) {
           select: 'firstName lastName email phoneNumber image'
         }
       });
+
+    // Send match notification to adopter via WebSocket
+    try {
+      const adopterClientSocket = wsServer.getClientSocket(adopterId);
+      if (adopterClientSocket) {
+        // Prepare notification data for the popup
+        const notificationData = {
+          matchId: match._id.toString(),
+          animalImage: animal.images?.[0] || '',
+          animalName: animal.name,
+          animalSpecies: animal.species,
+          animalRace: animal.race,
+          adopterImage: adopter.image || '',
+          adopterName: `${adopter.firstName} ${adopter.lastName}`,
+          ownerName: `${animal.ownerId?.firstName || ''} ${animal.ownerId?.lastName || ''}`.trim(),
+          conversationLink: `/adopter/messages/${match._id.toString()}`
+        };
+        
+        wsServer.sendCmd(adopterClientSocket, 'matchNotification', notificationData);
+        console.log(`Match notification sent to adopter ${adopterId}`);
+      }
+    } catch (error) {
+      console.error('Error sending match notification:', error);
+      // Don't fail the request if notification fails to send
+    }
 
     res.status(201).json({
       message: 'Match created successfully',
