@@ -313,7 +313,7 @@ const seed = async () => {
                 env: ['appartement', 'chien'], dress: ['facile à dresser'], pers: ['curieux', 'énergique', 'bavard']
             },
             
-            // AUTRES
+            // LAPINS
             {
                 name: 'Panpan', species: 'lapin', race: 'Bélier', age: '0-1', sex: 'male', size: 'petit', weight: '0-5',
                 images: ['https://images.unsplash.com/photo-1589952283406-b53a7d1347e8?auto=format&fit=crop&w=800&q=80'],
@@ -325,48 +325,6 @@ const seed = async () => {
                 images: ['https://images.unsplash.com/photo-1591382386627-349b692688ff?auto=format&fit=crop&w=800&q=80'],
                 desc: 'Elle adore grignoter les carottes et faire des bonds dans l\'appartement.',
                 env: ['appartement', 'enfant'], dress: ['têtu'], pers: ['énergique', 'joueur']
-            },
-            {
-                name: 'Coco', species: 'oiseau', race: 'Perroquet', age: '7+', sex: 'male', size: 'petit', weight: '0-5',
-                images: ['https://images.unsplash.com/photo-1549402636-c60317e0828e?auto=format&fit=crop&w=800&q=80'],
-                desc: 'Un perroquet qui sait dire "Bonjour" et siffler la Marseillaise.',
-                env: ['appartement'], dress: ['facile à dresser'], pers: ['bavard', 'curieux']
-            },
-            {
-                name: 'Rio', species: 'oiseau', race: 'Ara', age: '7+', sex: 'male', size: 'moyen', weight: '0-5',
-                images: ['https://images.unsplash.com/photo-1552071379-05006b5276e0?auto=format&fit=crop&w=800&q=80'],
-                desc: 'Magnifique plumage. Il a besoin de beaucoup d\'attention et d\'espace.',
-                env: ['autre animaux'], dress: ['têtu'], pers: ['bavard', 'territorial']
-            },
-            {
-                name: 'Pikachu', species: 'oiseau', race: 'Perruche Calopsitte', age: '1-3', sex: 'male', size: 'petit', weight: '0-5',
-                images: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767621291/images_me0ysp.jpg'],
-                desc: 'Reconnaissable à ses joues oranges et sa crête expressive, il adore siffler pour attirer l’attention.',
-                env: ['appartement', 'enfant'], dress: ['facile à dresser'], pers: ['sociable', 'curieux', 'bavard']
-            },
-            {
-                name: 'Etoile et Soleil', species: 'oiseau', race: 'Inséparable', age: '1-3', sex: 'female', size: 'petit', weight: '0-5',
-                images: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767621447/images_1_ttnria.jpg'],
-                desc: 'Un duo inséparable aux couleurs éclatantes qui passera ses journées à bavarder et à prendre soin l’un de l’autre.',
-                env: ['appartement'], dress: ['têtu'], pers: ['affectueux', 'énergique', 'territorial']
-            },
-            {
-                name: 'Colette', species: 'oiseau', race: 'Poule / Coq', age: '1-3', sex: 'female', size: 'moyen', weight: '0-5',
-                images: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767621451/AdobeStock_1840717259_lhzb7n.jpg'],
-                desc: 'Une poule rousse très sociable qui adore fouiller le sol à la recherche de petits insectes.',
-                env: ['autre animaux', 'enfant'], dress: ['éduqué'], pers: ['calme', 'explorateur', 'sociable']
-            },
-            {
-                name: 'Azur', species: 'oiseau', race: 'Perruche Ondulée', age: '1-3', sex: 'male', size: 'petit', weight: '0-5',
-                images: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767621449/blue-domestic-parrot-in-cage_ufzf57.jpg'],
-                desc: 'Un petit oiseau aux couleurs éclatantes qui adore observer son environnement depuis son perchoir.',
-                env: ['appartement', 'autre animaux'], dress: ['facile à dresser'], pers: ['curieux', 'énergique', 'joueur']
-            },
-            {
-                name: 'Bob', species: 'oiseau', race: 'Canari', age: '1-3', sex: 'male', size: 'petit', weight: '0-5',
-                images: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767621698/AdobeStock_171341824_g5zbcy.jpg', 'https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767621712/AdobeStock_171342063_iwopld.jpg'],
-                desc: 'Un petit chanteur joyeux qui adore grignoter ses graines et faire sa toilette le matin.',
-                env: ['appartement'], dress: ['éduqué'], pers: ['calme', 'sociable', 'curieux']
             },
             {
                 name: 'Dalmatien', species: 'lapin', race: 'Lapin Rex', age: '1-3', sex: 'male', size: 'moyen', weight: '0-5',
@@ -410,6 +368,114 @@ const seed = async () => {
                 desc: 'Adorable avec ses taches rousses et ses longues oreilles tombantes, elle est d’un naturel très calme.',
                 env: ['appartement', 'autre animaux'], dress: ['éduqué'], pers: ['calme', 'affectueux', 'sociable']
             },
+
+            //OISEAUX
+            {
+                name: 'Coco', species: 'oiseau', race: 'Perroquet', age: '7+', sex: 'male', size: 'petit', weight: '0-5',
+                images: ['https://images.unsplash.com/photo-1549402636-c60317e0828e?auto=format&fit=crop&w=800&q=80'],
+                desc: 'Un perroquet qui sait dire "Bonjour" et siffler la Marseillaise.',
+                env: ['appartement'], dress: ['facile à dresser'], pers: ['bavard', 'curieux']
+            },
+            {
+                name: 'Rio', species: 'oiseau', race: 'Ara', age: '7+', sex: 'male', size: 'moyen', weight: '0-5',
+                images: ['https://images.unsplash.com/photo-1552071379-05006b5276e0?auto=format&fit=crop&w=800&q=80'],
+                desc: 'Magnifique plumage. Il a besoin de beaucoup d\'attention et d\'espace.',
+                env: ['autre animaux'], dress: ['têtu'], pers: ['bavard', 'territorial']
+            },
+            {
+                name: 'Pikachu', species: 'oiseau', race: 'Perruche Calopsitte', age: '1-3', sex: 'male', size: 'petit', weight: '0-5',
+                images: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767621291/images_me0ysp.jpg'],
+                desc: 'Reconnaissable à ses joues oranges et sa crête expressive, il adore siffler pour attirer l’attention.',
+                env: ['appartement', 'enfant'], dress: ['facile à dresser'], pers: ['sociable', 'curieux', 'bavard']
+            },
+            {
+                name: 'Etoile et Soleil', species: 'oiseau', race: 'Inséparable', age: '1-3', sex: 'female', size: 'petit', weight: '0-5',
+                images: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767621447/images_1_ttnria.jpg'],
+                desc: 'Un duo inséparable aux couleurs éclatantes qui passera ses journées à bavarder et à prendre soin l’un de l’autre.',
+                env: ['appartement'], dress: ['têtu'], pers: ['affectueux', 'énergique', 'territorial']
+            },
+            {
+                name: 'Colette', species: 'oiseau', race: 'Poule / Coq', age: '1-3', sex: 'female', size: 'moyen', weight: '0-5',
+                images: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767621451/AdobeStock_1840717259_lhzb7n.jpg'],
+                desc: 'Une poule rousse très sociable qui adore fouiller le sol à la recherche de petits insectes.',
+                env: ['autre animaux', 'enfant'], dress: ['éduqué'], pers: ['calme', 'explorateur', 'sociable']
+            },
+            {
+                name: 'Azur', species: 'oiseau', race: 'Perruche Ondulée', age: '1-3', sex: 'male', size: 'petit', weight: '0-5',
+                images: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767621449/blue-domestic-parrot-in-cage_ufzf57.jpg'],
+                desc: 'Un petit oiseau aux couleurs éclatantes qui adore observer son environnement depuis son perchoir.',
+                env: ['appartement', 'autre animaux'], dress: ['facile à dresser'], pers: ['curieux', 'énergique', 'joueur']
+            },
+            {
+                name: 'Bob', species: 'oiseau', race: 'Canari', age: '1-3', sex: 'male', size: 'petit', weight: '0-5',
+                images: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767621698/AdobeStock_171341824_g5zbcy.jpg', 'https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767621712/AdobeStock_171342063_iwopld.jpg'],
+                desc: 'Un petit chanteur joyeux qui adore grignoter ses graines et faire sa toilette le matin.',
+                env: ['appartement'], dress: ['éduqué'], pers: ['calme', 'sociable', 'curieux']
+            },
+
+            //RONGEURS
+            {
+                name: 'Chip', species: 'rongeur', race: 'Écureuil de Corée', age: '1-3', sex: 'male', size: 'petit', weight: '0-5',
+                images: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767622353/%D0%9A%D0%BE%D0%BD%D1%82%D0%B0%D0%BA%D1%82_y0g39d.jpg'],
+                desc: 'Un petit rongeur extrêmement vif et agile qui adore stocker ses graines dans ses abajoues.',
+                env: ['appartement'], dress: ['têtu'], pers: ['énergique', 'curieux', 'explorateur']
+            },
+            {
+                name: 'Plushka', species: 'rongeur', race: 'Chinchilla', age: '1-3', sex: 'female', size: 'petit', weight: '0-5',
+                images: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767622463/ChinchillaPlushka_cxkjet.jpg'],
+                desc: 'Une petite boule de poils incroyablement douce qui adore bondir partout et prendre des bains de poussière.',
+                env: ['appartement'], dress: ['têtu'], pers: ['calme', 'timide', 'curieux']
+            },
+            {
+                name: 'Gribouille', species: 'rongeur', race: 'Cochon d’Inde', age: '1-3', sex: 'female', size: 'petit', weight: '0-5',
+                images: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767622602/Animal_Parcours_13_m5w4mk.jpg'],
+                desc: 'Une petite gourmande tricolore qui adore se cacher dans le foin et couiner pour réclamer ses légumes.',
+                env: ['appartement', 'enfant', 'autre animaux'], dress: ['éduqué'], pers: ['calme', 'sociable', 'peureux']
+            },
+            {
+                name: 'Ratatouille', species: 'rongeur', race: 'Rat Domestique', age: '1-3', sex: 'male', size: 'petit', weight: '0-5',
+                images: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767622731/Pet_rat_eating_salad_leaves_n9icue.jpg'],
+                desc: 'Un petit compagnon très intelligent et sociable qui adore grignoter des feuilles de salade fraîche.',
+                env: ['appartement', 'enfant'], dress: ['facile à dresser'], pers: ['curieux', 'sociable', 'intelligent']
+            },
+
+            //AUTRES
+            {
+                name: 'Neo', species: 'autre', race: 'Axolotl', age: '1-3', sex: 'male', size: 'petit', weight: '0-5',
+                images: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767622899/Ambystoma_mexicanum_Natural_History_Museum_University_of_Pisa_2_ujdhza.jpg'],
+                desc: 'Un petit dragon d’eau fascinant avec ses branchies externes roses. Il passe ses journées à flotter paisiblement au fond de son aquarium.',
+                env: ['autre animaux'], dress: ['éduqué'], pers: ['calme', 'curieux', 'timide']
+            },
+            {
+                name: 'Tortue', species: 'autre', race: 'Tortue de Terre', age: '0-1', sex: 'female', size: 'petit', weight: '0-5',
+                images: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767623005/B%C3%A9b%C3%A9_tortue__tortillon__petit_de_la_tortue__monate__wolof__13_k1qbaz.jpg'],
+                desc: 'Un adorable bébé tortue très calme qui adore se balader lentement sur le sable chaud.',
+                env: ['autre animaux', 'enfant'], dress: ['éduqué'], pers: ['calme', 'timide', 'indépendant']
+            },
+            {
+                name: 'Leo', species: 'autre', race: 'Gecko Léopard', age: '1-3', sex: 'male', size: 'petit', weight: '0-5',
+                images: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767623152/Afghan_Leopard_Gecko_jue8zr.jpg'],
+                desc: 'Un petit reptile fascinant aux motifs tachetés rappelant un léopard. Il est très calme et facile à observer dans son terrarium.',
+                env: ['autre animaux'], dress: ['éduqué'], pers: ['calme', 'timide', 'indépendant']
+            },
+            {
+                name: 'Berlioz', species: 'autre', race: 'Furet', age: '1-3', sex: 'male', size: 'petit', weight: '0-5',
+                images: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767623276/G%C3%B6r%C3%A9ny_m0dde2.jpg'],
+                desc: 'Un petit moustachu plein de malice qui adore se faufiler partout et faire des siestes interminables dans des endroits improbables.',
+                env: ['appartement', 'autre animaux'], dress: ['facile à dresser'], pers: ['joueur', 'curieux', 'énergique']
+            },
+            {
+                name: 'Sly', species: 'autre', race: 'Python Royal', age: '3-7', sex: 'male', size: 'moyen', weight: '0-5',
+                images: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767623388/Snake_s_nap_twr3cj.jpg'],
+                desc: 'Un serpent magnifique et paisible qui passe la majeure partie de son temps enroulé dans son terrarium.',
+                env: ['autre animaux'], dress: ['éduqué'], pers: ['calme', 'timide', 'indépendant']
+            },
+            {
+                name: 'Nica', species: 'autre', race: 'Boa Constrictor', age: '0-1', sex: 'female', size: 'moyen', weight: '0-5',
+                images: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767623504/Boa_constructor_Nica_de_9_meses_ipkxn0.jpg'],
+                desc: 'Une jeune femelle curieuse qui se laisse facilement manipuler et apprécie explorer les bras de ses soigneurs.',
+                env: ['autre animaux'], dress: ['éduqué'], pers: ['calme', 'curieux', 'docile']
+            }
         ];
 
         console.log('Création des animaux...');
