@@ -1,11 +1,10 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
+import { useRouter } from 'vue-router';
 import Menu from '@/components/Menu.vue';
 import SwipeCard from '@/components/SwipeCard.vue';
 
 const router = useRouter();
-const route = useRoute();
 
 const animals = ref([]);
 const currentIndex = ref(0);
@@ -33,22 +32,8 @@ const fetchAnimals = async () => {
 
     if (!userId) throw new Error("Utilisateur non connecté");
 
-    // Construire l'URL avec le filtre d'espèce si présent
-    let apiUrl = '/api/animals?availability=true';
-    const speciesFilter = route.query.species;
-    
-    if (speciesFilter) {
-      // Si c'est "rongeur", on filtre pour tous les petits animaux
-      if (speciesFilter === 'rongeur') {
-        // On utilisera un filtre côté client pour exclure chats et chiens
-        // car l'API ne supporte pas les filtres négatifs
-      } else {
-        apiUrl += `&species=${encodeURIComponent(speciesFilter)}`;
-      }
-    }
-
     // 1. Charger les animaux
-    const animalsResponse = await fetch(apiUrl, {
+    const animalsResponse = await fetch('/api/animals?availability=true', {
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' }
     });
@@ -73,16 +58,7 @@ const fetchAnimals = async () => {
     const ignoredIds = getIgnoredAnimalIds();
     const excludedIds = [...matchedIds, ...ignoredIds];
     
-    let filtered = animalsData.animals.filter(a => !excludedIds.includes(a._id));
-    
-    // 4. Filtre supplémentaire pour "rongeur" (tous sauf chats et chiens)
-    const speciesFilter = route.query.species;
-    if (speciesFilter === 'rongeur') {
-      filtered = filtered.filter(a => {
-        const species = a.species?.toLowerCase();
-        return species !== 'chat' && species !== 'chien';
-      });
-    }
+    const filtered = animalsData.animals.filter(a => !excludedIds.includes(a._id));
 
     animals.value = filtered.map(animal => ({
       id: animal._id,
