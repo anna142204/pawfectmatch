@@ -34,8 +34,7 @@ import {
   getMatchDiscussion
 } from '../api/matches.mjs';
 import {
-  uploadImage,
-  uploadMultipleImages,
+  uploadEntityImages,
   deleteImage,
   upload
 } from '../api/images.mjs';
@@ -52,9 +51,8 @@ router.post('/auth/login', login);
 router.post('/auth/logout', logout);
 
 // Image upload routes
-router.post('/upload/image', upload.single('image'), uploadImage);
-router.post('/upload/images', upload.array('images', 10), uploadMultipleImages);
-router.delete('/upload/image', deleteImage);
+router.post('/images/:type', upload.array('image', 10), uploadEntityImages);
+router.delete('/images', deleteImage);
 
 // Animal routes
 router.get('/animals', getAnimals);

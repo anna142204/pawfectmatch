@@ -95,7 +95,10 @@ const handleContact = () => router.push({ name: 'OwnerDiscussions', query: { ado
 
     <div v-else-if="user" class="profile-wrapper">
       <div class="photo-section">
-        <img :src="user.image || '/default-avatar.png'" alt="Photo de profil" class="profile-image-full">
+        <img v-if="user.image" :src="user.image" alt="Photo de profil" class="profile-image-full">
+        <div v-else class="photo-placeholder">
+          <p>Pas de photo de profil</p>
+        </div>
       </div>
 
       <div class="content-section">
@@ -212,6 +215,18 @@ const handleContact = () => router.push({ name: 'OwnerDiscussions', query: { ado
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.photo-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: #f3f4f6;
+  color: #9ca3af;
+  font-size: 16px;
+  font-weight: 500;
 }
 
 .content-section {

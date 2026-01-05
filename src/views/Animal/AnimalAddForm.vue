@@ -2,9 +2,8 @@
 import { ref, reactive, onMounted, watch, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useToast } from '@/composables/useToast';
-import { Edit2, Trash2 } from 'lucide-vue-next'; // Trash2 pour la suppression comme avant
+import { Edit2, Trash2 } from 'lucide-vue-next'; 
 
-// COMPOSANTS
 import ProgressSteps from '@/components/ProgressSteps.vue';
 import Button from '@/components/Button.vue';
 import BackButton from '@/components/BackButton.vue';
@@ -42,7 +41,6 @@ const form = reactive({
     description: ''
 });
 
-// Labels (Résumé)
 const LABELS = {
     species: { chat: 'Chat', chien: 'Chien', lapin: 'Lapin', oiseau: 'Oiseau', rongeur: 'Rongeur', autre: 'Autre' },
     age: { '0-1': '0-1 an', '1-3': '1-3 ans', '3-7': '3-7 ans', '7+': '7+ ans' },
@@ -130,7 +128,6 @@ watch(form, (newVal) => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...safeData, existingImages }));
 }, { deep: true });
 
-// Reset race si espèce change
 watch(() => form.species, (newVal, oldVal) => {
     if (!isEditMode.value && oldVal && newVal !== oldVal) form.race = '';
 });
@@ -139,7 +136,6 @@ const handleNewFiles = (files) => {
     form.newImages = files;
 };
 
-// Suppression d'une image EXISTANTE (URL)
 const removeExistingImage = (index) => {
     form.existingImages.splice(index, 1);
 };
@@ -152,7 +148,6 @@ const toggleTag = (category, value) => {
 };
 const isTagSelected = (cat, val) => form.characteristics[cat]?.includes(val);
 
-// --- NAVIGATION ---
 const nextStep = () => {
     if (validateStep(currentStep.value)) {
         currentStep.value++;
@@ -180,7 +175,6 @@ const validateStep = (step) => {
     return true;
 };
 
-// --- SOUMISSION ---
 const submitForm = async () => {
     if (!validateStep(currentStep.value)) return;
     isUploading.value = true;
@@ -188,20 +182,29 @@ const submitForm = async () => {
     try {
         const finalImages = [...form.existingImages];
 
-        for (const fileItem of form.newImages) {
+        if (form.newImages.length > 0) {
             const formData = new FormData();
-            formData.append('image', fileItem.file);
-
-            const res = await fetch('/api/upload/image', {
-                method: 'POST', body: formData, credentials: 'include'
+            
+            form.newImages.forEach(fileItem => {
+                formData.append('image', fileItem.file);
             });
 
-            if (!res.ok) throw new Error('Erreur upload image');
-            const data = await res.json();
-            if (Array.isArray(data.url)) {
-                finalImages.push(...data.url);
-            } else {
-                finalImages.push(data.url);
+            const uploadRes = await fetch('/api/images/animal', {
+                method: 'POST',
+                body: formData,
+                credentials: 'include'
+            });
+
+            if (!uploadRes.ok) throw new Error("Erreur lors de l'upload des images");
+
+            const uploadData = await uploadRes.json();
+            
+            if (uploadData.data && uploadData.data.images) {
+                const newUrls = uploadData.data.images.map(img => img.url);
+                finalImages.push(...newUrls);
+            } else if (uploadData.data && uploadData.data.url) {
+                 // Cas où une seule image
+                 finalImages.push(uploadData.data.url);
             }
         }
 
@@ -214,7 +217,7 @@ const submitForm = async () => {
             size: form.size || undefined,
             weight: form.weight || undefined,
             address: { city: form.city, zip: form.zip },
-            images: finalImages,
+            images: finalImages, 
             price: parseFloat(form.price),
             description: form.description,
             characteristics: {
@@ -225,16 +228,19 @@ const submitForm = async () => {
             ownerId: localStorage.getItem('user_id'),
             availability: true
         };
+        
         if (Array.isArray(payload.images)) {
             payload.images = payload.images.flat();
         }
-        // Envoi (POST ou PUT)
+
         const url = isEditMode.value ? `/api/animals/${editingId.value}` : '/api/animals';
         const method = isEditMode.value ? 'PUT' : 'POST';
 
         const res = await fetch(url, {
-            method, headers: { 'Content-Type': 'application/json' },
-            credentials: 'include', body: JSON.stringify(payload)
+            method, 
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include', 
+            body: JSON.stringify(payload)
         });
 
         if (!res.ok) throw new Error(`Erreur ${isEditMode.value ? 'modification' : 'création'}`);
@@ -242,6 +248,7 @@ const submitForm = async () => {
         cleanUpAndExit(isEditMode.value ? 'Modifications enregistrées !' : 'Animal créé avec succès !');
 
     } catch (err) {
+        console.error(err);
         error(err.message || "Une erreur est survenue");
     } finally {
         isUploading.value = false;
@@ -298,7 +305,6 @@ const handleModalConfirm = () => {
                 </h1>
             </div>
         </div>
-
         <div class="stepper-wrapper">
             <ProgressSteps :steps="STEPS" :current-step="currentStep" />
         </div>
@@ -539,7 +545,6 @@ const handleModalConfirm = () => {
 </template>
 
 <style scoped>
-
 .view-screen {
     height: 100vh;
     display: flex;
@@ -585,7 +590,6 @@ const handleModalConfirm = () => {
     animation: fadeIn 0.3s ease;
 }
 
-/* INPUTS */
 .form-group {
     display: flex;
     flex-direction: column;
@@ -619,7 +623,6 @@ const handleModalConfirm = () => {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-/* SECTIONS */
 .description {
     text-align: center;
     padding: 0 var(--spacing-2);
@@ -725,7 +728,6 @@ const handleModalConfirm = () => {
     transform: scale(0.95);
 }
 
-/* RESUME CARDS */
 .resume-container {
     gap: var(--spacing-4);
 }

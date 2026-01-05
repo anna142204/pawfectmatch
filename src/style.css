@@ -158,22 +158,22 @@ h1 {
   /* ============================================ */
   /* TYPOGRAPHY - BODY TEXT */
   /* ============================================ */
-  --body-lg-size: 16px;
+  --body-lg-size: 18px;
   --body-lg-weight: 400;
   --body-lg-height: 24px;
   --body-lg-spacing: 0.5px;
 
-  --body-base-size: 14px;
+  --body-base-size: 16px;
   --body-base-weight: 400;
   --body-base-height: 20px;
   --body-base-spacing: 0px;
 
-  --body-sm-size: 12px;
+  --body-sm-size: 14px;
   --body-sm-weight: 400;
   --body-sm-height: 16px;
   --body-sm-spacing: 0.25px;
 
-  --body-xs-size: 10px;
+  --body-xs-size: 12px;
   --body-xs-weight: 400;
   --body-xs-height: 14px;
   --body-xs-spacing: 0px;

@@ -73,6 +73,12 @@ const toggleImageEdit = () => {
     if (!showImageUploader.value) newImageFile.value = null;
 };
 
+const handleDeleteImage = async () => {
+    newImageFile.value = null;
+    form.image = null;
+    showImageUploader.value = false;
+};
+
 const togglePref = (category, value) => {
     const list = form.preferences[category];
     const idx = list.indexOf(value);
@@ -85,12 +91,26 @@ const submitForm = async () => {
     isSaving.value = true;
     try {
         let finalImageUrl = form.image;
+
         if (newImageFile.value) {
             const formData = new FormData();
             formData.append('image', newImageFile.value);
-            const uploadRes = await fetch('/api/upload/image', { method: 'POST', body: formData, credentials: 'include' });
+            
+            const uploadRes = await fetch('/api/images/adopter', { 
+                method: 'POST', 
+                body: formData, 
+                credentials: 'include' 
+            });
+
             if (!uploadRes.ok) throw new Error("Erreur upload image");
-            finalImageUrl = (await uploadRes.json()).url;
+            
+            const uploadData = await uploadRes.json();
+            
+            if (uploadData.data && uploadData.data.url) {
+                finalImageUrl = uploadData.data.url;
+            } else if (uploadData.url) {
+                finalImageUrl = uploadData.url;
+            }
         }
 
         const payload = {
@@ -114,6 +134,7 @@ const submitForm = async () => {
         success('Profil mis à jour');
         router.push('/adopter/profile');
     } catch (e) {
+        console.error(e);
         error(e.message);
     } finally {
         isSaving.value = false;
@@ -155,17 +176,20 @@ const handleDelete = async () => {
             <div class="section photo-section-container">
                 <h3 class="text-h4 text-neutral-800 mb-4">Ma photo</h3>
                 <div class="photo-wrapper">
-                    <div v-if="!showImageUploader" class="current-photo-view">
+                    <div v-if="form.image && !showImageUploader" class="current-photo-view">
                         <div class="current-image">
-                            <img :src="form.image || '/default-avatar.png'" class="preview-img" />
+                            <img :src="form.image" class="preview-img" />
                         </div>
                         <Button type="button" variant="secondary" size="sm" @click="toggleImageEdit">
                             <Camera :size="16" style="margin-right: 8px" /> Modifier la photo
                         </Button>
+                        <Button type="button" variant="danger" size="sm" @click="handleDeleteImage">
+                            <Trash2 :size="16" style="margin-right: 8px" /> Supprimer la photo
+                        </Button>
                     </div>
                     <div v-else class="upload-mode-view">
                         <ImageUploader @filesSelected="handleImageSelect" :max="1" :multiple="false" />
-                        <button type="button" class="cancel-link" @click="toggleImageEdit">Annuler</button>
+                        <button v-if="form.image" type="button" class="cancel-link" @click="toggleImageEdit">Annuler</button>
                     </div>
                 </div>
             </div>

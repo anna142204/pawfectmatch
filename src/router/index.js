@@ -1,10 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 // Public
-import LoginPage from '../views/LoginPage.vue'
-import RegisterPage from '../views/RegisterPage.vue'
+import LoginPage from '../views/Shared/LoginPage.vue'
+import RegisterPage from '../views/Shared/RegisterPage.vue'
 import TestPage from '../views/TestPage.vue'
-import PopupMatch from '../views/PopupMatch.vue'
+import PopupMatch from '../views/Shared/PopupMatch.vue'
 
 // Adopter
 import AdopterHomePage from '../views/Adopter/AdopterHomePage.vue'
@@ -15,7 +15,6 @@ import AdopterConversation from '../views/Adopter/AdopterConversation.vue'
 import AdopterProfileEdit from '../views/Adopter/AdopterProfileEdit.vue'
 
 // Owner
-import OwnerHomePage from '../views/Owner/OwnerHomePage.vue'
 import OwnerAnimals from '../views/Owner/OwnerAnimals.vue'
 import OwnerDiscussions from '../views/Owner/OwnerDiscussions.vue'
 import OwnerConversation from '../views/Owner/OwnerConversation.vue'
@@ -24,7 +23,9 @@ import OwnerProfileEdit from '../views/Owner/OwnerProfileEdit.vue'
 //General views
 import AdopterProfile from '../views/Adopter/AdopterProfile.vue'
 import OwnerProfile from '../views/Owner/OwnerProfile.vue'
-import RequestsView from '../views/RequestsView.vue'
+import RequestsView from '../views/Shared/RequestsView.vue'
+import ConversationView from '../views/Shared/ConversationView.vue'
+import DiscussionView from '../views/Shared/DiscussionView.vue'
 
 // Animal Form
 import AnimalAddForm from '../views/Animal/AnimalAddForm.vue'
@@ -116,13 +117,13 @@ const routes = [
   {
     path: '/adopter/discussions',
     name: 'AdopterDiscussions',
-    component: AdopterDiscussions,
+    component: DiscussionView,
     meta: { requiresAuth: true, userType: 'adopter' }
   },
   {
     path: '/adopter/conversation/:id',
     name: 'AdopterConversation',
-    component: AdopterConversation,
+    component: ConversationView,
     meta: { requiresAuth: true, userType: 'adopter' }
   },
   {
@@ -139,12 +140,6 @@ const routes = [
   },
 
   // Owner Routes
-  {
-    path: '/owner',
-    name: 'OwnerHome',
-    component: OwnerHomePage,
-    meta: { requiresAuth: true, userType: 'owner' }
-  },
   {
     path: '/owner/profile',
     name: 'OwnerProfile',
@@ -172,13 +167,13 @@ const routes = [
   {
     path: '/owner/discussions',
     name: 'OwnerDiscussions',
-    component: OwnerDiscussions,
+    component: DiscussionView,
     meta: { requiresAuth: true, userType: 'owner' }
   },
   {
     path: '/owner/conversation/:id',
     name: 'OwnerConversation',
-    component: OwnerConversation,
+    component: ConversationView,
     meta: { requiresAuth: true, userType: 'owner' }
   },
   {
