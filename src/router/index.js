@@ -4,7 +4,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import LoginPage from '../views/Shared/LoginPage.vue'
 import RegisterPage from '../views/Shared/RegisterPage.vue'
 import TestPage from '../views/TestPage.vue'
-import PopupMatch from '../views/Shared/PopupMatch.vue'
+import PopupMatch from '../views/PopupMatch.vue'
 
 // Adopter
 import AdopterHomePage from '../views/Adopter/AdopterHomePage.vue'
