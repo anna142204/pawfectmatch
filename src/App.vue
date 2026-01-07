@@ -3,8 +3,10 @@
   import { useRoute } from 'vue-router';
   import { isAuth, ws, users, allMsg } from '@/store/app.js';
   import { connectToChat } from '@/store/app.js';
+  import { matchNotification, initializeWebSocketListeners, clearNotification } from '@/store/wsCommandStore.js';
 import Button from './components/Button.vue';
 import Toast from './components/Toast.vue';
+import MatchNotification from './components/MatchNotification.vue';
 import './style.css';
 
 const route = useRoute();
@@ -14,6 +16,20 @@ const isAuthPage = computed(() => {
 const isFullBleed = computed(() => {
   return route.meta?.fullBleed === true;
 });
+
+// Initialize WebSocket listeners on mount
+onMounted(async () => {
+  const userType = localStorage.getItem('user_type');
+  if (userType === 'adopter') {
+    try {
+      await initializeWebSocketListeners();
+      console.log('WebSocket listeners initialized for adopter');
+    } catch (error) {
+      console.error('Failed to initialize WebSocket listeners:', error);
+    }
+  }
+});
+
   // ws.on('close', () => {
   //   if (isAuth.value) {
   //     $q.notify({
@@ -48,6 +64,11 @@ const isFullBleed = computed(() => {
 
 <template>
   <Toast />
+  <MatchNotification 
+    v-if="matchNotification" 
+    :notification="matchNotification" 
+    @close="clearNotification"
+  />
     <router-view />
 </template>
 

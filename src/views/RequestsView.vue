@@ -4,6 +4,7 @@ import { useRouter, useRoute } from 'vue-router';
 import Menu from '@/components/Menu.vue';
 import ConfirmModal from '@/components/ConfirmModal.vue';
 import { CheckIcon, XIcon, MessageCircleIcon, Trash2Icon, User, PawPrint } from 'lucide-vue-next';
+import { unreadNotifications } from '@/store/wsCommandStore';
 
 const router = useRouter();
 const route = useRoute();
@@ -88,11 +89,15 @@ const refusedRequests = computed(() => historyRequests.value.filter(req => req.s
 // --- ACTIONS API ---
 const executeUpdateStatus = async (matchId, status, isActive) => {
     try {
+        console.log(`[RequestsView] Updating match ${matchId} to status: "${status}", isActive: ${isActive}`);
         const response = await fetch(`/api/matches/${matchId}`, {
             method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
             body: JSON.stringify({ status, isActive })
         });
+        console.log(`[RequestsView] Response status: ${response.status}`);
         if (response.ok) {
+            const data = await response.json();
+            console.log(`[RequestsView] ✓ Match updated successfully:`, data);
             const match = requests.value.find(r => r._id === matchId);
             if (match) {
                 match.status = status;
@@ -117,7 +122,10 @@ const onRejectClick = (matchId) => {
         pendingAction: () => executeUpdateStatus(matchId, 'refusé', false)
     };
 };
-const onAcceptClick = (matchId) => { executeUpdateStatus(matchId, 'validé', true); };
+const onAcceptClick = (matchId) => { 
+    console.log(`[RequestsView] Accept clicked for match: ${matchId}`);
+    executeUpdateStatus(matchId, 'validé', true); 
+};
 const onDeleteClick = (matchId, isHistory = false) => {
     confirmModal.value = {
         show: true, title: 'Suppression', message: isHistory ? 'Retirer de l\'historique ?' : 'Annuler la demande ?',
@@ -147,6 +155,7 @@ onMounted(fetchRequests);
                 </button>
                 <button class="tab-btn" :class="{ active: activeTab === 'history' }" @click="activeTab = 'history'">
                     Historique
+                    <span v-if="unreadNotifications > 0" class="notification-badge">●</span>
                 </button>
             </div>
         </div>
@@ -444,6 +453,29 @@ onMounted(fetchRequests);
     border-radius: 10px;
     min-width: 18px;
     text-align: center;
+}
+
+.notification-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 12px;
+    height: 12px;
+    background-color: #ff6b9d;
+    border-radius: 50%;
+    color: white;
+    font-size: 8px;
+    font-weight: 700;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.15);
+    }
 }
 
 .separator-x {

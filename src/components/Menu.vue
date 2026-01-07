@@ -2,6 +2,7 @@
 import { computed, ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { Home, Layers, MessageCircle, Paperclip, User, PawPrint, ClipboardList, GalleryHorizontalEnd } from 'lucide-vue-next'
+import { unreadNotifications } from '@/store/wsCommandStore'
 
 const props = defineProps({
     userType: {
@@ -52,6 +53,12 @@ const isActive = (routePath) => {
     // Pour les autres pages, vérifier si le path commence par la route
     return route.path.startsWith(routePath)
 }
+
+// Check if adoption item should show notification badge
+const hasAdoptionBadge = computed(() => {
+    const isAdoptionRoute = route.path.startsWith('/adopter/requests')
+    return unreadNotifications.value > 0 && currentUserType.value === 'adopter' && isAdoptionRoute
+})
 </script>
 
 <template>
@@ -60,6 +67,12 @@ const isActive = (routePath) => {
             :class="['menu-item', { active: isActive(item.route) }]">
             <div class="icon-wrapper">
                 <component :is="item.icon" :size="24" :stroke-width="2" class="icon" />
+                <!-- Badge pour adoption (adopter) ou demandes (owner) -->
+                <template v-if="item.name === 'adoption' || item.name === 'demandes'">
+                    <div v-if="unreadNotifications > 0" class="notification-badge">
+                        {{ unreadNotifications > 9 ? '9+' : unreadNotifications }}
+                    </div>
+                </template>
             </div>
             <span class="menu-label text-label-base">{{ item.name }}</span>
         </router-link>
@@ -97,6 +110,7 @@ const isActive = (routePath) => {
     color: var(--color-neutral-900);
     transition: all 0.3s ease;
     border-radius: var(--radius-base);
+    position: relative;
 }
 
 .icon-wrapper {
@@ -108,12 +122,41 @@ const isActive = (routePath) => {
     border-radius: var(--radius-md);
     transition: all 0.3s ease;
     flex-shrink: 0;
+    position: relative;
 }
 
 .icon {
     display: block;
     flex-shrink: 0;
     transition: all 0.3s ease;
+}
+
+.notification-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background-color: #ff6b9d;
+    color: var(--color-neutral-white);
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    border: 2px solid var(--color-neutral-white);
+    box-shadow: var(--shadow-base);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
 }
 
 .menu-label {

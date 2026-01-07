@@ -95,14 +95,22 @@ const handleSwipeLeft = (animal) => {
 
 const handleSwipeRight = async (animal) => {
   try {
-    await fetch('/api/matches', {
+    console.log(`[Swipe] Creating match for animal: ${animal.id}, adopter: ${userId}`);
+    const response = await fetch('/api/matches', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify({ adopterId: userId, animalId: animal.id }),
     });
+    
+    if (response.ok) {
+      const data = await response.json();
+      console.log(`[Swipe] ✓ Match created successfully:`, data);
+    } else {
+      console.error(`[Swipe] ✗ Failed to create match: ${response.status}`, await response.text());
+    }
   } catch (e) {
-    console.error(e);
+    console.error('[Swipe] ✗ Error creating match:', e);
   }
   nextAnimal();
 };
