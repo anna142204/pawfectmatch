@@ -1,7 +1,7 @@
 <script setup>
 import Menu from '@/components/Menu.vue';
-import OwnersMap from './OwnersMap.vue';
-import OwnersList from './OwnersList.vue';
+import OwnersMap from './AdopterOwnersMap.vue';
+import OwnersList from './AdopterOwnersList.vue';
 import { ref, watch, onMounted } from 'vue'; 
 import { useRoute, useRouter } from 'vue-router';
 import { Map, ClipboardList, ArrowRight, Heart } from 'lucide-vue-next';

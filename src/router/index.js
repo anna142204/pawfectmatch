@@ -3,8 +3,6 @@ import { createRouter, createWebHistory } from 'vue-router'
 // Public
 import LoginPage from '../views/Shared/LoginPage.vue'
 import RegisterPage from '../views/Shared/RegisterPage.vue'
-import TestPage from '../views/TestPage.vue'
-import PopupMatch from '../views/PopupMatch.vue'
 
 // Adopter
 import AdopterHomePage from '../views/Adopter/AdopterHomePage.vue'
@@ -36,11 +34,6 @@ const routes = [
     redirect: '/login'
   },
   {
-    path: '/test',
-    name: 'Test',
-    component: TestPage
-  },
-  {
     path: '/login',
     name: 'Login',
     component: LoginPage
@@ -55,7 +48,6 @@ const routes = [
     name: 'Logout',
     beforeEnter: async (to, from, next) => {
       try {
-        // Appeler l'API de logout
         await fetch('/api/auth/logout', {
           method: 'POST',
           credentials: 'include'
@@ -63,11 +55,9 @@ const routes = [
       } catch (error) {
         console.error('Erreur lors de la déconnexion:', error);
       } finally {
-        // Nettoyer le localStorage
         localStorage.removeItem('user_type');
         localStorage.removeItem('user_id');
-        localStorage.removeItem('token'); // Clear the JWT token
-        // Rediriger vers la page de connexion
+        localStorage.removeItem('token');
         next('/login');
       }
     }
