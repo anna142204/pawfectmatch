@@ -10,9 +10,28 @@ const route = useRoute();
 const animal = ref(null);
 const loading = ref(true);
 const error = ref(null);
+const isLiked = ref(false);
+const userId = localStorage.getItem('user_id');
 
 const imageErrors = ref({});
 const handleImageError = (id) => { imageErrors.value[id] = true; };
+
+const toggleLike = async () => {
+  if (!isLiked.value && animal.value) {
+    // Créer un match
+    try {
+      await fetch('/api/matches', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ adopterId: userId, animalId: animal.value._id }),
+      });
+    } catch (e) {
+      console.error('Erreur lors de la création du match:', e);
+    }
+  }
+  isLiked.value = !isLiked.value;
+};
 
 const goBackToSwipe = () => {
   router.push({ name: 'AdopterSwipe' });
@@ -203,8 +222,8 @@ const formatPrice = (price) => {
         </section>
 
         <div class="fav-btn-row">
-          <button class="fav-btn" aria-label="Favori">
-            <Heart size="30" stroke-width="2" />
+          <button class="fav-btn" :class="{ liked: isLiked }" @click="toggleLike" aria-label="Favori">
+            <Heart size="30" stroke-width="2" :fill="isLiked ? 'white' : 'none'" />
           </button>
         </div>
       </div>
