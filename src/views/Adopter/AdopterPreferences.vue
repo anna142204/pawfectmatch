@@ -4,12 +4,12 @@ import { useRouter } from 'vue-router'
 import Button from '@/components/Button.vue'
 import TagButton from '@/components/TagButton.vue'
 
-import dogImg from '@/images/dog.webp'
-import catImg from '@/images/cat.webp'
-import birdImg from '@/images/bird.webp'
-import rodentImg from '@/images/rodent.webp'
-import fishImg from '@/images/fish.webp'
-import otherImg from '@/images/other.webp'
+import dogImg from '@/assets/images/dog.webp'
+import catImg from '@/assets/images/cat.webp'
+import birdImg from '@/assets/images/bird.webp'
+import rodentImg from '@/assets/images/rodent.webp'
+import fishImg from '@/assets/images/fish.webp'
+import otherImg from '@/assets/images/other.webp'
 
 const router = useRouter()
 

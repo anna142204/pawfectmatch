@@ -129,15 +129,16 @@ const handleContact = () => {
         </div>
 
         <section class="about-section" v-if="user.about">
-          <h2 class="section-title">À propos</h2>
+          <h4 class="text-h4">À propos</h4>
           <p class="about-text">{{ user.about }}</p>
         </section>
 
         <section class="animals-section" v-if="availableAnimals.length > 0">
-          <h2 class="section-title">Animaux à adopter</h2>
+          <h4 class="text-h4">Animaux à adopter</h4>
           <div class="animals-grid">
             <div v-for="animal in availableAnimals" :key="animal._id" class="animal-card"
-              @click="router.push(`/adopter/animal/${animal._id}`)">
+              :class="{ 'non-clickable': isSelfView }"
+              @click="!isSelfView && router.push(`/adopter/animal/${animal._id}`)">
               <img :src="animal.images && animal.images.length ? animal.images[0] : '/default-animal.png'" class="animal-thumb">
               <span class="animal-name">{{ animal.name }}</span>
             </div>
@@ -237,9 +238,7 @@ const handleContact = () => {
 
 .profile-name {
   margin: 0;
-  font-size: 26px;
-  font-weight: 800;
-  color: #1f2937;
+  font-size: var(--heading-h2-size);
   line-height: 1.2;
   word-break: break-word;
 }
@@ -320,13 +319,6 @@ const handleContact = () => {
   font-weight: 600;
 }
 
-.section-title {
-  margin: 0 0 12px 0;
-  font-size: 18px;
-  font-weight: 700;
-  color: #111827;
-}
-
 .about-text {
   margin: 0;
   font-size: 15px;
@@ -337,7 +329,7 @@ const handleContact = () => {
 .animals-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  gap: 20px;
+  gap: 15px;
   margin-top: 5px;
 }
 
@@ -349,8 +341,16 @@ const handleContact = () => {
   transition: transform 0.2s;
 }
 
+.animal-card.non-clickable {
+  cursor: default;
+}
+
 .animal-card:active {
   transform: scale(0.98);
+}
+
+.animal-card.non-clickable:active {
+  transform: none;
 }
 
 .animal-thumb {
