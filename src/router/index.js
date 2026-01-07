@@ -63,14 +63,6 @@ const routes = [
     }
   },
   {
-    path: '/match',
-    name: 'PopupMatch',
-    component: PopupMatch,
-    meta: { requiresAuth: true }
-  },
-
-  // Adopter Routes
-  {
     path: '/adopter',
     name: 'AdopterHome',
     component: AdopterHomePage,
