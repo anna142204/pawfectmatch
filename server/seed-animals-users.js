@@ -28,11 +28,11 @@ const seed = async () => {
         console.log('Création des Owners...');
         
         const ownersSource = [
-            { firstName: 'Marc', lastName: 'Rochat', email: 'marc@refuge.ch', societyName: 'Refuge de Cossonay', city: 'Cossonay', zip: '1304', imgId: 'marc' },
-            { firstName: 'Julie', lastName: 'Bernasconi', email: 'julie@asso.ch', societyName: 'Pattes Genevoises', city: 'Genève', zip: '1201', imgId: 'julie' },
-            { firstName: 'Thomas', lastName: 'Dubois', email: 'thomas@particulier.ch', societyName: null, city: 'Neuchâtel', zip: '2000', imgId: 'thomas' },
-            { firstName: 'Elena', lastName: 'Monnier', email: 'elena@paws.ch', societyName: 'Fribourg Animaux', city: 'Fribourg', zip: '1700', imgId: 'elena' },
-            { firstName: 'Sébastien', lastName: 'Fournier', email: 'seb@particulier.ch', societyName: null, city: 'Sion', zip: '1950', imgId: 'seb' }
+            { firstName: 'Marc', lastName: 'Rochat', email: 'marc@refuge.ch', societyName: 'Refuge de Cossonay', city: 'Cossonay', zip: '1304', image: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767790994/Gemini_Generated_Image_bctdkmbctdkmbctd_jzvg0d.png'] },
+            { firstName: 'Julie', lastName: 'Bernasconi', email: 'julie@asso.ch', societyName: 'Pattes Genevoises', city: 'Genève', zip: '1201', image: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767790994/Gemini_Generated_Image_fmmiuwfmmiuwfmmi_j5wu8y.png'] },
+            { firstName: 'Thomas', lastName: 'Dubois', email: 'thomas@particulier.ch', societyName: null, city: 'Neuchâtel', zip: '2000', image: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767791251/Gemini_Generated_Image_cw0nelcw0nelcw0n_uthupd.png'] },
+            { firstName: 'Elena', lastName: 'Monnier', email: 'elena@paws.ch', societyName: 'Fribourg Animaux', city: 'Fribourg', zip: '1700', image: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767791251/Gemini_Generated_Image_9yhgvf9yhgvf9yhg_k2byzy.png'] },
+            { firstName: 'Sébastien', lastName: 'Fournier', email: 'seb@particulier.ch', societyName: null, city: 'Sion', zip: '1950', image: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767790995/Gemini_Generated_Image_l5ie3wl5ie3wl5ie_njsqop.png'] }
         ];
 
         const ownersToCreate = [];
@@ -62,11 +62,11 @@ const seed = async () => {
         console.log('Création des Adopters...');
 
         const adoptersSource = [
-            { firstName: 'Alice', lastName: 'Martin', email: 'alice@adopter.ch', city: 'Lausanne', zip: '1003', age: 24, env: ['appartement'], species: ['chien', 'chat'], size: ['petit', 'moyen'], animalAge: ['1-3'], weight: [], sex: [], dress: [], pers: ['calme', 'affectueux'], maxPrice: 2000, maxDistance: 50 },
-            { firstName: 'Benoit', lastName: 'Favre', email: 'ben@adopter.ch', city: 'Delémont', zip: '2800', age: 35, env: ['voiture', 'chien'], species: ['chien'], size: ['grand'], animalAge: [], weight: ['20-30', '30+'], sex: ['male'], dress: ['éduqué'], pers: ['protecteur', 'sociable'], maxPrice: 3000, maxDistance: 100 },
-            { firstName: 'Chloé', lastName: 'Blanc', email: 'chloe@adopter.ch', city: 'Montreux', zip: '1820', age: 29, env: ['enfant', 'appartement'], species: ['chat', 'lapin'], size: ['petit'], animalAge: ['0-1', '1-3'], weight: [], sex: ['female'], dress: [], pers: ['affectueux', 'sociable', 'joueur'], maxPrice: 1500, maxDistance: 30 },
-            { firstName: 'David', lastName: 'Girard', email: 'david@adopter.ch', city: 'Bienne', zip: '2500', age: 42, env: ['voiture'], species: ['chien'], size: ['moyen', 'grand'], animalAge: ['3-7', '7+'], weight: [], sex: [], dress: ['habitué à la laisse'], pers: ['calme', 'indépendant'], maxPrice: 2500, maxDistance: 80 },
-            { firstName: 'Emma', lastName: 'Schneider', email: 'emma@adopter.ch', city: 'Bulle', zip: '1630', age: 31, env: ['chat', 'enfant'], species: ['chat', 'rongeur'], size: ['petit'], animalAge: [], weight: [], sex: ['female'], dress: [], pers: ['affectueux', 'câlin', 'timide'], maxPrice: 1000, maxDistance: 40 }
+            { firstName: 'Alice', lastName: 'Martin', email: 'alice@adopter.ch', city: 'Lausanne', zip: '1003', age: 24, image: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767790618/images_5_mgom6e.jpg'], env: ['appartement'], species: ['chien', 'chat'], size: ['petit', 'moyen'], animalAge: ['1-3'], weight: [], sex: [], dress: [], pers: ['calme', 'affectueux'], maxPrice: 2000, maxDistance: 50 },
+            { firstName: 'Benoit', lastName: 'Favre', email: 'ben@adopter.ch', city: 'Delémont', zip: '2800', age: 35, image: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767790618/images_djcckf.jpg'], env: ['voiture', 'chien'], species: ['chien'], size: ['grand'], animalAge: [], weight: ['20-30', '30+'], sex: ['male'], dress: ['éduqué'], pers: ['protecteur', 'sociable'], maxPrice: 3000, maxDistance: 100 },
+            { firstName: 'Chloé', lastName: 'Blanc', email: 'chloe@adopter.ch', city: 'Montreux', zip: '1820', age: 29, image: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767790618/pexels-photo-948875_pccem8.jpg'], env: ['enfant', 'appartement'], species: ['chat', 'lapin'], size: ['petit'], animalAge: ['0-1', '1-3'], weight: [], sex: ['female'], dress: [], pers: ['affectueux', 'sociable', 'joueur'], maxPrice: 1500, maxDistance: 30 },
+            { firstName: 'David', lastName: 'Girard', email: 'david@adopter.ch', city: 'Bienne', zip: '2500', age: 42, image: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767790618/a3e3f3b5-7dd0-408b-9973-9f07361cde26_vtpccp.jpg'], env: ['voiture'], species: ['chien'], size: ['moyen', 'grand'], animalAge: ['3-7', '7+'], weight: [], sex: [], dress: ['habitué à la laisse'], pers: ['calme', 'indépendant'], maxPrice: 2500, maxDistance: 80 },
+            { firstName: 'Emma', lastName: 'Schneider', email: 'emma@adopter.ch', city: 'Bulle', zip: '1630', age: 31, image: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767790619/pexels-photo-5871632_qwstan.jpg'], env: ['chat', 'enfant'], species: ['chat', 'rongeur'], size: ['petit'], animalAge: [], weight: [], sex: ['female'], dress: [], pers: ['affectueux', 'câlin', 'timide'], maxPrice: 1000, maxDistance: 40 }
         ];
 
         const adoptersToCreate = [];
