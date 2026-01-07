@@ -44,6 +44,11 @@ const formatTime = (timestamp) => {
   const date = new Date(timestamp);
   const days = Math.floor((Date.now() - date) / (1000 * 60 * 60 * 24));
   
+  // Handle negative timestamps (future dates due to timezone issues)
+  if (days < 0) {
+    return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  }
+  
   if (days === 0) {
     return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
   } else if (days === 1) {

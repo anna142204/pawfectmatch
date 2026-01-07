@@ -114,6 +114,7 @@ const formatTimeAgo = (timestamp) => {
   const now = new Date();
   const diffInDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
   
+  if (diffInDays < 0) return "aujourd'hui";
   if (diffInDays === 0) return "aujourd'hui";
   if (diffInDays === 1) return "il y a 1 jour";
   if (diffInDays < 7) return `il y a ${diffInDays} jours`;
