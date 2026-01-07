@@ -110,49 +110,49 @@ const seed = async () => {
             // CHIENS
             {
                 name: 'Rocky', species: 'chien', race: 'Golden Retriever', age: '1-3', sex: 'male', size: 'grand', weight: '20-30',
-                images: ['https://images.unsplash.com/photo-1633722715463-d30f4f325e24?auto=format&fit=crop&w=800&q=80'],
+                images: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767787844/images_cinfsm.jpg'],
                 desc: 'Un Golden Retriever plein d\'énergie, adore les balades en forêt et nager.',
                 env: ['enfant', 'voiture', 'chien'], dress: ['éduqué'], pers: ['énergique', 'joueur', 'sociable']
             },
             {
                 name: 'Bella', species: 'chien', race: 'Bulldog Français', age: '3-7', sex: 'female', size: 'petit', weight: '10-20',
-                images: ['https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=800&q=80'],
+                images: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767788033/images_1_fau7gr.jpg'],
                 desc: 'Une petite boule d\'amour qui préfère le canapé aux longues randonnées.',
                 env: ['appartement'], dress: ['têtu'], pers: ['calme', 'câlin', 'timide']
             },
             {
                 name: 'Max', species: 'chien', race: 'Berger Allemand', age: '3-7', sex: 'male', size: 'grand', weight: '30+',
-                images: ['https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?auto=format&fit=crop&w=800&q=80'],
+                images: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767788142/pexels-photo-3709026_yhhre4.jpg'],
                 desc: 'Chien très intelligent et loyal. Il a besoin d\'un maître expérimenté.',
                 env: ['voiture', 'autre animaux'], dress: ['éduqué', 'habitué à la laisse'], pers: ['protecteur', 'curieux', 'territorial']
             },
             {
                 name: 'Daisy', species: 'chien', race: 'Corgi', age: '1-3', sex: 'female', size: 'petit', weight: '10-20',
-                images: ['https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=800&q=80'],
+                images: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767788274/Pembroke_Welsh_Corgi_frontal_gkt5gk.jpg'],
                 desc: 'Toujours joyeuse, Daisy adore tout le monde. Parfaite pour une première adoption.',
                 env: ['appartement', 'enfant'], dress: ['facile à dresser'], pers: ['joueur', 'sociable', 'curieux']
             },
             {
                 name: 'Thor', species: 'chien', race: 'Husky', age: '1-3', sex: 'male', size: 'grand', weight: '20-30',
-                images: ['https://images.unsplash.com/photo-1599839575945-a9e5af0c3fa5?auto=format&fit=crop&w=800&q=80'],
+                images: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767788392/Siberian_husky-1-ondikkadai-yercaud-salem-India_zwhx7i.jpg'],
                 desc: 'Un grand sportif ! Il a besoin de courir tous les jours. Très bavard.',
                 env: ['voiture', 'chien'], dress: ['têtu'], pers: ['énergique', 'bavard', 'indépendant']
             },
             {
                 name: 'Ruby', species: 'chien', race: 'Cavalier King Charles', age: '7+', sex: 'female', size: 'petit', weight: '5-10',
-                images: ['https://images.unsplash.com/photo-1599889959407-598566c6e1f1?auto=format&fit=crop&w=800&q=80'],
+                images: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767788588/Cavalier_king_charles_spaniel_2005_g9vapz.jpg'],
                 desc: 'Une dame âgée très douce qui cherche un panier retraite confortable.',
                 env: ['appartement', 'chat'], dress: ['éduqué'], pers: ['calme', 'affectueux', 'timide']
             },
             {
                 name: 'Cooper', species: 'chien', race: 'Labrador', age: '0-1', sex: 'male', size: 'grand', weight: '20-30',
-                images: ['https://images.unsplash.com/photo-1605897472359-8d6d60a95d13?auto=format&fit=crop&w=800&q=80'],
+                images: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767788588/Golden_Retriever_Welpen__4._Woche__10576669116_ifp40w.jpg'],
                 desc: 'Encore un chiot dans sa tête, il fait quelques bêtises mais est adorable.',
                 env: ['enfant', 'chien'], dress: ['facile à dresser'], pers: ['joueur', 'curieux', 'sociable']
             },
             {
                 name: 'Lola', species: 'chien', race: 'Beagle', age: '3-7', sex: 'female', size: 'moyen', weight: '10-20',
-                images: ['https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?auto=format&fit=crop&w=800&q=80'],
+                images: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767788587/images_2_dnwfbj.jpg'],
                 desc: 'Un nez incroyable ! Attention à ne pas laisser traîner de nourriture.',
                 env: ['voiture', 'enfant'], dress: ['têtu', 'habitué à la laisse'], pers: ['curieux', 'indépendant', 'sociable']
             },
@@ -244,37 +244,37 @@ const seed = async () => {
             // CHATS
             {
                 name: 'Misty', species: 'chat', race: 'Européen', age: '1-3', sex: 'female', size: 'moyen', weight: '0-5',
-                images: ['https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=800&q=80'],
+                images: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767789007/European_shorthair-TUROK_cat_show_Turku_2011-11-26_askwvg.jpg'],
                 desc: 'Une chatte tigrée très indépendante mais qui vient réclamer des câlins le soir.',
                 env: ['appartement', 'chat'], dress: ['éduqué'], pers: ['indépendant', 'calme']
             },
             {
-                name: 'Garfield', species: 'chat', race: 'Roux', age: '7+', sex: 'male', size: 'grand', weight: '5-10',
+                name: 'Garfield', species: 'chat', race: 'Européen', age: '7+', sex: 'male', size: 'grand', weight: '5-10',
                 images: ['https://images.unsplash.com/photo-1574158622682-e40e69881006?auto=format&fit=crop&w=800&q=80'],
                 desc: 'Un gros pépère qui passe ses journées à dormir au soleil.',
                 env: ['appartement'], dress: ['éduqué'], pers: ['calme', 'affectueux']
             },
             {
-                name: 'Salem', species: 'chat', race: 'Noir', age: '0-1', sex: 'male', size: 'petit', weight: '0-5',
-                images: ['https://images.unsplash.com/photo-1573865526739-10659fec78a5?auto=format&fit=crop&w=800&q=80'],
+                name: 'Salem', species: 'chat', race: 'Devon Rex', age: '0-1', sex: 'male', size: 'petit', weight: '0-5',
+                images: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767789007/le-devon-rex_u3nndw.webp'],
                 desc: 'Un petit diable noir, très joueur et parfois un peu griffu quand il s\'excite.',
                 env: ['appartement'], dress: ['têtu'], pers: ['énergique', 'joueur', 'curieux']
             },
             {
                 name: 'Duchesse', species: 'chat', race: 'Persan', age: '3-7', sex: 'female', size: 'moyen', weight: '0-5',
-                images: ['https://images.unsplash.com/photo-1610996872580-c24430e3714b?auto=format&fit=crop&w=800&q=80'],
+                images: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767789006/images_3_obboer.jpg'],
                 desc: 'Une princesse qui demande beaucoup d\'entretien pour son pelage.',
                 env: ['appartement'], dress: ['éduqué'], pers: ['calme', 'indépendant']
             },
             {
                 name: 'Leo', species: 'chat', race: 'Maine Coon', age: '1-3', sex: 'male', size: 'grand', weight: '10-20',
-                images: ['https://images.unsplash.com/photo-1587132924196-85750d5272c7?auto=format&fit=crop&w=800&q=80'],
+                images: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767789006/images_4_ioag1v.jpg'],
                 desc: 'Un géant doux. Il s\'entend bien avec les chiens et adore l\'eau.',
                 env: ['chien', 'autre animaux'], dress: ['facile à dresser'], pers: ['sociable', 'affectueux', 'bavard']
             },
             {
                 name: 'Nala', species: 'chat', race: 'Siamois', age: '3-7', sex: 'female', size: 'petit', weight: '0-5',
-                images: ['https://images.unsplash.com/photo-1513245543132-31f507417b26?auto=format&fit=crop&w=800&q=80'],
+                images: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767789007/Siamoise_Himalayenne_pexxhr.jpg'],
                 desc: 'Très vocale, elle vous racontera toute sa journée quand vous rentrez.',
                 env: ['appartement'], dress: ['éduqué'], pers: ['bavard', 'affectueux', 'curieux']
             },
@@ -329,18 +329,6 @@ const seed = async () => {
             
             // LAPINS
             {
-                name: 'Panpan', species: 'lapin', race: 'Bélier', age: '0-1', sex: 'male', size: 'petit', weight: '0-5',
-                images: ['https://images.unsplash.com/photo-1589952283406-b53a7d1347e8?auto=format&fit=crop&w=800&q=80'],
-                desc: 'Un lapin bélier adorable. Il vit en liberté dans l\'appartement (propre).',
-                env: ['appartement'], dress: ['éduqué'], pers: ['timide', 'curieux']
-            },
-            {
-                name: 'Bugs', species: 'lapin', race: 'Nain', age: '1-3', sex: 'female', size: 'petit', weight: '0-5',
-                images: ['https://images.unsplash.com/photo-1591382386627-349b692688ff?auto=format&fit=crop&w=800&q=80'],
-                desc: 'Elle adore grignoter les carottes et faire des bonds dans l\'appartement.',
-                env: ['appartement', 'enfant'], dress: ['têtu'], pers: ['énergique', 'joueur']
-            },
-            {
                 name: 'Dalmatien', species: 'lapin', race: 'Lapin Rex', age: '1-3', sex: 'male', size: 'moyen', weight: '0-5',
                 images: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767620853/Dalmatian_Pattern_Mini_Rex_ualm1l.jpg'],
                 desc: 'Un lapin magnifique avec un pelage court et extrêmement doux au toucher, rappelant le velours.',
@@ -384,18 +372,6 @@ const seed = async () => {
             },
 
             //OISEAUX
-            {
-                name: 'Coco', species: 'oiseau', race: 'Perroquet', age: '7+', sex: 'male', size: 'petit', weight: '0-5',
-                images: ['https://images.unsplash.com/photo-1549402636-c60317e0828e?auto=format&fit=crop&w=800&q=80'],
-                desc: 'Un perroquet qui sait dire "Bonjour" et siffler la Marseillaise.',
-                env: ['appartement'], dress: ['facile à dresser'], pers: ['bavard', 'curieux']
-            },
-            {
-                name: 'Rio', species: 'oiseau', race: 'Ara', age: '7+', sex: 'male', size: 'moyen', weight: '0-5',
-                images: ['https://images.unsplash.com/photo-1552071379-05006b5276e0?auto=format&fit=crop&w=800&q=80'],
-                desc: 'Magnifique plumage. Il a besoin de beaucoup d\'attention et d\'espace.',
-                env: ['autre animaux'], dress: ['têtu'], pers: ['bavard', 'territorial']
-            },
             {
                 name: 'Pikachu', species: 'oiseau', race: 'Perruche Calopsitte', age: '1-3', sex: 'male', size: 'petit', weight: '0-5',
                 images: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767621291/images_me0ysp.jpg'],
