@@ -80,8 +80,12 @@ async function fetchPendingNotifications() {
     }
   } catch (error) {
     // Silently handle errors - pending notifications are nice-to-have, not critical
-    // Only log if it's not a 403 (expected for owners)
-    if (error?.status !== 403) {
+    // Handle 403 specifically - user type mismatch between localStorage and JWT
+    if (error?.status === 403) {
+      console.log('[WS Listeners] Access denied - user is not an adopter, skipping pending notifications')
+      // Clear localStorage if there's a mismatch to prevent future attempts
+      localStorage.removeItem('user_type')
+    } else if (error?.status !== 401) {
       console.warn('[WS Listeners] Could not fetch pending notifications (non-critical):', error?.status)
     }
   }
