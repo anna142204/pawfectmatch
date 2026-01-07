@@ -11,7 +11,7 @@ import MatchNotification from './components/MatchNotification.vue';
 import './style.css';
 
 const route = useRoute();
-const { userType } = useAuth();
+const { userType, isAuthenticated } = useAuth();
 const isAuthPage = computed(() => {
   return route.path === '/login' || route.path === '/register';
 });
@@ -21,7 +21,7 @@ const isFullBleed = computed(() => {
 
 // Initialize WebSocket listeners on mount
 onMounted(async () => {
-  if (userType.value === 'adopter') {
+  if (isAuthenticated.value && userType.value === 'adopter') {
     try {
       await initializeWebSocketListeners();
       console.log('WebSocket listeners initialized for adopter');
