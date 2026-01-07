@@ -120,7 +120,7 @@ const isCategorySelected = (categoryId) => {
  <template>
   <div class="owner-animals-page">
     <div class="page-header">
-      <h2 class="page-title text-h2 text-primary-700">Animaux</h2>
+      <h1 class="text-h1">Animaux</h1>
     </div>
 
     <div class="page-content">
@@ -190,7 +190,8 @@ const isCategorySelected = (categoryId) => {
 }
 
 .page-header {
-  padding: var(--spacing-12) 0 var(--spacing-6);
+  padding-top: max(16px, env(safe-area-inset-top)); 
+  padding-bottom: 16px;
 }
 
 .page-title {
@@ -206,12 +207,9 @@ const isCategorySelected = (categoryId) => {
   gap: var(--spacing-8);
 }
 
-/* Sections */
 .section-title {
   margin: 0 0 var(--spacing-4) 0;
 }
-
-/* Catégories */
 
 .categories-section {
   margin-bottom: var(--spacing-3);

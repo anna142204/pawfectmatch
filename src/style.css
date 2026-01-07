@@ -10,14 +10,14 @@ body {
   overscroll-behavior-y: contain;
   touch-action: pan-y;
   font-family: var(--font-family);
-  background-color: var(--color-neutral-100);
+  background-color: var(--color-primary-50);
 }
 
 #app {
   max-width: 430px;
   min-height: 100vh;
   margin: 0 auto;
-  background-color: var(--color-neutral-100);
+  background-color: var(--color-primary-50);
   box-shadow: var(--shadow-xl);
 }
 
@@ -39,7 +39,7 @@ h1 {
   /* ============================================ */
   /* COLORS - PRIMARY */
   /* ============================================ */
-  --color-primary-50: #f3e5ff;
+  --color-primary-50: #FCF3FF;
   --color-primary-100: #e6ccff;
   --color-primary-200: #d9b3ff;
   --color-primary-300: #cc99ff;

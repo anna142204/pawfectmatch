@@ -82,7 +82,7 @@ const handleLogin = async () => {
       <!-- Image du chat -->
       <div class="cat-container">
         <img 
-          src="../images/login-cat.png" 
+          src="@/images/login-cat.png" 
           alt="Chat mignon"
           class="cat-image"
         />

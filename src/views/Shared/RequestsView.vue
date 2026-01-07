@@ -342,10 +342,10 @@ onMounted(fetchRequests);
 
 .sticky-header {
     position: sticky;
+    background-color: var(--color-primary-50);
     top: 0;
     left: 0;
     right: 0;
-    background-color: var(--color-neutral-100);
     z-index: 10;
     padding: 3vh 20px 0 20px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
