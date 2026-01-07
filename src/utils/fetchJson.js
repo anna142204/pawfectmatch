@@ -5,6 +5,7 @@ const defaultHeaders = {
 };
 
 let defaultBaseUrl = '';
+let onAuthErrorCallback = null;
 
 /**
  * Update the default headers
@@ -21,6 +22,14 @@ export function setDefaultHeaders(headers) {
 export function setDefaultBaseUrl(url) {
   if (url[url.length - 1] === '/') url = url.slice(0, -1);
   defaultBaseUrl = url;
+}
+
+/**
+ * Set callback to handle authentication errors (401)
+ * @param {Function} callback - Function to call on 401 errors
+ */
+export function setAuthErrorHandler(callback) {
+  onAuthErrorCallback = callback;
 }
 
 /**
@@ -80,6 +89,10 @@ export function fetchJson(options) {
         return resp.json()
           .then(data => {
             if (!resp.ok) {
+              // Gérer les erreurs d'authentification
+              if (resp.status === 401 && onAuthErrorCallback) {
+                onAuthErrorCallback();
+              }
               reject({ status: resp.status, statusText: resp.statusText, data });
             } else {
               resolve(data);

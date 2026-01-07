@@ -1,6 +1,7 @@
 <script setup>
-import { computed, ref, onMounted } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
+import { useAuth } from '@/composables/useAuth'
 import { Home, Layers, MessageCircle, Paperclip, User, PawPrint, ClipboardList, GalleryHorizontalEnd } from 'lucide-vue-next'
 import { unreadNotifications } from '@/store/wsCommandStore'
 
@@ -14,16 +15,8 @@ const props = defineProps({
 })
 
 const route = useRoute()
-const currentUserType = ref(props.userType || 'adopter')
-
-onMounted(() => {
-    if (!props.userType) {
-        const storedUserType = localStorage.getItem('user_type')
-        if (storedUserType) {
-            currentUserType.value = storedUserType
-        }
-    }
-})
+const { userType: authUserType } = useAuth()
+const currentUserType = ref(props.userType || authUserType.value || 'adopter')
 
 const menuItems = computed(() => {
     if (currentUserType.value === 'adopter') {

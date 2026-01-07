@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import { useAuth } from '@/composables/useAuth';
 import { ChevronRight, CheckCheck } from 'lucide-vue-next';
 import Menu from '@/components/Menu.vue';
 import Toast from '@/components/Toast.vue';
@@ -15,6 +16,7 @@ const props = defineProps({
 
 const router = useRouter();
 const route = useRoute();
+const { userId, getAuthHeaders } = useAuth();
 const toast = ref(null);
 
 const selectedAnimal = ref(null);
@@ -35,12 +37,8 @@ const refreshData = async () => {
     isLoading.value = true;
     
     if (props.userType === 'owner') {
-      const ownerId = localStorage.getItem('user_id');
-      
-      const animalsResponse = await fetch(`/api/animals?ownerId=${ownerId}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`
-        }
+      const animalsResponse = await fetch(`/api/animals?ownerId=${userId.value}`, {
+        headers: getAuthHeaders()
       });
       
       if (animalsResponse.ok) {
@@ -71,14 +69,11 @@ const loadConversations = async (animalId = null) => {
     if (props.userType === 'owner' && animalId) {
       params.append('animalId', animalId);
     } else if (props.userType === 'adopter') {
-      const adopterId = localStorage.getItem('user_id');
-      params.append('adopterId', adopterId);
+      params.append('adopterId', userId.value);
     }
     
     const response = await fetch(`/api/matches?${params.toString()}`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`
-      }
+      headers: getAuthHeaders()
     });
     
     if (response.ok) {
@@ -131,10 +126,9 @@ const getLastMessage = (discussion) => {
 const hasUnreadMessages = (conversation) => {
   if (!conversation.discussion || conversation.discussion.length === 0) return false;
   
-  const userId = localStorage.getItem('user_id');
   const lastMessage = conversation.discussion[conversation.discussion.length - 1];
   
-  if (lastMessage.sender.toString() === userId) return false;
+  if (lastMessage.sender.toString() === userId.value) return false;
   
   const lastReadKey = `lastRead_${conversation._id}`;
   const lastReadTimestamp = localStorage.getItem(lastReadKey);

@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuth } from '@/composables/useAuth'
 import Button from '@/components/Button.vue'
 import TagButton from '@/components/TagButton.vue'
 
@@ -12,19 +13,11 @@ import fishImg from '@/assets/images/fish.webp'
 import otherImg from '@/assets/images/other.webp'
 
 const router = useRouter()
+const { userId, getAuthFetchOptions, requireAuth } = useAuth()
 
 const step = ref(1)
 const loading = ref(false)
 const error = ref('')
-
-const userId = localStorage.getItem('user_id')
-const token = localStorage.getItem('token')
-
-const authHeaders = () => {
-  const headers = { 'Content-Type': 'application/json' }
-  if (token) headers.Authorization = `Bearer ${token}`
-  return headers
-}
 
 const form = ref({
   species: [],
@@ -152,7 +145,7 @@ const handleBack = () => {
 
 const handleSave = async () => {
   error.value = ''
-  if (!userId) {
+  if (!requireAuth() || !userId.value) {
     error.value = 'Utilisateur introuvable'
     return
   }
@@ -165,12 +158,13 @@ const handleSave = async () => {
       },
     }
 
-    const res = await fetch(`/api/adopters/${userId}`, {
-      method: 'PUT',
-      headers: authHeaders(),
-      credentials: 'include',
-      body: JSON.stringify(payload),
-    })
+    const res = await fetch(
+      `/api/adopters/${userId.value}`,
+      getAuthFetchOptions({
+        method: 'PUT',
+        body: JSON.stringify(payload),
+      })
+    )
 
     const data = await res.json().catch(() => ({}))
 

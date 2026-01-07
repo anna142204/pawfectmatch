@@ -5,8 +5,10 @@ import Button from '@/components/Button.vue';
 import Input from '@/components/Input.vue';
 import ImageUploader from '@/components/ImageUploader.vue';
 import { MapPin } from 'lucide-vue-next';
+import { useAuth } from '@/composables/useAuth';
 
 const router = useRouter();
+const { setAuthData } = useAuth();
 
 const step = ref(1);
 const userType = ref('adopter');
@@ -189,11 +191,11 @@ const handleRegister = async () => {
     const data = await response.json();
 
     if (response.ok) {
-      localStorage.setItem('user_type', userType.value);
-      localStorage.setItem('user_id', data.user._id);
-      if (data.token) {
-        localStorage.setItem('token', data.token);
-      }
+      setAuthData({
+        token: data.token,
+        userId: data.user?._id,
+        userType: userType.value
+      });
       router.push(userType.value === 'adopter' ? '/adopter' : '/owner/requests');
     } else {
       error.value = data.error || 'Erreur lors de l\'inscription';

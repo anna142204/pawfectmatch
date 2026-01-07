@@ -1,17 +1,18 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import { useAuth } from '@/composables/useAuth';
 import Menu from '@/components/Menu.vue';
 import BackButton from '@/components/BackButton.vue';
 import { Cat, MapPin, Mars, Venus, Heart, User, PawPrint } from 'lucide-vue-next';
 
 const router = useRouter();
 const route = useRoute();
+const { userId, getAuthFetchOptions } = useAuth();
 const animal = ref(null);
 const loading = ref(true);
 const error = ref(null);
 const isLiked = ref(false);
-const userId = localStorage.getItem('user_id');
 
 const imageErrors = ref({});
 const handleImageError = (id) => { imageErrors.value[id] = true; };
@@ -132,10 +133,11 @@ const fetchAnimal = async () => {
     animal.value = data.animal || data;
 
     // Vérifier si un match existe déjà pour cet animal
-    if (userId) {
-      const matchesResponse = await fetch(`/api/matches?adopterId=${userId}&animalId=${id}`, {
-        credentials: 'include',
-      });
+    if (userId.value) {
+      const matchesResponse = await fetch(
+        `/api/matches?adopterId=${userId.value}&animalId=${id}`,
+        getAuthFetchOptions()
+      );
       if (matchesResponse.ok) {
         const matchesData = await matchesResponse.json();
         isLiked.value = matchesData.matches && matchesData.matches.length > 0;

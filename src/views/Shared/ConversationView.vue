@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useAuth } from '@/composables/useAuth';
 import BackButton from '@/components/BackButton.vue';
 import Menu from '@/components/Menu.vue';
 import Toast from '@/components/Toast.vue';
@@ -19,6 +20,8 @@ const props = defineProps({
 
 const route = useRoute();
 const router = useRouter();
+const { userId, getAuthHeaders, getAuthFetchOptions } = useAuth();
+
 const messageInput = ref('');
 const messages = ref([]);
 const conversationData = ref(null);
@@ -33,7 +36,7 @@ const { subscribeToChatMessages, unsubscribeFromChat, sendChatMessage, isConnect
 const { success: showSuccess, error: showError } = useToast();
 
 const currentUser = computed(() => ({
-    id: localStorage.getItem('user_id'),
+    id: userId.value,
     type: props.userType === 'owner' ? 'Owner' : 'Adopter'
 }));
 
@@ -99,12 +102,9 @@ const scrollToBottom = () => {
 const loadConversation = async () => {
     try {
         isLoading.value = true;
-        const token = localStorage.getItem('token');
 
         const response = await fetch(`/api/matches/${conversationId.value}`, {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
+            headers: getAuthHeaders()
         });
 
         if (!response.ok) {
@@ -183,21 +183,16 @@ const sendMessage = async () => {
 
     try {
         isSendingMessage.value = true;
-        const token = localStorage.getItem('token');
-        const userId = localStorage.getItem('user_id');
 
         const httpPayload = {
-            sender: userId,
+            sender: userId.value,
             senderModel: currentUser.value.type,
             message: messageInput.value.trim()
         };
 
         const response = await fetch(`/api/matches/${conversationId.value}/messages`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`
-            },
+            headers: getAuthHeaders(),
             body: JSON.stringify(httpPayload)
         });
 
@@ -275,15 +270,10 @@ const goBack = () => {
 const finalizeAdoption = async () => {
     try {
         isFinalizingAdoption.value = true;
-        const token = localStorage.getItem('token');
 
-        const response = await fetch(`/api/matches/${conversationId.value}/adopt`, {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`
-            }
-        });
+        const response = await fetch(`/api/matches/${conversationId.value}/adopt`, getAuthFetchOptions({
+            method: 'PATCH'
+        }));
 
         if (!response.ok) {
             throw new Error('Failed to finalize adoption');
@@ -306,10 +296,7 @@ const finalizeAdoption = async () => {
 onMounted(async () => {
     await loadConversation();
 
-    const token = localStorage.getItem('token');
-    const userId = localStorage.getItem('user_id');
-
-    if (!token || !userId) {
+    if (!userId.value) {
         router.push('/login');
         return;
     }

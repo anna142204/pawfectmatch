@@ -1,4 +1,5 @@
 <script setup>
+import { useAuth } from '@/composables/useAuth';
 import Menu from '@/components/Menu.vue';
 import OwnersMap from './AdopterOwnersMap.vue';
 import OwnersList from './AdopterOwnersList.vue';
@@ -8,27 +9,16 @@ import { Map, ClipboardList, ArrowRight, Heart } from 'lucide-vue-next';
 
 const route = useRoute();
 const router = useRouter();
+const { userId, getAuthHeaders, getAuthFetchOptions } = useAuth();
 
 const showMapView = ref(route.query.view !== 'list');
 const recentMatches = ref([]);
 const loading = ref(true);
-const userId = localStorage.getItem('user_id');
-const token = localStorage.getItem('token');
-
-const authHeaders = () => {
-  const headers = { 'Content-Type': 'application/json' };
-  if (token) headers.Authorization = `Bearer ${token}`;
-  return headers;
-};
 
 const checkPreferences = async () => {
-  if (!userId) return;
+  if (!userId.value) return;
   try {
-    const res = await fetch(`/api/adopters/${userId}`, {
-      method: 'GET',
-      headers: authHeaders(),
-      credentials: 'include',
-    });
+    const res = await fetch(`/api/adopters/${userId.value}`, getAuthFetchOptions());
     if (res.ok) {
       const adopter = await res.json();
       const prefs = adopter?.preferences;
@@ -55,9 +45,9 @@ watch(() => route.query.view, (newView) => {
 });
 
 const fetchRecentMatches = async () => {
-  if (!userId) return;
+  if (!userId.value) return;
   try {
-    const res = await fetch(`/api/matches?adopterId=${userId}&limit=50`, { 
+    const res = await fetch(`/api/matches?adopterId=${userId.value}&limit=50`, { 
       credentials: 'include' 
     });
     if (res.ok) {

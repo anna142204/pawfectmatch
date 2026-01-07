@@ -1,20 +1,21 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import { useAuth } from '@/composables/useAuth';
 import Menu from '@/components/Menu.vue';
 import ConfirmModal from '@/components/ConfirmModal.vue';
 import { CheckIcon, XIcon, MessageCircleIcon, Trash2Icon, User, PawPrint } from 'lucide-vue-next';
 
 const router = useRouter();
 const route = useRoute();
+const { userId, userType, getAuthFetchOptions } = useAuth();
+
 const requests = ref([]);
 const loading = ref(true);
 const activeTab = ref(route.query.tab || 'pending');
 const imageErrors = ref({});
 
-const userId = localStorage.getItem('user_id');
-const userType = localStorage.getItem('user_type');
-const isOwner = computed(() => userType === 'owner');
+const isOwner = computed(() => userType.value === 'owner');
 
 const confirmModal = ref({
     show: false, title: '', message: '', confirmText: 'Confirmer', type: 'warning', pendingAction: null
@@ -43,13 +44,13 @@ const fetchRequests = async () => {
     try {
         loading.value = true;
         let url = '/api/matches';
-        if (!isOwner.value) url += `?adopterId=${userId}`;
-        const response = await fetch(url, { credentials: 'include' });
+        if (!isOwner.value) url += `?adopterId=${userId.value}`;
+        const response = await fetch(url, getAuthFetchOptions());
         if (response.ok) {
             const data = await response.json();
             if (isOwner.value) {
                 requests.value = data.matches.filter(match =>
-                    match.animalId?.ownerId?._id === userId || match.animalId?.ownerId === userId
+                    match.animalId?.ownerId?._id === userId.value || match.animalId?.ownerId === userId.value
                 );
             } else {
                 requests.value = data.matches;
@@ -88,10 +89,14 @@ const refusedRequests = computed(() => historyRequests.value.filter(req => req.s
 // --- ACTIONS API ---
 const executeUpdateStatus = async (matchId, status, isActive) => {
     try {
-        const response = await fetch(`/api/matches/${matchId}`, {
-            method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
-            body: JSON.stringify({ status, isActive })
-        });
+        const response = await fetch(
+            `/api/matches/${matchId}`,
+            getAuthFetchOptions({
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status, isActive })
+            })
+        );
         if (response.ok) {
             const match = requests.value.find(r => r._id === matchId);
             if (match) {
@@ -105,7 +110,10 @@ const executeUpdateStatus = async (matchId, status, isActive) => {
 
 const executeDeleteMatch = async (matchId) => {
     try {
-        const response = await fetch(`/api/matches/${matchId}`, { method: 'DELETE', credentials: 'include' });
+        const response = await fetch(
+            `/api/matches/${matchId}`,
+            getAuthFetchOptions({ method: 'DELETE' })
+        );
         if (response.ok) requests.value = requests.value.filter(r => r._id !== matchId);
     } catch (e) { console.error(e); }
 };

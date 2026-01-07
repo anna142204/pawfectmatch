@@ -1,6 +1,7 @@
   <script setup>
   import { onMounted, onUnmounted, ref, computed } from 'vue';
   import { useRoute } from 'vue-router';
+  import { useAuth } from '@/composables/useAuth';
   import { isAuth, ws, users, allMsg } from '@/store/app.js';
   import { connectToChat } from '@/store/app.js';
   import { matchNotification, initializeWebSocketListeners, clearNotification } from '@/store/wsCommandStore.js';
@@ -10,6 +11,7 @@ import MatchNotification from './components/MatchNotification.vue';
 import './style.css';
 
 const route = useRoute();
+const { userType } = useAuth();
 const isAuthPage = computed(() => {
   return route.path === '/login' || route.path === '/register';
 });
@@ -19,8 +21,7 @@ const isFullBleed = computed(() => {
 
 // Initialize WebSocket listeners on mount
 onMounted(async () => {
-  const userType = localStorage.getItem('user_type');
-  if (userType === 'adopter') {
+  if (userType.value === 'adopter') {
     try {
       await initializeWebSocketListeners();
       console.log('WebSocket listeners initialized for adopter');

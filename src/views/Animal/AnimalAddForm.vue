@@ -1,6 +1,7 @@
 <script setup>
 import { ref, reactive, onMounted, watch, computed } from 'vue';
 import { useRouter } from 'vue-router';
+import { useAuth } from '@/composables/useAuth';
 import { useToast } from '@/composables/useToast';
 import { Edit2, Trash2 } from 'lucide-vue-next'; 
 
@@ -21,6 +22,7 @@ import {
 } from '@/constants/animalOptions';
 
 const router = useRouter();
+const { userId, getAuthFetchOptions } = useAuth();
 const { error, success } = useToast();
 
 const currentStep = ref(0);
@@ -225,7 +227,7 @@ const submitForm = async () => {
                 dressage: [...form.characteristics.dressage],
                 personality: [...form.characteristics.personality]
             },
-            ownerId: localStorage.getItem('user_id'),
+            ownerId: userId.value,
             availability: true
         };
         

@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, reactive } from 'vue';
 import { useRouter } from 'vue-router';
+import { useAuth } from '@/composables/useAuth';
 import { useToast } from '@/composables/useToast';
 import { Camera, Trash2, Settings, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-vue-next';
 import BackButton from '@/components/BackButton.vue';
@@ -10,10 +11,10 @@ import ImageUploader from '@/components/ImageUploader.vue';
 import ConfirmModal from '@/components/ConfirmModal.vue';
 
 const router = useRouter();
+const { userId, requireAuth, getAuthFetchOptions } = useAuth();
 const { success, error } = useToast();
 const loading = ref(true);
 const isSaving = ref(false);
-const userId = localStorage.getItem('user_id');
 
 const showImageUploader = ref(false);
 const showDeleteModal = ref(false);
@@ -34,9 +35,9 @@ const form = reactive({
 });
 
 onMounted(async () => {
-    if (!userId) return router.push('/login');
+    if (!requireAuth() || !userId.value) return;
     try {
-        const res = await fetch(`/api/owners/${userId}`, { credentials: 'include' });
+        const res = await fetch(`/api/owners/${userId.value}`, { credentials: 'include' });
         if (!res.ok) throw new Error('Erreur chargement profil');
         const data = await res.json();
         Object.assign(form, {
@@ -106,12 +107,13 @@ const submitForm = async () => {
             image: finalImageUrl 
         };
 
-        const res = await fetch(`/api/owners/${userId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
-            credentials: 'include'
-        });
+        const res = await fetch(
+            `/api/owners/${userId.value}`,
+            getAuthFetchOptions({
+                method: 'PUT',
+                body: JSON.stringify(payload)
+            })
+        );
 
         if (!res.ok) throw new Error('Erreur sauvegarde');
         success('Profil mis à jour');
@@ -135,7 +137,10 @@ const confirmDeleteAccount = () => {
 const handleDelete = async () => {
     showDeleteModal.value = false;
     try {
-        const res = await fetch(`/api/owners/${userId}`, { method: 'DELETE', credentials: 'include' });
+        const res = await fetch(
+            `/api/owners/${userId.value}`,
+            getAuthFetchOptions({ method: 'DELETE' })
+        );
         if (!res.ok) {
             const data = await res.json();
             if (res.status === 400 && data.animalsCount > 0) {

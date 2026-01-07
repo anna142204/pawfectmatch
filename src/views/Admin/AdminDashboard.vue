@@ -4,9 +4,11 @@ import { useToast } from '@/composables/useToast';
 import { MapPin, Trash2, User, Home, PawPrint } from 'lucide-vue-next';
 import Button from '@/components/Button.vue';
 import { useRouter } from 'vue-router';
+import { useAuth } from '@/composables/useAuth';
 
 const { success, error } = useToast();
 const router = useRouter();
+const { getAuthFetchOptions, requireUserType, logout } = useAuth();
 // État
 const stats = ref({ totalAdopters: 0, totalOwners: 0, totalAnimals: 0, totalMatches: 0 });
 const adopters = ref([]);
@@ -19,12 +21,16 @@ const loadingAnimals = ref(false);
 
 // Initialisation
 onMounted(() => {
+    if (!requireUserType('admin')) {
+        loading.value = false;
+        return;
+    }
     Promise.all([fetchStats(), fetchAdopters(), fetchOwners()]);
 });
 
 // Fetch helpers
 const fetchJson = async (url) => {
-    const res = await fetch(url, { credentials: 'include' });
+    const res = await fetch(url, getAuthFetchOptions());
     return res.ok ? res.json() : null;
 };
 
@@ -65,7 +71,7 @@ const fetchOwners = async () => {
 const deleteAdopter = async (id) => {
     if (!confirm('Supprimer cet adoptant ?')) return;
     try {
-        const res = await fetch(`/api/adopters/${id}`, { method: 'DELETE', credentials: 'include' });
+        const res = await fetch(`/api/adopters/${id}`, getAuthFetchOptions({ method: 'DELETE' }));
         if (res.ok) {
             success('Adoptant supprimé');
             fetchAdopters();
@@ -79,7 +85,7 @@ const deleteAdopter = async (id) => {
 const deleteOwner = async (id) => {
     if (!confirm('Supprimer ce propriétaire ?')) return;
     try {
-        const res = await fetch(`/api/owners/${id}`, { method: 'DELETE', credentials: 'include' });
+        const res = await fetch(`/api/owners/${id}`, getAuthFetchOptions({ method: 'DELETE' }));
         if (res.ok) {
             success('Propriétaire supprimé');
             fetchOwners();
@@ -122,7 +128,7 @@ const formatAge = (age) => `${age} ${age > 1 ? 'ans' : 'an'}`;
 const deleteAnimal = async (animalId, animalName) => {
     if (!confirm(`Supprimer ${animalName} ?`)) return;
     try {
-        const res = await fetch(`/api/animals/${animalId}`, { method: 'DELETE', credentials: 'include' });
+        const res = await fetch(`/api/animals/${animalId}`, getAuthFetchOptions({ method: 'DELETE' }));
         if (res.ok) {
             success('Animal supprimé');
             ownerAnimals.value = ownerAnimals.value.filter(a => a._id !== animalId);
@@ -133,7 +139,7 @@ const deleteAnimal = async (animalId, animalName) => {
     }
 };
 const handleLogout = () => {
-    router.push('/logout');
+    logout();
 };
 </script>
 

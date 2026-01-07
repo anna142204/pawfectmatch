@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
+import { useAuth } from '@/composables/useAuth';
 import { Edit } from 'lucide-vue-next';
 import Menu from '@/components/Menu.vue';
 import Button from '@/components/Button.vue';
@@ -11,12 +12,13 @@ import catImg from '@/assets/images/cat.webp';
 import birdImg from '@/assets/images/bird.webp';
 import rodentImg from '@/assets/images/rodent.webp';
 import otherImg from '@/assets/images/other.webp';
+
 const router = useRouter();
+const { userId: ownerId, requireAuth, getAuthFetchOptions } = useAuth();
 const { success, error } = useToast();
 
 const animals = ref([]);
 const loading = ref(true);
-const ownerId = ref(null);
 const selectedCategory = ref(null);
 
 const categories = [
@@ -37,12 +39,7 @@ const filteredAnimals = computed(() => {
 const hasFilteredAnimals = computed(() => filteredAnimals.value.length > 0);
 
 onMounted(async () => {
-  ownerId.value = localStorage.getItem('user_id');
-  if (!ownerId.value) {
-    error('Utilisateur non identifié');
-    router.push('/login');
-    return;
-  }
+  if (!requireAuth()) return;
   await fetchAnimals();
 });
 

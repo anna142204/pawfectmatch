@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import { useAuth } from '@/composables/useAuth';
 import { MapPinIcon, Clock, PartyPopper } from "lucide-vue-next";
 import Menu from '@/components/Menu.vue';
 import Button from '@/components/Button.vue';
@@ -8,6 +9,7 @@ import BackButton from "../../components/BackButton.vue";
 
 const router = useRouter();
 const route = useRoute();
+const { userId: loggedInUserId, userType: viewerType, getAuthFetchOptions } = useAuth();
 
 const user = ref(null);
 const loading = ref(true);
@@ -15,9 +17,6 @@ const error = ref('');
 
 const requestsCount = ref(0);
 const adoptedCount = ref(0);
-
-const viewerType = computed(() => localStorage.getItem('user_type'));
-const loggedInUserId = computed(() => localStorage.getItem('user_id'));
 
 const profileAdopterId = computed(() => {
   return route.params?.id ? String(route.params.id) : String(loggedInUserId.value || '');
