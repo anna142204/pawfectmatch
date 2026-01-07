@@ -16,6 +16,33 @@ const userId = localStorage.getItem('user_id');
 const imageErrors = ref({});
 const handleImageError = (id) => { imageErrors.value[id] = true; };
 
+// Lightbox logic
+const isLightboxOpen = ref(false);
+const lightboxImageIndex = ref(0);
+
+const openLightbox = (index) => {
+  lightboxImageIndex.value = index;
+  isLightboxOpen.value = true;
+  document.body.style.overflow = 'hidden'; // Prevent scrolling
+};
+
+const closeLightbox = () => {
+  isLightboxOpen.value = false;
+  document.body.style.overflow = ''; // Restore scrolling
+};
+
+const goToNextLightboxImage = () => {
+  if (animal.value?.images && lightboxImageIndex.value < animal.value.images.length - 1) {
+    lightboxImageIndex.value++;
+  }
+};
+
+const goToPreviousLightboxImage = () => {
+  if (lightboxImageIndex.value > 0) {
+    lightboxImageIndex.value--;
+  }
+};
+
 // Image carousel logic
 const currentImageIndex = ref(0);
 const touchStartX = ref(0);
@@ -205,6 +232,7 @@ const formatPrice = (price) => {
                 :src="image" 
                 :alt="`${animal.name} ${index + 1}`"
                 class="animal-photo"
+                @click="openLightbox(index)"
                 @error="handleImageError(`image-${index}`)"
               />
             </div>
@@ -333,6 +361,51 @@ const formatPrice = (price) => {
       </div>
     </div>
 
+    <!-- Lightbox Modal -->
+    <div v-if="isLightboxOpen" class="lightbox-overlay" @click="closeLightbox">
+      <button class="lightbox-close" @click="closeLightbox" aria-label="Fermer">
+        ✕
+      </button>
+      
+      <div class="lightbox-content" @click.stop>
+        <img 
+          :src="animal.images[lightboxImageIndex]" 
+          :alt="`${animal.name} ${lightboxImageIndex + 1}`"
+          class="lightbox-image"
+        />
+        
+        <!-- Navigation arrows for multiple images -->
+        <button 
+          v-if="lightboxImageIndex > 0"
+          class="lightbox-arrow lightbox-arrow-left"
+          @click="goToPreviousLightboxImage"
+          aria-label="Image précédente"
+        >
+          ‹
+        </button>
+        <button 
+          v-if="lightboxImageIndex < animal.images.length - 1"
+          class="lightbox-arrow lightbox-arrow-right"
+          @click="goToNextLightboxImage"
+          aria-label="Image suivante"
+        >
+          ›
+        </button>
+        
+        <!-- Dots indicator -->
+        <div v-if="animal.images.length > 1" class="lightbox-dots">
+          <button
+            v-for="(image, index) in animal.images"
+            :key="index"
+            class="lightbox-dot"
+            :class="{ active: lightboxImageIndex === index }"
+            @click="lightboxImageIndex = index"
+            :aria-label="`Aller à l'image ${index + 1}`"
+          ></button>
+        </div>
+      </div>
+    </div>
+
     <Menu />
   </div>
 </template>
@@ -437,6 +510,158 @@ const formatPrice = (price) => {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.animal-photo:hover {
+  opacity: 0.95;
+}
+
+/* Lightbox Styles */
+.lightbox-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.2s ease;
+  margin: 0;
+  padding: 0;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.lightbox-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  font-size: 28px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10001;
+  transition: all 0.2s ease;
+}
+
+.lightbox-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.lightbox-close:active {
+  transform: scale(0.95);
+}
+
+.lightbox-content {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lightbox-image {
+  max-width: 100%;
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.lightbox-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  font-size: 40px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 10001;
+}
+
+.lightbox-arrow:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.lightbox-arrow:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+.lightbox-arrow-left {
+  left: 20px;
+}
+
+.lightbox-arrow-right {
+  right: 20px;
+}
+
+.lightbox-dots {
+  position: absolute;
+  bottom: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 12px;
+  padding: 10px 20px;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  border-radius: 24px;
+}
+
+.lightbox-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.3s ease;
+}
+
+.lightbox-dot:hover {
+  background: rgba(255, 255, 255, 0.6);
+  transform: scale(1.15);
+}
+
+.lightbox-dot.active {
+  background: white;
+  width: 32px;
+  border-radius: 8px;
 }
 
 .animal-placeholder {
