@@ -16,6 +16,61 @@ const userId = localStorage.getItem('user_id');
 const imageErrors = ref({});
 const handleImageError = (id) => { imageErrors.value[id] = true; };
 
+// Image carousel logic
+const currentImageIndex = ref(0);
+const touchStartX = ref(0);
+const touchEndX = ref(0);
+const isDragging = ref(false);
+
+const hasMultipleImages = computed(() => 
+  animal.value?.images && animal.value.images.length > 1
+);
+
+const goToNextImage = () => {
+  if (animal.value?.images && currentImageIndex.value < animal.value.images.length - 1) {
+    currentImageIndex.value++;
+  }
+};
+
+const goToPreviousImage = () => {
+  if (currentImageIndex.value > 0) {
+    currentImageIndex.value--;
+  }
+};
+
+const goToImage = (index) => {
+  currentImageIndex.value = index;
+};
+
+const handleTouchStart = (e) => {
+  touchStartX.value = e.touches[0].clientX;
+  isDragging.value = true;
+};
+
+const handleTouchMove = (e) => {
+  if (!isDragging.value) return;
+  touchEndX.value = e.touches[0].clientX;
+};
+
+const handleTouchEnd = () => {
+  if (!isDragging.value) return;
+  
+  const swipeThreshold = 50;
+  const diff = touchStartX.value - touchEndX.value;
+
+  if (Math.abs(diff) > swipeThreshold) {
+    if (diff > 0) {
+      goToNextImage();
+    } else {
+      goToPreviousImage();
+    }
+  }
+
+  isDragging.value = false;
+  touchStartX.value = 0;
+  touchEndX.value = 0;
+};
+
 const toggleLike = async () => {
   if (!isLiked.value && animal.value) {
     // Créer un match
@@ -128,8 +183,46 @@ const formatPrice = (price) => {
     <div v-else-if="animal" class="profile-wrapper">
       <div class="photo-section">
         <BackButton @click="goBackToSwipe" variant="overlay" />
-        <img v-if="animal?.images && animal.images.length && !imageErrors['main']" :src="animal.images[0]"
-          alt="photo animal" class="animal-photo" @error="handleImageError('main')" />
+        
+        <!-- Image Carousel -->
+        <div 
+          v-if="animal?.images && animal.images.length"
+          class="image-carousel"
+          @touchstart="handleTouchStart"
+          @touchmove="handleTouchMove"
+          @touchend="handleTouchEnd"
+        >
+          <div 
+            class="carousel-track"
+            :style="{ transform: `translateX(-${currentImageIndex * 100}%)` }"
+          >
+            <div 
+              v-for="(image, index) in animal.images" 
+              :key="index"
+              class="carousel-slide"
+            >
+              <img 
+                :src="image" 
+                :alt="`${animal.name} ${index + 1}`"
+                class="animal-photo"
+                @error="handleImageError(`image-${index}`)"
+              />
+            </div>
+          </div>
+
+          <!-- Dots indicator -->
+          <div class="carousel-dots">
+            <button
+              v-for="(image, index) in animal.images"
+              :key="index"
+              class="dot"
+              :class="{ active: currentImageIndex === index }"
+              @click="goToImage(index)"
+              :aria-label="`Aller à l'image ${index + 1}`"
+            ></button>
+          </div>
+        </div>
+        
         <div v-else class="animal-placeholder">
           <div class="placeholder-content">
             <PawPrint :size="80" stroke-width="1.5" />
@@ -276,6 +369,68 @@ const formatPrice = (price) => {
   align-items: center;
   justify-content: center;
   overflow: hidden;
+}
+
+/* Image Carousel Styles */
+.image-carousel {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  touch-action: pan-y;
+}
+
+.carousel-track {
+  display: flex;
+  height: 100%;
+  transition: transform 0.3s ease-out;
+}
+
+.carousel-slide {
+  min-width: 100%;
+  height: 100%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.carousel-dots {
+  position: absolute;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  z-index: 10;
+  padding: 8px 16px;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(4px);
+  border-radius: 20px;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.dot:hover {
+  background: rgba(255, 255, 255, 0.7);
+  transform: scale(1.1);
+}
+
+.dot.active {
+  background: white;
+  border-color: white;
+  width: 28px;
+  border-radius: 6px;
 }
 
 .animal-photo {

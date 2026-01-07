@@ -329,7 +329,18 @@ onUnmounted(async () => {
       </div>
       
       <div class="header-right">
-        <div class="user-info">
+        <RouterLink 
+          v-if="userType === 'owner' && adopterInfo?._id"
+          :to="{ name: 'OwnerProfileAdopter', params: { id: adopterInfo._id } }"
+          class="user-info clickable"
+        >
+          <div class="user-avatar" :class="{ 'placeholder': !headerInfo?.image }">
+            <img v-if="headerInfo?.image" :src="headerInfo.image" :alt="headerInfo.firstName" />
+            <span v-else>{{ headerInfo?.firstName?.charAt(0) }}</span>
+          </div>
+          <p class="user-name text-label-base">{{ headerInfo?.firstName }} {{ headerInfo?.lastName?.charAt(0) }}.</p>
+        </RouterLink>
+        <div v-else class="user-info">
           <div class="user-avatar" :class="{ 'placeholder': !headerInfo?.image }">
             <img v-if="headerInfo?.image" :src="headerInfo.image" :alt="headerInfo.firstName" />
             <span v-else>{{ headerInfo?.firstName?.charAt(0) }}</span>
@@ -492,6 +503,24 @@ onUnmounted(async () => {
   flex-direction: column;
   align-items: center;
   gap: 4px;
+}
+
+.user-info.clickable {
+  text-decoration: none;
+  cursor: pointer;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  border-radius: 12px;
+  padding: 8px;
+  margin: -8px;
+}
+
+.user-info.clickable:hover {
+  opacity: 0.8;
+  transform: scale(1.05);
+}
+
+.user-info.clickable:active {
+  transform: scale(0.98);
 }
 
 .user-name {
