@@ -48,7 +48,7 @@ const seed = async () => {
                 address: { zip: o.zip, city: o.city },
                 location: location, 
                 phoneNumber: '079' + Math.floor(1000000 + Math.random() * 9000000),
-                image: `https://ui-avatars.com/api/?name=${o.firstName}+${o.lastName}&background=random&size=200`,
+                image: o.image[0] || `https://ui-avatars.com/api/?name=${o.firstName}+${o.lastName}&background=random&size=200`,
                 about: o.societyName ? `Structure professionnelle : ${o.societyName}.` : `Particulier passionné d'animaux.`
             });
             console.log(`> Préparé: ${o.firstName} (${o.city})`);
@@ -84,7 +84,7 @@ const seed = async () => {
                 location: location,
                 age: a.age,
                 about: 'Je cherche un nouveau membre pour ma famille.',
-                image: `https://ui-avatars.com/api/?name=${a.firstName}+${a.lastName}&background=random&size=200`,
+                image: a.image[0] || `https://ui-avatars.com/api/?name=${a.firstName}+${a.lastName}&background=random&size=200`,
                 preferences: { 
                     environment: a.env, 
                     species: a.species,
