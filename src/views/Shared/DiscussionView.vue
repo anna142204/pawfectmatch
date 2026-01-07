@@ -128,6 +128,29 @@ const getLastMessage = (discussion) => {
   return lastMsg.message.length > 40 ? lastMsg.message.substring(0, 40) + '...' : lastMsg.message;
 };
 
+const hasUnreadMessages = (conversation) => {
+  if (!conversation.discussion || conversation.discussion.length === 0) return false;
+  
+  const userId = localStorage.getItem('user_id');
+  const lastMessage = conversation.discussion[conversation.discussion.length - 1];
+  
+  if (lastMessage.sender.toString() === userId) return false;
+  
+  const lastReadKey = `lastRead_${conversation._id}`;
+  const lastReadTimestamp = localStorage.getItem(lastReadKey);
+  
+  if (lastReadTimestamp) {
+    const lastReadDate = new Date(lastReadTimestamp);
+    const lastMessageDate = new Date(lastMessage.timestamp);
+    
+    const TOLERANCE_MS = 10000; // 10 secondes
+    
+    if (lastReadDate.getTime() + TOLERANCE_MS >= lastMessageDate.getTime()) return false;
+  }
+  
+  return true;
+};
+
 const getConversationName = (conversation) => {
   if (props.userType === 'owner') {
     const adopterName = conversation.adopterId?.firstName || '';
@@ -248,6 +271,8 @@ const getAnimalLabel = (conversation) => {
               :alt="conversation.animalId?.ownerId?.firstName"
               class="sub-avatar"
             />
+            
+            <div v-if="hasUnreadMessages(conversation)" class="unread-badge"></div>
           </div>
           
           <div class="conversation-content">
@@ -495,6 +520,18 @@ const getAnimalLabel = (conversation) => {
   object-fit: cover;
   border: 2px solid white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.unread-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 12px;
+  height: 12px;
+  background-color: var(--color-primary-500);
+  border-radius: 50%;
+  border: 2px solid white;
+  z-index: 2;
 }
 
 .avatar-placeholder {

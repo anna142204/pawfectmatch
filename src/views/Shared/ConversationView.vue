@@ -7,7 +7,6 @@ import Toast from '@/components/Toast.vue';
 import { useWebSocket } from '@/composables/useWebSocket';
 import { ChevronLeft, ChevronRight, Send } from 'lucide-vue-next';
 
-// Props
 const props = defineProps({
   userType: {
     type: String,
@@ -16,7 +15,6 @@ const props = defineProps({
   }
 });
 
-// Data
 const route = useRoute();
 const router = useRouter();
 const messageInput = ref('');
@@ -27,19 +25,15 @@ const isSendingMessage = ref(false);
 const errorMessage = ref('');
 const messagesList = ref(null);
 
-// WebSocket
 const { subscribeToChatMessages, unsubscribeFromChat, sendChatMessage, isConnected } = useWebSocket();
 
-// Get current user data
 const currentUser = computed(() => ({
   id: localStorage.getItem('user_id'),
   type: props.userType === 'owner' ? 'Owner' : 'Adopter'
 }));
 
-// Get conversation ID from route
 const conversationId = computed(() => route.params.id);
 
-// Format time display
 const formatTime = (timestamp) => {
   const date = new Date(timestamp);
   const days = Math.floor((Date.now() - date) / (1000 * 60 * 60 * 24));
@@ -60,7 +54,6 @@ const formatTime = (timestamp) => {
   }
 };
 
-// Format date separator
 const formatDateSeparator = (timestamp) => {
   const date = new Date(timestamp);
   const today = new Date();
@@ -81,7 +74,6 @@ const formatDateSeparator = (timestamp) => {
   });
 };
 
-// Check if we should show date separator
 const shouldShowDateSeparator = (currentMessage, previousMessage) => {
   if (!previousMessage) return true;
   
@@ -91,7 +83,6 @@ const shouldShowDateSeparator = (currentMessage, previousMessage) => {
   return currentDate.toDateString() !== previousDate.toDateString();
 };
 
-// Scroll to latest message
 const scrollToBottom = () => {
   if (messagesList.value) {
     setTimeout(() => {
@@ -100,7 +91,6 @@ const scrollToBottom = () => {
   }
 };
 
-// Load conversation data from API
 const loadConversation = async () => {
   try {
     isLoading.value = true;
@@ -119,13 +109,16 @@ const loadConversation = async () => {
     const data = await response.json();
     conversationData.value = data;
 
-    // Load existing messages from discussion
     if (data.discussion && Array.isArray(data.discussion)) {
       messages.value = data.discussion.map(msg => ({
         ...msg,
         timestamp: msg.timestamp || msg.createdAt || new Date().toISOString()
       }));
     }
+    
+    // Marquer la conversation comme lue
+    const lastReadKey = `lastRead_${conversationId.value}`;
+    localStorage.setItem(lastReadKey, new Date().toISOString());
     
     scrollToBottom();
   } catch (err) {
@@ -136,43 +129,33 @@ const loadConversation = async () => {
   }
 };
 
-// Determine message ownership by comparing senderModel with current user type
 const isOwnMessage = (msg) => {
   return msg.senderModel === currentUser.value.type;
 };
 
-// Normalize sender ID from message
 const getSenderId = (msg) => {
   const sender = msg.sender;
   return sender && typeof sender === 'object' ? (sender._id || sender.id) : sender;
 };
 
-// Normalize timestamp to milliseconds
 const getTimestamp = (msg) => {
   if (!msg.timestamp) return Date.now();
   const ts = msg.timestamp;
-  // If already a number (milliseconds), return it
   if (typeof ts === 'number') return ts;
-  // Otherwise parse as date string
   return new Date(ts).getTime();
 };
 
-// Handle incoming real-time messages
 const handleNewMessage = (message) => {
   const newSenderId = String(getSenderId(message));
   const newMessage = String(message.message || '').trim();
   const newTimestamp = getTimestamp(message);
   
-  // Check for duplicates by sender, message content, and timestamp (with 1 second tolerance)
   const msgExists = messages.value.some(m => {
     const existingSenderId = String(getSenderId(m));
     const existingMessage = String(m.message || '').trim();
     const existingTimestamp = getTimestamp(m);
     
-    // Same sender and message
     const sameSenderAndMessage = existingSenderId === newSenderId && existingMessage === newMessage;
-    
-    // Timestamps within 1 second of each other (to handle slight differences)
     const timestampDiff = Math.abs(existingTimestamp - newTimestamp);
     const similarTimestamp = timestampDiff < 1000;
     
@@ -190,7 +173,6 @@ const handleNewMessage = (message) => {
   }
 };
 
-// Send message (persist via HTTP, broadcast via WebSocket)
 const sendMessage = async () => {
   if (!messageInput.value.trim()) return;
 
@@ -205,7 +187,6 @@ const sendMessage = async () => {
       message: messageInput.value.trim()
     };
 
-    // Persist message via REST API
     const response = await fetch(`/api/matches/${conversationId.value}/messages`, {
       method: 'POST',
       headers: {
@@ -221,8 +202,6 @@ const sendMessage = async () => {
 
     const result = await response.json();
     
-    // Broadcast via WebSocket for real-time updates to all clients
-    // The WebSocket will deliver the message back to us too, so we don't add it manually
     if (isConnected.value) {
       try {
         await sendChatMessage(conversationId.value, {
@@ -231,7 +210,6 @@ const sendMessage = async () => {
         });
       } catch (wsError) {
         console.warn('WebSocket broadcast failed, adding message locally:', wsError?.message || wsError);
-        // Fallback: add message locally if WebSocket fails
         const added = result?.match?.discussion?.[result.match.discussion.length - 1] || {
           ...httpPayload,
           timestamp: new Date().toISOString()
@@ -239,7 +217,6 @@ const sendMessage = async () => {
         handleNewMessage(added);
       }
     } else {
-      // No WebSocket connection: add message locally from HTTP response
       const added = result?.match?.discussion?.[result.match.discussion.length - 1] || {
         ...httpPayload,
         timestamp: new Date().toISOString()
@@ -256,24 +233,20 @@ const sendMessage = async () => {
   }
 };
 
-// Get adopter info
 const adopterInfo = computed(() => {
   if (!conversationData.value || !conversationData.value.adopterId) return null;
   return conversationData.value.adopterId;
 });
 
-// Get animal info
 const animalInfo = computed(() => {
   if (!conversationData.value || !conversationData.value.animalId) return null;
   return conversationData.value.animalId;
 });
 
-// Get owner info
 const ownerInfo = computed(() => {
   return conversationData.value?.animalId?.ownerId || null;
 });
 
-// Computed for header title and info
 const headerTitle = computed(() => {
   if (props.userType === 'owner') {
     return animalInfo.value?.name || 'Conversation';
@@ -297,7 +270,6 @@ const goBack = () => {
 onMounted(async () => {
   await loadConversation();
   
-  // Check if user is authenticated
   const token = localStorage.getItem('token');
   const userId = localStorage.getItem('user_id');
   
@@ -315,7 +287,6 @@ onMounted(async () => {
 });
 
 onUnmounted(async () => {
-  // Unsubscribe from match channel
   try {
     await unsubscribeFromChat(conversationId.value);
   } catch (err) {
@@ -355,7 +326,6 @@ onUnmounted(async () => {
       </div>
     </div>
 
-    <!-- Messages Container -->
     <div class="messages-container" ref="messagesList">
       <div v-if="isLoading" class="loading text-body-base">Chargement...</div>
       <div v-else-if="messages.length === 0" class="empty-state text-body-base">
@@ -363,17 +333,15 @@ onUnmounted(async () => {
       </div>
       <div v-else class="messages-list">
         <template v-for="(message, index) in messages" :key="index">
-          <!-- Date Separator -->
+
           <div v-if="shouldShowDateSeparator(message, messages[index - 1])" class="date-separator">
             <span class="date-text">{{ formatDateSeparator(message.timestamp) }}</span>
           </div>
 
-          <!-- Message Item -->
           <div
             class="message-item"
             :class="isOwnMessage(message) ? 'own-message' : 'other-message'"
           >
-          <!-- Avatar for other messages -->
           <div
             v-if="!isOwnMessage(message)"
             class="message-avatar"
@@ -399,7 +367,6 @@ onUnmounted(async () => {
             </div>
           </div>
 
-          <!-- Avatar for own messages -->
           <div
             v-if="isOwnMessage(message)"
             class="message-avatar"
@@ -412,7 +379,6 @@ onUnmounted(async () => {
       </div>
     </div>
 
-    <!-- Message Input -->
     <div class="message-input-container">
       <div class="text-area">
         <input
@@ -434,10 +400,8 @@ onUnmounted(async () => {
     </div>
   </div>
   
-  <!-- Navigation Menu -->
   <Menu :userType="userType" />
   
-  <!-- Error Toast -->
   <Toast v-if="errorMessage" :message="errorMessage" type="error" />
 </template>
 
@@ -454,7 +418,6 @@ onUnmounted(async () => {
   background: var(--color-primary-50);
 }
 
-/* Header */
 .conversation-header {
   display: flex;
   align-items: center;
@@ -558,7 +521,6 @@ onUnmounted(async () => {
   color: var(--color-primary-700);
 }
 
-/* Messages Container */
 .messages-container {
   flex: 1;
   overflow-y: auto;
@@ -736,7 +698,6 @@ onUnmounted(async () => {
   order: 2;
 }
 
-/* Message Bubble */
 .message-bubble {
   padding: 10px 14px;
   border-radius: 8px;
@@ -768,7 +729,6 @@ onUnmounted(async () => {
   color: var(--color-neutral-black);
 }
 
-/* Message Input */
 .message-input-container {
   padding: 22px 24px 30px;
   background: linear-gradient(180deg, rgba(252, 243, 255, 0.2) 0%, rgba(100, 18, 125, 0.2) 100%);
@@ -829,7 +789,6 @@ onUnmounted(async () => {
   cursor: not-allowed;
 }
 
-/* Scrollbar styling */
 .messages-container::-webkit-scrollbar {
   width: 8px;
 }
