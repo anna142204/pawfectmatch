@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router';
 import Button from '@/components/Button.vue';
 import Input from '@/components/Input.vue';
 import ImageUploader from '@/components/ImageUploader.vue';
-import { MapPin } from 'lucide-vue-next'; // Import déplacé ici
+import { MapPin } from 'lucide-vue-next';
 
 const router = useRouter();
 
@@ -187,13 +187,13 @@ const handleRegister = async () => {
     const data = await response.json();
 
     if (response.ok) {
-      localStorage.setItem('user_type', userType.value);
-      localStorage.setItem('user_id', data.user._id);
-      if (data.token) {
-        localStorage.setItem('token', data.token);
-      }
-      router.push(userType.value === 'adopter' ? '/adopter' : '/owner');
-    } else {
+  localStorage.setItem('user_type', userType.value);
+  localStorage.setItem('user_id', data.user._id);
+  if (data.token) {
+    localStorage.setItem('token', data.token);
+  }
+  router.push(userType.value === 'adopter' ? '/adopter/preferences' : '/owner');
+} else {
       error.value = data.error || 'Erreur lors de l\'inscription';
     }
   } catch (err) {

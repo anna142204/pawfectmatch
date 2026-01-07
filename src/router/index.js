@@ -11,6 +11,7 @@ import AdopterHomePage from '../views/Adopter/AdopterHomePage.vue'
 import AdopterSwipe from '../views/Adopter/AdopterSwipe.vue'
 import AdopterAnimalDetails from '../views/Adopter/AdopterAnimalDetails.vue'
 import AdopterProfileEdit from '../views/Adopter/AdopterProfileEdit.vue'
+import AdopterPreferences from '../views/Adopter/AdopterPreferences.vue'
 
 // Owner
 import OwnerAnimals from '../views/Owner/OwnerAnimals.vue'
@@ -86,18 +87,24 @@ const routes = [
     meta: { requiresAuth: true, userType: 'adopter' }
   },
   {
+    path: '/adopter/preferences',
+    name: 'AdopterPreferences',
+    component: AdopterPreferences,
+    meta: { requiresAuth: true, userType: 'adopter' }
+  },
+  {
     path: '/adopter/profile',
     name: 'AdopterProfile',
     component: AdopterProfile,
     meta: { requiresAuth: true, userType: 'adopter' }
   },
-   {
+  {
     path: '/adopter/profile/edit',
     name: 'AdopterProfileEdit',
     component: AdopterProfileEdit,
     meta: { requiresAuth: true, userType: 'adopter' }
   },
-  
+
   {
     path: '/adopter/swipe',
     name: 'AdopterSwipe',
