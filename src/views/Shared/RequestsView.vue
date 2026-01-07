@@ -130,7 +130,7 @@ const closeModal = () => { confirmModal.value.show = false; confirmModal.value.p
 
 const goToDiscussion = (matchId) => {
     const prefix = isOwner.value ? 'owner' : 'adopter';
-    router.push(`/${prefix}/messages/${matchId}`);
+    router.push(`/${prefix}/conversation/${matchId}`);
 };
 
 onMounted(fetchRequests);
@@ -283,7 +283,7 @@ onMounted(fetchRequests);
                             <p class="subtitle">Adopté le {{ formatDate(req.updatedAt) }}</p>
                         </div>
                         <button @click.stop="goToDiscussion(req._id)" class="chat-btn secondary">
-                            <MessageCircleIcon size="20" />
+                            <MessageCircleIcon size="25" />
                         </button>
                     </div>
                 </div>
@@ -582,8 +582,8 @@ onMounted(fetchRequests);
 }
 
 .chat-btn {
-    width: 36px;
-    height: 36px;
+    width: 45px;
+    height: 45px;
     border-radius: 50%;
     border: none;
     background: var(--color-primary-50);

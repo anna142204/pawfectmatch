@@ -227,13 +227,27 @@ const getAnimalLabel = (conversation) => {
           class="conversation-item"
           @click="openConversation(conversation._id)"
         >
-          <div class="conversation-avatar">
+          <div class="avatar-group">
             <img 
               v-if="getConversationImage(conversation)" 
               :src="getConversationImage(conversation)" 
               :alt="getConversationName(conversation)"
+              class="main-avatar"
             />
-            <div v-else class="avatar-placeholder"></div>
+            <div v-else class="main-avatar avatar-placeholder"></div>
+            
+            <img 
+              v-if="userType === 'owner' && conversation.animalId?.images?.[0]" 
+              :src="conversation.animalId.images[0]" 
+              :alt="conversation.animalId?.name"
+              class="sub-avatar"
+            />
+            <img 
+              v-else-if="userType === 'adopter' && conversation.animalId?.ownerId?.image" 
+              :src="conversation.animalId.ownerId.image" 
+              :alt="conversation.animalId?.ownerId?.firstName"
+              class="sub-avatar"
+            />
           </div>
           
           <div class="conversation-content">
@@ -454,18 +468,33 @@ const getAnimalLabel = (conversation) => {
   transform: translateX(5px);
 }
 
-.conversation-avatar {
-  width: 54px;
-  height: 54px;
-  border-radius: 50%;
-  overflow: hidden;
+.avatar-group {
+  position: relative;
+  width: 56px;
+  height: 56px;
   flex-shrink: 0;
+  margin-right: 15px;
 }
 
-.conversation-avatar img {
+.main-avatar {
   width: 100%;
   height: 100%;
+  border-radius: 50%;
   object-fit: cover;
+  border: 2px solid white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+}
+
+.sub-avatar {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 .avatar-placeholder {
