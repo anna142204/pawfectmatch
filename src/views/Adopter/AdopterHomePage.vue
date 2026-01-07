@@ -13,6 +13,35 @@ const showMapView = ref(route.query.view !== 'list');
 const recentMatches = ref([]);
 const loading = ref(true);
 const userId = localStorage.getItem('user_id');
+const token = localStorage.getItem('token');
+
+const authHeaders = () => {
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers.Authorization = `Bearer ${token}`;
+  return headers;
+};
+
+const checkPreferences = async () => {
+  if (!userId) return;
+  try {
+    const res = await fetch(`/api/adopters/${userId}`, {
+      method: 'GET',
+      headers: authHeaders(),
+      credentials: 'include',
+    });
+    if (res.ok) {
+      const adopter = await res.json();
+      const prefs = adopter?.preferences;
+      
+      // Vérifier si les préférences sont vides ou n'existent pas
+      if (!prefs || !prefs.species || prefs.species.length === 0) {
+        router.push('/adopter/preferences');
+      }
+    }
+  } catch (err) {
+    console.error('Erreur vérification préférences:', err);
+  }
+};
 
 const toggleView = (isMap) => {
   showMapView.value = isMap;
@@ -47,6 +76,7 @@ const fetchRecentMatches = async () => {
 };
 
 onMounted(() => {
+  checkPreferences();
   fetchRecentMatches();
 });
 </script>

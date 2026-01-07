@@ -140,9 +140,26 @@ export async function updateAdopter(req, res) {
     // Don't allow password update through this route
     delete updates.password;
 
+    // Si on met à jour les préférences, utiliser la notation pointée
+    if (updates.preferences) {
+      const prefs = updates.preferences;
+      delete updates.preferences;
+      
+      if (prefs.species !== undefined) updates['preferences.species'] = prefs.species;
+      if (prefs.size !== undefined) updates['preferences.size'] = prefs.size;
+      if (prefs.age !== undefined) updates['preferences.age'] = prefs.age;
+      if (prefs.weight !== undefined) updates['preferences.weight'] = prefs.weight;
+      if (prefs.sex !== undefined) updates['preferences.sex'] = prefs.sex;
+      if (prefs.dressage !== undefined) updates['preferences.dressage'] = prefs.dressage;
+      if (prefs.personality !== undefined) updates['preferences.personality'] = prefs.personality;
+      if (prefs.environment !== undefined) updates['preferences.environment'] = prefs.environment;
+      if (prefs.maxPrice !== undefined) updates['preferences.maxPrice'] = prefs.maxPrice;
+      if (prefs.maxDistance !== undefined) updates['preferences.maxDistance'] = prefs.maxDistance;
+    }
+
     const adopter = await Adopter.findByIdAndUpdate(
       id,
-      updates,
+      { $set: updates },
       { new: true, runValidators: true }
     );
 
