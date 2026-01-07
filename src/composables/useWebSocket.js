@@ -17,7 +17,7 @@ export function useWebSocket() {
       const wsHost = import.meta.env.VITE_WS_HOST || 'localhost';
       const wsPort = import.meta.env.VITE_WS_PORT || '8989';
       
-      const wsUrl = `${wsProtocol}://${wsHost}:${wsPort}`;
+      const wsUrl = wsPort ? `${wsProtocol}://${wsHost}:${wsPort}` : `${wsProtocol}://${wsHost}`;
       
       wsClient = new WSClient(wsUrl);
       
