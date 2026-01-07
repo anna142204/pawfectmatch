@@ -87,8 +87,13 @@ const loadConversations = async (animalId = null) => {
 };
 
 const selectAnimal = (animal) => {
-  selectedAnimal.value = animal;
-  loadConversations(animal._id);
+  if (selectedAnimal.value?._id === animal._id) {
+    selectedAnimal.value = null;
+    loadConversations(null);
+  } else {
+    selectedAnimal.value = animal;
+    loadConversations(animal._id);
+  }
 };
 
 const selectMatch = (match) => {
@@ -347,7 +352,7 @@ const getAnimalLabel = (conversation) => {
   display: flex;
   gap: 12px;
   overflow-x: auto;
-  padding: 0 5px 10px 5px;
+  padding: 8px 5px 10px 5px;
   scrollbar-width: none;
 }
 
@@ -371,7 +376,7 @@ const getAnimalLabel = (conversation) => {
 
 .animal-card:hover,
 .match-card:hover {
-  transform: scale(1.05);
+  transform: scale(1.02);
 }
 
 .animal-card-selected {

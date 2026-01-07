@@ -3,12 +3,13 @@ import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuth } from '@/composables/useAuth';
 import BackButton from '@/components/BackButton.vue';
+import Button from '../../components/Button.vue';
 import Menu from '@/components/Menu.vue';
 import Toast from '@/components/Toast.vue';
 import ConfirmModal from '@/components/ConfirmModal.vue';
 import { useWebSocket } from '@/composables/useWebSocket';
 import { useToast } from '@/composables/useToast';
-import { ChevronLeft, ChevronRight, Send, CheckCircle } from 'lucide-vue-next';
+import { ChevronLeft, CheckCircle } from 'lucide-vue-next';
 
 const props = defineProps({
     userType: {
@@ -263,10 +264,6 @@ const headerInfo = computed(() => {
     }
 });
 
-const goBack = () => {
-    router.back();
-};
-
 const finalizeAdoption = async () => {
     try {
         isFinalizingAdoption.value = true;
@@ -349,10 +346,10 @@ onUnmounted(async () => {
         </div>
 
         <div v-if="userType === 'owner' && conversationData?.status === 'validé'" class="adoption-action">
-            <button class="adopt-button" @click="showAdoptModal = true" :disabled="isFinalizingAdoption">
+            <Button variant="secondary" size="sm" @click="showAdoptModal = true" class="adopt-button" :disabled="isFinalizingAdoption">
                 <CheckCircle :size="20" />
                 Finaliser l'adoption
-            </button>
+            </Button>
         </div>
 
         <div class="messages-container" ref="messagesList">
@@ -741,43 +738,23 @@ onUnmounted(async () => {
 }
 
 .adoption-action {
-    padding: 16px 24px;
+    padding: 8px 24px 16px 24px ;
     background: var(--color-primary-50);
     border-bottom: 1px solid var(--color-primary-200);
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .adopt-button {
-    width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    padding: 14px 24px;
-    background: var(--color-accent-400);
-    color: white;
-    border: none;
-    border-radius: 16px;
-    font-family: var(--font-family);
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: opacity 0.2s, transform 0.2s;
     box-shadow: var(--shadow-md);
+    gap: 8px;
+    width: 80%;
 }
 
-.adopt-button:hover:not(:disabled) {
-    opacity: 0.9;
-    transform: translateY(-1px);
-}
-
-.adopt-button:active:not(:disabled) {
-    transform: translateY(0);
-}
-
-.adopt-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
 
 .message-input-container {
     padding: 22px 24px 30px;

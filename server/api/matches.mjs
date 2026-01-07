@@ -309,7 +309,7 @@ export async function addMessage(req, res) {
     const match = await Match.findById(id);
     if (!match) return res.status(404).json({ error: 'Match not found' });
 
-    if (!match.isActive) {
+    if (match.status !== 'validé' && match.status !== 'adopté') {
       return res.status(400).json({ error: 'Cannot send message to inactive match' });
     }
 
