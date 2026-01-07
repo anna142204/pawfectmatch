@@ -10,14 +10,10 @@ import PopupMatch from '../views/PopupMatch.vue'
 import AdopterHomePage from '../views/Adopter/AdopterHomePage.vue'
 import AdopterSwipe from '../views/Adopter/AdopterSwipe.vue'
 import AdopterAnimalDetails from '../views/Adopter/AdopterAnimalDetails.vue'
-import AdopterDiscussions from '../views/Adopter/AdopterDiscussions.vue'
-import AdopterConversation from '../views/Adopter/AdopterConversation.vue'
 import AdopterProfileEdit from '../views/Adopter/AdopterProfileEdit.vue'
 
 // Owner
 import OwnerAnimals from '../views/Owner/OwnerAnimals.vue'
-import OwnerDiscussions from '../views/Owner/OwnerDiscussions.vue'
-import OwnerConversation from '../views/Owner/OwnerConversation.vue'
 import OwnerProfileEdit from '../views/Owner/OwnerProfileEdit.vue'
 
 //General views
@@ -118,12 +114,14 @@ const routes = [
     path: '/adopter/discussions',
     name: 'AdopterDiscussions',
     component: DiscussionView,
+    props: { userType: 'adopter' },
     meta: { requiresAuth: true, userType: 'adopter' }
   },
   {
     path: '/adopter/conversation/:id',
     name: 'AdopterConversation',
     component: ConversationView,
+    props: { userType: 'adopter' },
     meta: { requiresAuth: true, userType: 'adopter' }
   },
   {
@@ -168,12 +166,14 @@ const routes = [
     path: '/owner/discussions',
     name: 'OwnerDiscussions',
     component: DiscussionView,
+    props: { userType: 'owner' },
     meta: { requiresAuth: true, userType: 'owner' }
   },
   {
     path: '/owner/conversation/:id',
     name: 'OwnerConversation',
     component: ConversationView,
+    props: { userType: 'owner' },
     meta: { requiresAuth: true, userType: 'owner' }
   },
   {

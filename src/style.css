@@ -10,14 +10,14 @@ body {
   overscroll-behavior-y: contain;
   touch-action: pan-y;
   font-family: var(--font-family);
-  background-color: var(--color-neutral-100);
+  background-color: var(--color-primary-50);
 }
 
 #app {
   max-width: 430px;
   min-height: 100vh;
   margin: 0 auto;
-  background-color: var(--color-neutral-100);
+  background-color: var(--color-primary-50);
   box-shadow: var(--shadow-xl);
 }
 
@@ -34,12 +34,17 @@ h1 {
   margin: 16px 0;
 }
 
+h4 {
+  color: var(--color-neutral-900);
+  margin: 0 0 12px 0;
+}
+
 :root {
   --general-padding: 0 var(--spacing-7);
   /* ============================================ */
   /* COLORS - PRIMARY */
   /* ============================================ */
-  --color-primary-50: #f3e5ff;
+  --color-primary-50: #FCF3FF;
   --color-primary-100: #e6ccff;
   --color-primary-200: #d9b3ff;
   --color-primary-300: #cc99ff;
@@ -140,8 +145,8 @@ h1 {
   --heading-h3-height: 28px;
   --heading-h3-spacing: 0px;
 
-  --heading-h4-size: 20px;
-  --heading-h4-weight: 600;
+  --heading-h4-size: 18px;
+  --heading-h4-weight: 700;
   --heading-h4-height: 24px;
   --heading-h4-spacing: 0px;
 

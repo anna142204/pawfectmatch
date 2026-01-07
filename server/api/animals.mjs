@@ -51,7 +51,6 @@ function calculateMatchScore(animal, preferences) {
 
 export async function getAnimals(req, res) {
   try {
-    console.log('\n=== Début getAnimals ===');
     const {
       species, race, name, minAge, maxAge, sex, city, zip,
       minPrice, maxPrice, ownerId, availability,
