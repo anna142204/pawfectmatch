@@ -31,8 +31,8 @@ const seed = async () => {
             { firstName: 'Marc', lastName: 'Rochat', email: 'marc@refuge.ch', societyName: 'Refuge de Cossonay', city: 'Cossonay', zip: '1304', image: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767790994/Gemini_Generated_Image_bctdkmbctdkmbctd_jzvg0d.png'] },
             { firstName: 'Julie', lastName: 'Bernasconi', email: 'julie@asso.ch', societyName: 'Pattes Genevoises', city: 'Genève', zip: '1201', image: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767790994/Gemini_Generated_Image_fmmiuwfmmiuwfmmi_j5wu8y.png'] },
             { firstName: 'Thomas', lastName: 'Dubois', email: 'thomas@particulier.ch', societyName: null, city: 'Neuchâtel', zip: '2000', image: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767791251/Gemini_Generated_Image_cw0nelcw0nelcw0n_uthupd.png'] },
-            { firstName: 'Elena', lastName: 'Monnier', email: 'elena@paws.ch', societyName: 'Fribourg Animaux', city: 'Fribourg', zip: '1700', image: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767791251/Gemini_Generated_Image_9yhgvf9yhgvf9yhg_k2byzy.png'] },
-            { firstName: 'Sébastien', lastName: 'Fournier', email: 'seb@particulier.ch', societyName: null, city: 'Sion', zip: '1950', image: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767790995/Gemini_Generated_Image_l5ie3wl5ie3wl5ie_njsqop.png'] }
+            { firstName: 'Elena', lastName: 'Monnier', email: 'elena@paws.ch', societyName: 'Fribourg Animaux', city: 'Fribourg', zip: '1700', image: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767790995/Gemini_Generated_Image_l5ie3wl5ie3wl5ie_njsqop.png'] },
+            { firstName: 'Sébastien', lastName: 'Fournier', email: 'seb@particulier.ch', societyName: null, city: 'Sion', zip: '1950', image: ['https://res.cloudinary.com/dzs3mwpgx/image/upload/v1767791251/Gemini_Generated_Image_9yhgvf9yhgvf9yhg_k2byzy.png'] }
         ];
 
         const ownersToCreate = [];
