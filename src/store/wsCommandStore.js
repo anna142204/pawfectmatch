@@ -1,6 +1,5 @@
 import { ref } from 'vue'
 import { useWebSocket } from '@/composables/useWebSocket'
-import { fetchJson } from '@/utils/fetchJson'
 
 // Global state for match notifications
 export const matchNotification = ref(null)
@@ -40,54 +39,9 @@ export async function initializeWebSocketListeners() {
 
     console.log('[WS Listeners] ✓ WebSocket command listener registered for matchNotification')
     
-    // Check for pending notifications ONLY if user is an adopter
-    const userType = localStorage.getItem('user_type')
-    if (userType === 'adopter') {
-      // This is safe to await - errors are caught inside the function
-      await fetchPendingNotifications()
-    } else {
-      console.log('[WS Listeners] Skipping pending notifications - user is not an adopter')
-    }
-    
   } catch (error) {
     console.error('[WS Listeners] ✗ Error initializing WebSocket listeners:', error)
     // Don't throw - allow app to continue even if WebSocket setup has issues
-  }
-}
-
-// Fetch any pending notifications that arrived while adopter was offline
-async function fetchPendingNotifications() {
-  try {
-    console.log('[WS Listeners] Checking for pending notifications...')
-    const response = await fetchJson('/api/matches/pending-notifications', { method: 'GET' })
-    
-    if (response && Array.isArray(response)) {
-      console.log(`[WS Listeners] Found ${response.length} pending notifications`)
-      
-      // Process each pending notification
-      response.forEach(matchData => {
-        console.log('[WS Listeners] ✓ Displaying pending notification:', matchData)
-        matchNotification.value = matchData
-        unreadNotifications.value += 1
-        
-        // Auto-clear after 8 seconds
-        setTimeout(() => {
-          if (matchNotification.value?.matchId === matchData.matchId) {
-            matchNotification.value = null
-          }
-        }, 8000)
-      })
-    }
-  } catch (error) {
-    // Silently handle errors - pending notifications are nice-to-have, not critical
-    // Handle 403 specifically - user type mismatch between localStorage and JWT
-    if (error?.status === 403) {
-      console.log('[WS Listeners] Access denied - user is not an adopter, skipping pending notifications')
-      // Clear localStorage if there's a mismatch to prevent future attempts
-      localStorage.removeItem('user_type')
-    } else if (error?.status !== 401) {
-      console.warn('[WS Listeners] Could not fetch pending notifications (non-critical):', error?.status)
-    }
   }
 }
 
