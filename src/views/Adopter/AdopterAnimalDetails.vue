@@ -48,6 +48,17 @@ const fetchAnimal = async () => {
     if (!response.ok) throw new Error('Erreur lors du chargement de l\'animal');
     const data = await response.json();
     animal.value = data.animal || data;
+
+    // Vérifier si un match existe déjà pour cet animal
+    if (userId) {
+      const matchesResponse = await fetch(`/api/matches?adopterId=${userId}&animalId=${id}`, {
+        credentials: 'include',
+      });
+      if (matchesResponse.ok) {
+        const matchesData = await matchesResponse.json();
+        isLiked.value = matchesData.matches && matchesData.matches.length > 0;
+      }
+    }
   } catch (err) {
     error.value = err.message;
   } finally {
