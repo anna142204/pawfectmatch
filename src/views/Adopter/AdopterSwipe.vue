@@ -171,7 +171,6 @@ const handleCardClick = (animal) => {
   height: 100dvh; 
   display: flex;
   flex-direction: column;
-  background-color: var(--color-neutral-100);
   overflow: hidden;
 }
 
@@ -180,7 +179,6 @@ const handleCardClick = (animal) => {
   padding: 0;
   padding-top: max(16px, env(safe-area-inset-top)); 
   text-align: center;
-  background-color: var(--color-neutral-100);
   z-index: 10;
 }
 

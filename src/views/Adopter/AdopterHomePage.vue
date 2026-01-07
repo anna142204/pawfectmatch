@@ -54,13 +54,13 @@ onMounted(() => {
 <template>
   <div class="home-page">
     <header class="home-header">
-      <h1 class="text-h1 text-primary-700">Découvrir</h1>
+      <h1 class="text-h1">Découvrir</h1>
     </header>
 
     <main class="home-content">
       
       <section class="matches-section">
-        <h3 class="section-title">Mes derniers matchs</h3>
+        <h4 class="text-h4">Mes derniers matchs</h4>
         <div v-if="loading" class="loading-text">Chargement...</div>
         <div v-else-if="recentMatches.length === 0" class="no-matches">
           <div class="no-matches-card">
@@ -94,7 +94,7 @@ onMounted(() => {
 
       <section class="map-section">
         <div class="map-header">
-          <h3 class="map-title">Propriétaires près de vous</h3>
+          <h4 class="text-h4">Propriétaires près de vous</h4>
           <div class="toggle-container">
             <button
               :class="['toggle-btn', { active: showMapView }]"
@@ -149,7 +149,6 @@ onMounted(() => {
 .matches-section {
   display: flex;
   flex-direction: column;
-  gap: 16px;
 }
 
 .section-title {
@@ -228,7 +227,7 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   text-decoration: none;
-  padding: 16px 5px 12px 5px;
+  padding: 5px 5px 12px 5px;
   border-radius: 16px;
   overflow: visible;
 }
@@ -242,7 +241,7 @@ onMounted(() => {
   position: relative;
   width: 100px;
   height: 100px;
-  border-radius: 50%;
+  border-radius: var(--radius-sm);
   overflow: hidden;
   background: var(--color-neutral-200);
   flex-shrink: 0;

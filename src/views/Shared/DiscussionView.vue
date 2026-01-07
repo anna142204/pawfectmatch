@@ -163,7 +163,7 @@ const getAnimalLabel = (conversation) => {
     </div>
 
     <div v-if="userType === 'adopter' && conversations.length > 0" class="matches-section">
-      <h2 class="section-title">Mes matchs</h2>
+      <h4 class="text-h4">Mes matchs</h4>
       <div class="matches-list">
         <div 
           v-for="match in conversations" 
@@ -186,7 +186,7 @@ const getAnimalLabel = (conversation) => {
     </div>
 
     <div v-if="userType === 'owner'" class="animals-section">
-      <h2 class="section-title">Conversations en lien avec</h2>
+      <h4 class="text-h4">Conversations en lien avec</h4>
       <div class="animals-list">
         <div 
           v-for="animal in animals" 
@@ -297,7 +297,6 @@ const getAnimalLabel = (conversation) => {
 .animals-section,
 .matches-section {
   padding: 0 0 0 30px;
-  margin-top: 20px;
 }
 
 .section-title {

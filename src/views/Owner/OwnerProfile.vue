@@ -337,7 +337,7 @@ const handleContact = () => {
 .animals-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  gap: 12px;
+  gap: 20px;
   margin-top: 5px;
 }
 
