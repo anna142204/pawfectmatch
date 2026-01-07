@@ -250,6 +250,35 @@ export async function updateMatch(req, res) {
   }
 }
 
+export async function finalizeAdoption(req, res) {
+  try {
+    const { id } = req.params;
+    
+    const match = await Match.findById(id).populate('animalId');
+    if (!match) return res.status(404).json({ error: 'Match not found' });
+    
+    if (match.status !== 'validé') {
+      return res.status(400).json({ error: 'Match must be validated before adoption' });
+    }
+    
+    match.status = 'adopté';
+    match.isActive = false;
+    await match.save();
+    
+    if (match.animalId) {
+      await Animal.findByIdAndUpdate(match.animalId._id, { availability: false });
+    }
+    
+    res.json({ 
+      message: 'Adoption finalized successfully',
+      match 
+    });
+  } catch (error) {
+    console.error('Finalize adoption error:', error);
+    res.status(500).json({ error: 'Failed to finalize adoption' });
+  }
+}
+
 export async function deleteMatch(req, res) {
   try {
     const { id } = req.params;
