@@ -20,7 +20,7 @@ const fetchOwners = async () => {
   try {
     const params = new URLSearchParams({
       page: currentPage.value,
-      limit: 5,
+      limit: 3,
       type: filterType.value === 'all' ? '' : filterType.value,
       search: searchQuery.value
     });

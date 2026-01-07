@@ -589,33 +589,6 @@ export const CAT_BREEDS = [
     'Autre / Croisé'
 ];
 
-export const NAC_BREEDS = [
-    'Chinchilla',
-    'Cochon d\'Inde (Cobaye)',
-    'Dègue du Chili (Octodon)',
-    'Écureuil de Corée',
-    'Furet',
-    'Gerbille',
-    'Hamster Chinois',
-    'Hamster de Campbell',
-    'Hamster Doré (Syrien)',
-    'Hamster Roborovski',
-    'Hamster Russe',
-    'Lapin Angora',
-    'Lapin Bélier',
-    'Lapin de Garenne',
-    'Lapin Géant des Flandres',
-    'Lapin Nain',
-    'Lapin Papillon',
-    'Lapin Polonais',
-    'Lapin Rex',
-    'Lapin Tête de Lion',
-    'Pétaure (Sugar Glider)',
-    'Rat Domestique',
-    'Souris Domestique',
-    'Autre'
-];
-
 export const RABBIT_BREEDS = [
     'Lapin Angora',
     'Lapin Bélier',

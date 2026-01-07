@@ -36,7 +36,6 @@ const menuItems = computed(() => {
         ]
     } else {
         return [
-            { name: 'accueil', icon: Home, route: '/owner' },
             { name: 'demandes', icon: ClipboardList, route: '/owner/requests' },
             { name: 'messages', icon: MessageCircle, route: '/owner/discussions' },
             { name: 'animaux', icon: PawPrint, route: '/owner/animals' },
@@ -88,7 +87,7 @@ const hasAdoptionBadge = computed(() => {
     width: 100%;
     max-width: 430px;
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(v-bind('menuItems.length'), 1fr);
     align-items: stretch;
     gap: 0;
     background-color: var(--color-neutral-white);

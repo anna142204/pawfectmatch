@@ -10,7 +10,7 @@ import ImageUploader from '@/components/ImageUploader.vue';
 import TagButton from '@/components/TagButton.vue';
 import ConfirmModal from '@/components/ConfirmModal.vue';
 
-import { SPECIES_OPTIONS, ENV_OPTIONS, SIZE_OPTIONS } from '@/constants/animalOptions';
+import { SPECIES_OPTIONS, ENV_OPTIONS, SIZE_OPTIONS, AGE_OPTIONS, WEIGHT_OPTIONS, SEX_OPTIONS, TRAINING_OPTIONS, PERSONALITY_OPTIONS } from '@/constants/animalOptions';
 
 const router = useRouter();
 const { success, error } = useToast();
@@ -34,7 +34,7 @@ const form = reactive({
     zip: '',
     about: '',
     image: null,
-    preferences: { species: [], environment: [], sizePreference: [] }
+    preferences: { species: [], environment: [], size: [], age: [], weight: [], sex: [], dressage: [], personality: [], maxPrice: null, maxDistance: null }
 });
 
 onMounted(async () => {
@@ -54,7 +54,14 @@ onMounted(async () => {
             preferences: {
                 species: data.preferences?.species || [],
                 environment: data.preferences?.environment || [],
-                sizePreference: data.preferences?.sizePreference || []
+                size: data.preferences?.size || [],
+                age: data.preferences?.age || [],
+                weight: data.preferences?.weight || [],
+                sex: data.preferences?.sex || [],
+                dressage: data.preferences?.dressage || [],
+                personality: data.preferences?.personality || [],
+                maxPrice: data.preferences?.maxPrice || null,
+                maxDistance: data.preferences?.maxDistance || null
             }
         });
     } catch (e) {
@@ -73,6 +80,12 @@ const toggleImageEdit = () => {
     if (!showImageUploader.value) newImageFile.value = null;
 };
 
+const handleDeleteImage = async () => {
+    newImageFile.value = null;
+    form.image = null;
+    showImageUploader.value = false;
+};
+
 const togglePref = (category, value) => {
     const list = form.preferences[category];
     const idx = list.indexOf(value);
@@ -85,12 +98,26 @@ const submitForm = async () => {
     isSaving.value = true;
     try {
         let finalImageUrl = form.image;
+
         if (newImageFile.value) {
             const formData = new FormData();
             formData.append('image', newImageFile.value);
-            const uploadRes = await fetch('/api/upload/image', { method: 'POST', body: formData, credentials: 'include' });
+            
+            const uploadRes = await fetch('/api/images/adopter', { 
+                method: 'POST', 
+                body: formData, 
+                credentials: 'include' 
+            });
+
             if (!uploadRes.ok) throw new Error("Erreur upload image");
-            finalImageUrl = (await uploadRes.json()).url;
+            
+            const uploadData = await uploadRes.json();
+            
+            if (uploadData.data && uploadData.data.url) {
+                finalImageUrl = uploadData.data.url;
+            } else if (uploadData.url) {
+                finalImageUrl = uploadData.url;
+            }
         }
 
         const payload = {
@@ -114,6 +141,7 @@ const submitForm = async () => {
         success('Profil mis à jour');
         router.push('/adopter/profile');
     } catch (e) {
+        console.error(e);
         error(e.message);
     } finally {
         isSaving.value = false;
@@ -155,17 +183,20 @@ const handleDelete = async () => {
             <div class="section photo-section-container">
                 <h3 class="text-h4 text-neutral-800 mb-4">Ma photo</h3>
                 <div class="photo-wrapper">
-                    <div v-if="!showImageUploader" class="current-photo-view">
+                    <div v-if="form.image && !showImageUploader" class="current-photo-view">
                         <div class="current-image">
-                            <img :src="form.image || '/default-avatar.png'" class="preview-img" />
+                            <img :src="form.image" class="preview-img" />
                         </div>
                         <Button type="button" variant="secondary" size="sm" @click="toggleImageEdit">
                             <Camera :size="16" style="margin-right: 8px" /> Modifier la photo
                         </Button>
+                        <Button type="button" variant="danger" size="sm" @click="handleDeleteImage">
+                            <Trash2 :size="16" style="margin-right: 8px" /> Supprimer la photo
+                        </Button>
                     </div>
                     <div v-else class="upload-mode-view">
                         <ImageUploader @filesSelected="handleImageSelect" :max="1" :multiple="false" />
-                        <button type="button" class="cancel-link" @click="toggleImageEdit">Annuler</button>
+                        <button v-if="form.image" type="button" class="cancel-link" @click="toggleImageEdit">Annuler</button>
                     </div>
                 </div>
             </div>
@@ -201,6 +232,7 @@ const handleDelete = async () => {
             <div class="section">
                 <h3 class="text-h4 text-neutral-800 mb-4">Mes préférences</h3>
 
+                
                 <div class="pref-group">
                     <label class="label sub-label">Espèces recherchées</label>
                     <div class="tags-container">
@@ -210,6 +242,41 @@ const handleDelete = async () => {
                 </div>
 
                 <div class="pref-group">
+                    <label class="label sub-label">Taille préférée</label>
+                    <div class="tags-container">
+                        <TagButton v-for="opt in SIZE_OPTIONS" :key="opt.value" :label="opt.label"
+                            :selected="hasPref('size', opt.value)"
+                            @toggle="togglePref('size', opt.value)" />
+                    </div>
+                </div>
+
+                <div class="pref-group">
+                    <label class="label sub-label">Âge préféré</label>
+                    <div class="tags-container">
+                        <TagButton v-for="opt in AGE_OPTIONS" :key="opt.value" :label="opt.label"
+                            :selected="hasPref('age', opt.value)"
+                            @toggle="togglePref('age', opt.value)" />
+                    </div>
+                </div>
+
+                <div class="pref-group">
+                    <label class="label sub-label">Poids préféré</label>
+                    <div class="tags-container">
+                        <TagButton v-for="opt in WEIGHT_OPTIONS" :key="opt.value" :label="opt.label"
+                            :selected="hasPref('weight', opt.value)"
+                            @toggle="togglePref('weight', opt.value)" />
+                    </div>
+                </div>
+
+                <div class="pref-group ">
+                    <label class="label sub-label">Sexe préféré</label>
+                    <div class="tags-container">
+                        <TagButton v-for="opt in SEX_OPTIONS" :key="opt.value" :label="opt.label"
+                            :selected="hasPref('sex', opt.value)"
+                            @toggle="togglePref('sex', opt.value)" />
+                    </div>
+                </div>
+<div class="pref-group">
                     <label class="label sub-label">Mon environnement</label>
                     <div class="tags-container">
                         <TagButton v-for="opt in ENV_OPTIONS" :key="opt.value" :label="opt.label"
@@ -218,12 +285,32 @@ const handleDelete = async () => {
                     </div>
                 </div>
 
-                <div class="pref-group last-group">
-                    <label class="label sub-label">Taille préférée</label>
+                <div class="pref-group">
+                    <label class="label sub-label">Dressage</label>
                     <div class="tags-container">
-                        <TagButton v-for="opt in SIZE_OPTIONS" :key="opt.value" :label="opt.label"
-                            :selected="hasPref('sizePreference', opt.value)"
-                            @toggle="togglePref('sizePreference', opt.value)" />
+                        <TagButton v-for="opt in TRAINING_OPTIONS" :key="opt.value" :label="opt.label"
+                            :selected="hasPref('dressage', opt.value)"
+                            @toggle="togglePref('dressage', opt.value)" />
+                    </div>
+                </div>
+
+                <div class="pref-group">
+                    <label class="label sub-label">Personnalité</label>
+                    <div class="tags-container">
+                        <TagButton v-for="opt in PERSONALITY_OPTIONS" :key="opt.value" :label="opt.label"
+                            :selected="hasPref('personality', opt.value)"
+                            @toggle="togglePref('personality', opt.value)" />
+                    </div>
+                </div>
+
+                <div class="pref-group-row last-group">
+                    <div class="pref-group-col">
+                        <label class="label sub-label">Budget max (CHF)</label>
+                        <div class="input-wrapper"><Input v-model="form.preferences.maxPrice" type="number" /></div>
+                    </div>
+                    <div class="pref-group-col">
+                        <label class="label sub-label">Distance max (km)</label>
+                        <div class="input-wrapper"><Input v-model="form.preferences.maxDistance" type="number" /></div>
                     </div>
                 </div>
             </div>
@@ -367,7 +454,7 @@ const handleDelete = async () => {
 }
 
 .input-wrapper {
-    width: 100%;
+    width: 80%;
 }
 
 :deep(.input-root),
@@ -421,8 +508,19 @@ const handleDelete = async () => {
     margin-bottom: 25px;
 }
 
+.pref-group-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 25px;
+}
+
+.pref-group-col {
+    flex: 1;
+}
+
 .last-group {
     margin-bottom: 0;
+    margin-top: 10px;
 }
 
 .sub-label {

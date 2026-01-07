@@ -1,8 +1,7 @@
 <script setup>
 import { ref, computed, onUnmounted } from 'vue';
-import {Upload, CircleX } from 'lucide-vue-next';
+import { Upload, X, Trash2 } from 'lucide-vue-next';
 
-// Props pour la flexibilité
 const props = defineProps({
   multiple: {
     type: Boolean,
@@ -23,8 +22,6 @@ const error = ref('');
 const hasFiles = computed(() => selectedFiles.value.length > 0);
 const fileCount = computed(() => selectedFiles.value.length);
 
-// On ne peut plus uploader si on est en mode simple et qu'on a déjà une photo, 
-// ou si on a atteint la limite max
 const canUploadMore = computed(() => {
   if (!props.multiple && selectedFiles.value.length >= 1) return false;
   return selectedFiles.value.length < props.max;
@@ -34,9 +31,7 @@ const handleFileSelect = (e) => {
   const files = Array.from(e.target.files || []);
   if (files.length === 0) return;
 
-  // Si mode profil, on ne prend que le premier fichier
   const filesToProcess = props.multiple ? files : [files[0]];
-
   const validFiles = [];
   const errors = [];
   const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
@@ -46,27 +41,21 @@ const handleFileSelect = (e) => {
       errors.push("Limite de photos atteinte");
       break;
     }
-
     if (!file.type.startsWith('image/')) {
       errors.push(`${file.name}: n'est pas une image`);
       continue;
     }
-
     if (file.size > 5 * 1024 * 1024) {
       errors.push(`${file.name}: dépasse 5MB`);
       continue;
     }
-
     if (!allowedTypes.includes(file.type)) {
       errors.push(`${file.name}: format non supporté`);
       continue;
     }
-
-    // Si on est en mode photo unique, on vide l'existant avant de remplacer
     if (!props.multiple) {
       clearAll();
     }
-
     const fileWithPreview = {
       file,
       preview: URL.createObjectURL(file),
@@ -112,37 +101,49 @@ const triggerFileInput = () => {
 
 <template>
   <div class="image-uploader">
-    <div v-if="canUploadMore" class="upload-zone" :class="{ 'profile-mode': !multiple }" @click="triggerFileInput">
-      <input ref="fileInput" type="file" :multiple="multiple"
-        accept="image/jpeg,image/jpg,image/png,image/webp,image/gif" @change="handleFileSelect" hidden />
+    <input ref="fileInput" type="file" :multiple="multiple"
+      accept="image/jpeg,image/jpg,image/png,image/webp,image/gif" @change="handleFileSelect" hidden />
 
+    <div v-if="canUploadMore" class="upload-zone" :class="{ 'profile-mode': !multiple }" @click="triggerFileInput">
       <Upload :size="40" :stroke-width="1.5" class="upload-icon" />
       <p class="upload-text">
-        {{ multiple ? 'Cliquez ou glissez des images' : 'Cliquez pour ajouter une photo de profil (optionnel)' }}
+        {{ multiple ? 'Cliquez ou glissez des images' : 'Cliquez pour ajouter une photo de profil' }}
       </p>
-      <p class="upload-hint">JPG, PNG, WebP, GIF (max 5MB par image)</p>
+      <p class="upload-hint" v-if="multiple">JPG, PNG, WebP, GIF (max 5MB)</p>
     </div>
 
     <div v-if="error" class="error-message">{{ error }}</div>
 
-    <div v-if="hasFiles" class="preview-section">
-      <div class="preview-header">
-        <span class="preview-title" v-if="multiple">
-          {{ fileCount }} image{{ fileCount > 1 ? 's' : '' }} sélectionnée{{ fileCount > 1 ? 's' : '' }}
+    <div v-if="hasFiles" class="preview-section" :class="{ 'is-profile-mode': !multiple }">
+      
+      <div class="preview-header" v-if="multiple">
+        <span class="preview-title">
+          {{ fileCount }} image{{ fileCount > 1 ? 's' : '' }}
         </span>
-
         <button type="button" @click="clearAll" class="clear-all-btn">
-          {{ multiple ? 'Tout supprimer' : 'Supprimer' }}
+          <Trash2 :size="16" /> Tout supprimer
         </button>
       </div>
 
       <div class="preview-grid" :class="{ 'is-profile': !multiple }">
         <div v-for="fileItem in selectedFiles" :key="fileItem.id" class="preview-item">
-          <img :src="fileItem.preview" :alt="fileItem.file.name" class="preview-image" /> 
-            <CircleX size="30px" @click.stop="removeFile(fileItem.id)" class="remove-preview-btn"/>
+          
+          <img 
+            :src="fileItem.preview" 
+            :alt="fileItem.file.name" 
+            class="preview-image" 
+            :class="{ 'clickable': !multiple }"
+            @click="!multiple ? triggerFileInput() : null"
+          /> 
+          
+          <button type="button" @click.stop="removeFile(fileItem.id)" class="remove-preview-btn">
+            <X :size="16" stroke-width="2.5" />
+          </button>
+
           <p v-if="multiple" class="file-name">{{ fileItem.file.name }}</p>
         </div>
       </div>
+
     </div>
   </div>
 </template>
@@ -155,7 +156,6 @@ const triggerFileInput = () => {
   width: 100%;
 }
 
-/* Zone d'upload avec votre style d'origine */
 .upload-zone {
   border: 2px dashed var(--color-primary-300);
   border-radius: var(--radius-lg);
@@ -176,7 +176,6 @@ const triggerFileInput = () => {
   background: var(--color-primary-100, #ede9fe);
 }
 
-/* Style spécifique pour le mode photo de profil ronde */
 .upload-zone.profile-mode {
   border-radius: 50%;
   width: 100px;
@@ -203,6 +202,7 @@ const triggerFileInput = () => {
   font-weight: 500;
   color: var(--color-neutral-900);
   margin: 0;
+  text-align: center;
 }
 
 .upload-hint {
@@ -239,6 +239,7 @@ const triggerFileInput = () => {
   color: var(--color-neutral-900);
 }
 
+/* CORRECTION ALIGNEMENT TRASH */
 .clear-all-btn {
   background: transparent;
   border: none;
@@ -246,12 +247,18 @@ const triggerFileInput = () => {
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px; /* Espace entre icône et texte */
 }
 
 .preview-grid {
   display: flex;
   flex-wrap: wrap;
   gap: var(--spacing-3);
+  /* Padding pour éviter que les boutons "X" ne soient coupés */
+  padding: 10px;
+  margin: -10px;
 }
 
 .preview-grid.is-profile {
@@ -266,7 +273,6 @@ const triggerFileInput = () => {
   gap: 4px;
 }
 
-/* Photo de profil plus grande et ronde */
 .preview-grid.is-profile .preview-item {
   width: 150px;
 }
@@ -284,21 +290,41 @@ const triggerFileInput = () => {
   border: 3px solid var(--color-primary-600);
 }
 
+/* CORRECTION DU BOUTON X */
 .remove-preview-btn {
   position: absolute;
-  top: -5px;
-  right: -5px;
-  width: 24px;
-  height: 24px;
+  top: -8px;
+  right: -8px;
+  width: 26px; /* Taille du bouton */
+  height: 26px;
   border-radius: 50%;
+  
+  /* Fond BLANC, Bordure VIOLETTE */
   background: white;
-  color:  var(--color-primary-600);
+  border: 1px solid var(--color-primary-600);
+  color: var(--color-primary-600); /* Icône violette */
+  
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 10;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  padding: 0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.remove-preview-btn:hover {
+  background-color: var(--color-primary-50);
+}
+
+.cancel-profile-link {
+  background: none;
+  border: none;
+  text-decoration: underline;
+  color: var(--color-neutral-500);
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 4px;
 }
 
 .file-name {

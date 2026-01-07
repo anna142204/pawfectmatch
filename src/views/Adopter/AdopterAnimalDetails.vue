@@ -49,6 +49,19 @@ const charColumns = computed(() => {
   return [chars.slice(0, mid), chars.slice(mid)];
 });
 
+const characteristicsByCategory = computed(() => {
+  if (!animal.value || !animal.value.characteristics) {
+    return { environment: [], dressage: [], personality: [] };
+  }
+  
+  const chars = animal.value.characteristics;
+  return {
+    environment: chars.environment || [],
+    dressage: chars.dressage || [],
+    personality: chars.personality || []
+  };
+});
+
 const ownerName = computed(() => {
   const o = animal.value?.ownerId;
   if (!o) return '';
@@ -105,6 +118,8 @@ const formatPrice = (price) => {
                 <Venus size="20" v-else />
               </div>
             </div>
+            
+            <p v-if="animal.race" class="animal-race">{{ animal.race }}</p>
 
             <div class="tags">
               <span class="tag">
@@ -134,12 +149,16 @@ const formatPrice = (price) => {
 
         <div class="stats-section">
           <div class="stat-item">
-            <p class="stat-label">Race</p>
-            <p class="stat-value">{{ animal.race }}</p>
-          </div>
-          <div class="stat-item">
             <p class="stat-label">Âge</p>
             <p class="stat-value">{{ animal.age }}</p>
+          </div>
+          <div class="stat-item">
+            <p class="stat-label">Taille</p>
+            <p class="stat-value">{{ animal.size || '-' }}</p>
+          </div>
+          <div class="stat-item">
+            <p class="stat-label">Poids</p>
+            <p class="stat-value">{{ animal.weight || '-' }}</p>
           </div>
           <div class="stat-item">
             <p class="stat-label">Prix</p>
@@ -147,20 +166,40 @@ const formatPrice = (price) => {
           </div>
         </div>
 
-        <section class="characteristics-section">
-          <h2 class="section-title">Caractéristiques</h2>
-          <div class="chars">
-            <div class="char-col" v-for="(col, idx) in charColumns" :key="idx">
-              <ul>
-                <li v-for="(c, i) in col" :key="i"><span class="bullet"></span>{{ c }}</li>
-              </ul>
-            </div>
-          </div>
-        </section>
-
         <section class="description-section">
           <h2 class="section-title">Description</h2>
           <p class="description-text">{{ animal.description }}</p>
+        </section>
+
+        <section class="characteristics-section">
+          <h2 class="section-title">Caractéristiques</h2>
+          
+          <div v-if="characteristicsByCategory.environment.length > 0" class="characteristic-group">
+            <h3 class="category-title">Environnement</h3>
+            <div class="tags-list">
+              <span v-for="item in characteristicsByCategory.environment" :key="item" class="char-tag">
+                {{ item }}
+              </span>
+            </div>
+          </div>
+
+          <div v-if="characteristicsByCategory.dressage.length > 0" class="characteristic-group">
+            <h3 class="category-title">Dressage</h3>
+            <div class="tags-list">
+              <span v-for="item in characteristicsByCategory.dressage" :key="item" class="char-tag">
+                {{ item }}
+              </span>
+            </div>
+          </div>
+
+          <div v-if="characteristicsByCategory.personality.length > 0" class="characteristic-group">
+            <h3 class="category-title">Personnalité</h3>
+            <div class="tags-list">
+              <span v-for="item in characteristicsByCategory.personality" :key="item" class="char-tag">
+                {{ item }}
+              </span>
+            </div>
+          </div>
         </section>
 
         <div class="fav-btn-row">
@@ -254,7 +293,7 @@ const formatPrice = (price) => {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 25px 40px;
+  padding: 25px 30px;
   background: white;
   margin-top: -60px;
   border-radius: 20px 20px 0 0;
@@ -289,7 +328,7 @@ const formatPrice = (price) => {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 8px;
+  margin-bottom: 5px;
   flex-wrap: wrap;
 }
 
@@ -300,6 +339,13 @@ const formatPrice = (price) => {
   color: #1a1a1a;
   line-height: 1.2;
   word-break: break-word;
+}
+
+.animal-race {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
 }
 
 .owner-name-text {
@@ -368,7 +414,7 @@ const formatPrice = (price) => {
 
 .stats-section {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
   gap: 16px;
   text-align: center;
   padding: 25px 0;
@@ -406,47 +452,46 @@ const formatPrice = (price) => {
 .characteristics-section {
   display: flex;
   flex-direction: column;
-  padding-top: 15px;
-  gap: 12px;
-}
-
-.chars {
-  display: flex;
+  padding: 15px 0;
   gap: 16px;
-  padding: 12px 0;
 }
 
-.char-col {
-  flex: 1;
-}
-
-.char-col ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.char-col li {
+.characteristic-group {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 8px;
-  padding: 6px 0;
-  color: #555;
-  font-size: 14px;
 }
 
-.bullet {
-  width: 10px;
-  height: 10px;
-  background: var(--color-accent-600);
-  border-radius: 50%;
-  flex-shrink: 0;
+.category-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tags-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.char-tag {
+  display: inline-block;
+  padding: 6px 12px;
+  background-color: var(--color-primary-100);
+  color: var(--color-primary-700);
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: 500;
 }
 
 .description-section {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  padding-top: 15px;
 }
 
 .description-text {
