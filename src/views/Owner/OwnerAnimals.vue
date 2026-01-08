@@ -46,9 +46,10 @@ onMounted(async () => {
 const fetchAnimals = async () => {
   loading.value = true;
   try {
-    const response = await fetch(`/api/animals?ownerId=${ownerId.value}`, {
-      credentials: 'include'
-    });
+    const response = await fetch(
+      `/api/animals?ownerId=${ownerId.value}`,
+      getAuthFetchOptions()
+    );
 
     if (!response.ok) {
       throw new Error('Erreur lors de la récupération des animaux');
@@ -74,31 +75,6 @@ const editAnimal = (animalId) => {
   router.push('/owner/animal/edit/' + animalId);
 };
 
-const deleteAnimal = async (animal) => {
-  if (!confirm(`Êtes-vous sûr de vouloir supprimer ${animal.name} ?`)) {
-    return;
-  }
-
-  try {
-    const response = await fetch(`/api/animals/${animal._id}`, {
-      method: 'DELETE',
-      credentials: 'include'
-    });
-
-    if (!response.ok) {
-      throw new Error('Erreur lors de la suppression');
-    }
-
-    success(`${animal.name} a été supprimé avec succès`);
-    await fetchAnimals();
-  } catch (err) {
-    error(err.message || 'Impossible de supprimer l\'animal');
-  }
-};
-
-const getAvailabilityText = (available) => available ? 'Disponible' : 'Adopté';
-
-const getAvailabilityClass = (available) => available ? 'available' : 'adopted';
 
 const selectCategory = (categoryId) => {
   if (selectedCategory.value === categoryId) {
@@ -115,9 +91,9 @@ const isCategorySelected = (categoryId) => {
 
  <template>
   <div class="owner-animals-page">
-    <div class="page-header">
+    <header class="header">
       <h1 class="text-h1">Animaux</h1>
-    </div>
+    </header>
 
     <div class="page-content">
       <section class="categories-section">
@@ -183,11 +159,6 @@ const isCategorySelected = (categoryId) => {
   display: flex;
   flex-direction: column;
   padding-bottom: 80px;
-}
-
-.page-header {
-  padding-top: max(16px, env(safe-area-inset-top)); 
-  padding-bottom: 16px;
 }
 
 .page-title {
@@ -379,20 +350,22 @@ const isCategorySelected = (categoryId) => {
   margin: 0;
 }
 
-/* Bouton flottant */
 .floating-add-button {
   position: fixed;
   bottom: 96px;
-  left: 0;
-  right: 0;
+  z-index: 90;
+  width: 100%;
+  max-width: 430px;
+  left: 50%;
+  transform: translateX(-50%);
   padding: var(--spacing-4) var(--spacing-6);
-  z-index: 100;
-  pointer-events: none;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  pointer-events: auto; 
 }
 
 .btn-add-animal {
-  width: 100%;
-  pointer-events: auto;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 

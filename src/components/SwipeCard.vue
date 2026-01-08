@@ -164,7 +164,6 @@ const handleMouseUp = () => {
 <style scoped>
 .swipe-card {
   position: absolute;
-  width: 100%;
   height: 100%;
   background: var(--color-neutral-900);
   border-radius: var(--radius-2xl);
@@ -174,6 +173,8 @@ const handleMouseUp = () => {
   user-select: none;
   transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
   position: relative;
+  width: calc(100% - 32px);
+  max-width: 400px;
 }
 
 .swipe-card:active {

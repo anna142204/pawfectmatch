@@ -147,7 +147,7 @@ onMounted(fetchRequests);
 <template>
     <div class="page-container bg-gray-50">
         <div class="sticky-header">
-            <h1 class="page-title text-h1">Demandes</h1>
+            <h1 class="text-h1">Demandes</h1>
             <div class="tabs-container">
                 <button class="tab-btn" :class="{ active: activeTab === 'pending' }" @click="activeTab = 'pending'">
                     En attente <span class="badge-count" v-if="pendingRequests.length">{{ pendingRequests.length
@@ -291,7 +291,7 @@ onMounted(fetchRequests);
                             <p class="subtitle">Adopté le {{ formatDate(req.updatedAt) }}</p>
                         </div>
                         <button @click.stop="goToDiscussion(req._id)" class="chat-btn secondary">
-                            <MessageCircleIcon size="25" />
+                            <MessageCircleIcon size="20" />
                         </button>
                     </div>
                 </div>
@@ -355,7 +355,7 @@ onMounted(fetchRequests);
     left: 0;
     right: 0;
     z-index: 10;
-   padding-top: max(16px, env(safe-area-inset-top)); 
+   padding-top: max(5px, env(safe-area-inset-top)); 
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
 }
 
@@ -605,7 +605,7 @@ onMounted(fetchRequests);
 
 .chat-btn.secondary {
     background: white;
-    border: 1px solid var(--color-primary-100);
+    border: 1px solid var(--color-neutral-100);
 }
 
 .history-wrapper {

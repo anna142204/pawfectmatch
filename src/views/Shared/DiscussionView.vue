@@ -314,14 +314,6 @@ const getAnimalLabel = (conversation) => {
   padding-bottom: 120px;
 }
 
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding-top: max(16px, env(safe-area-inset-top)); 
-  padding-bottom: 16px;
-  width: 100%;
-}
 
 .main-title {
   font-family: var(--font-family);

@@ -397,7 +397,7 @@ const handleDelete = async () => {
 
 .section {
     background: white;
-    padding: 0 20px 20px 20px;
+    padding: 20px;
     border-radius: 16px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
     width: 100%;
@@ -618,14 +618,17 @@ const handleDelete = async () => {
 .actions {
     position: fixed;
     bottom: 0;
-    left: 0;
-    right: 0;
-    padding: 20px;
+    z-index: 50;
     background: white;
     border-top: 1px solid #eee;
-    z-index: 50;
+    padding: 20px;
     display: flex;
     justify-content: center;
+    width: 100%;
+    max-width: 430px;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    box-sizing: border-box;
 }
 
 .save-btn {

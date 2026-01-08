@@ -101,9 +101,6 @@ const handleContact = () => router.push({ name: 'OwnerDiscussions', query: { ado
 
 <template>
   <div class="profile-page">
-    <div v-if="!isSelfView">
-      <BackButton variant="overlay" />
-    </div>
 
     <div v-if="loading" class="loading">
       <p>Chargement...</p>
@@ -112,13 +109,19 @@ const handleContact = () => router.push({ name: 'OwnerDiscussions', query: { ado
       <p>{{ error }}</p>
     </div>
 
-    <div v-else-if="user" class="profile-wrapper">
-      <div class="photo-section">
-        <img v-if="user.image" :src="user.image" alt="Photo de profil" class="profile-image-full">
-        <div v-else class="photo-placeholder">
-          <p>Pas de photo de profil</p>
-        </div>
-      </div>
+<div v-else-if="user" class="profile-wrapper">
+  
+  <div class="photo-section">
+    <BackButton 
+      v-if="!isSelfView" 
+      variant="overlay" 
+    />
+
+    <img v-if="user.image" :src="user.image" alt="Photo de profil" class="profile-image-full">
+    <div v-else class="photo-placeholder">
+      <p>Pas de photo de profil</p>
+    </div>
+  </div>
 
       <div class="content-section">
         <div class="profile-header">
@@ -342,6 +345,7 @@ const handleContact = () => router.push({ name: 'OwnerDiscussions', query: { ado
   gap: 12px;
   position: relative; 
 }
+
 
 .header-left {
   width: 70%; 

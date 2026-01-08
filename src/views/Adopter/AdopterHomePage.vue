@@ -73,7 +73,7 @@ onMounted(() => {
 
 <template>
   <div class="home-page">
-    <header class="home-header">
+    <header class="header">
       <h1 class="text-h1">Découvrir</h1>
     </header>
 
@@ -150,10 +150,7 @@ onMounted(() => {
   margin: 0 auto;
   min-height: 100vh;
 }
-.home-header {
-  padding-top: max(16px, env(safe-area-inset-top)); 
-  padding-bottom: 16px;
-}
+
 .subtitle {
   color: var(--color-neutral-500);
   font-size: 16px;

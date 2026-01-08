@@ -10,7 +10,7 @@ body {
   overscroll-behavior-y: contain;
   touch-action: pan-y;
   font-family: var(--font-family);
-  background-color: var(--color-primary-50);
+  background-color: var(--color-neutral-black);
 }
 
 #app {
@@ -19,6 +19,14 @@ body {
   margin: 0 auto;
   background-color: var(--color-primary-50);
   box-shadow: var(--shadow-xl);
+}
+
+.header {
+  flex-shrink: 0;
+  padding-top: max(5px, env(safe-area-inset-top)); 
+  text-align: center;
+  z-index: 10;
+  padding-bottom: 10px;
 }
 
 button,

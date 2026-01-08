@@ -130,7 +130,7 @@ const handleCardClick = (animal) => {
 <template>
   <div class="viewport">
     <header class="header">
-      <h1 class="title text-h1">Swipe</h1>
+      <h1 class="text-h1">Swipe</h1>
     </header>
 
     <main class="main-content">
@@ -177,20 +177,13 @@ const handleCardClick = (animal) => {
   overflow: hidden;
 }
 
-.header {
-  flex-shrink: 0;
-  padding: 0;
-  padding-top: max(16px, env(safe-area-inset-top)); 
-  text-align: center;
-  z-index: 10;
-}
+
 
 .main-content {
   flex: 1;
   display: flex;
   flex-direction: column;
   position: relative;
-  width: 100%;
   padding-bottom: calc(80px + 16px + env(safe-area-inset-bottom));
   padding-left: 16px;
   padding-right: 16px;
@@ -198,12 +191,12 @@ const handleCardClick = (animal) => {
 }
 
 .cards-area {
-  width: 100%;
   height: 100%;
   position: relative;
   display: flex;
   justify-content: center;
   align-items: flex-start;
+  overflow: hidden;
 }
 
 :deep(.swipe-card), .card-instance {
