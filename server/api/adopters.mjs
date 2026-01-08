@@ -111,7 +111,7 @@ export async function getAdopters(req, res) {
     });
   } catch (error) {
     console.error('Get adopters error:', error);
-    res.status(500).json({ error: 'Failed to fetch adopters' });
+    res.status(500).json({ error: 'Échec de la récupération des adopteurs' });
   }
 }
 
@@ -122,13 +122,13 @@ export async function getAdopterById(req, res) {
     const adopter = await Adopter.findById(id);
 
     if (!adopter) {
-      return res.status(404).json({ error: 'Adopter not found' });
+      return res.status(404).json({ error: 'Adopteur introuvable' });
     }
 
     res.json(adopter);
   } catch (error) {
     console.error('Get adopter by id error:', error);
-    res.status(500).json({ error: 'Failed to fetch adopter' });
+    res.status(500).json({ error: 'Échec de la récupération de l\'adopteur' });
   }
 }
 
@@ -164,16 +164,28 @@ export async function updateAdopter(req, res) {
     );
 
     if (!adopter) {
-      return res.status(404).json({ error: 'Adopter not found' });
+      return res.status(404).json({ error: 'Adopteur introuvable' });
     }
 
     res.json({
-      message: 'Adopter updated successfully',
+      message: 'Adopteur mis à jour avec succès',
       adopter
     });
   } catch (error) {
     console.error('Update adopter error:', error);
-    res.status(500).json({ error: 'Failed to update adopter' });
+    
+    // Retourner le détail de l'erreur de validation
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ 
+        error: 'Erreur de validation', 
+        details: error.message 
+      });
+    }
+    
+    res.status(500).json({ 
+      error: 'Échec de la mise à jour de l\'adopteur',
+      details: error.message 
+    });
   }
 }
 
@@ -184,12 +196,12 @@ export async function deleteAdopter(req, res) {
     const adopter = await Adopter.findByIdAndDelete(id);
 
     if (!adopter) {
-      return res.status(404).json({ error: 'Adopter not found' });
+      return res.status(404).json({ error: 'Adopteur introuvable' });
     }
 
-    res.json({ message: 'Adopter deleted successfully' });
+    res.json({ message: 'Adopteur supprimé avec succès' });
   } catch (error) {
     console.error('Delete adopter error:', error);
-    res.status(500).json({ error: 'Failed to delete adopter' });
+    res.status(500).json({ error: 'Échec de la suppression de l\'adopteur' });
   }
 }

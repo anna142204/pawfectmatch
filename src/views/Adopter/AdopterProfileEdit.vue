@@ -103,17 +103,17 @@ const submitForm = async () => {
         if (newImageFile.value) {
             const formData = new FormData();
             formData.append('image', newImageFile.value);
-            
-            const uploadRes = await fetch('/api/images/adopter', { 
-                method: 'POST', 
-                body: formData, 
-                credentials: 'include' 
+
+            const uploadRes = await fetch('/api/images/adopter', {
+                method: 'POST',
+                body: formData,
+                credentials: 'include'
             });
 
             if (!uploadRes.ok) throw new Error("Erreur upload image");
-            
+
             const uploadData = await uploadRes.json();
-            
+
             if (uploadData.data && uploadData.data.url) {
                 finalImageUrl = uploadData.data.url;
             } else if (uploadData.url) {
@@ -139,7 +139,11 @@ const submitForm = async () => {
             })
         );
 
-        if (!res.ok) throw new Error('Erreur sauvegarde');
+        if (!res.ok) {
+            const errorData = await res.json().catch(() => ({}));
+            console.error('Server error:', errorData);
+            throw new Error(errorData.error || 'Erreur sauvegarde');
+        }
         success('Profil mis à jour');
         router.push('/adopter/profile');
     } catch (e) {
@@ -201,7 +205,8 @@ const handleDelete = async () => {
                     </div>
                     <div v-else class="upload-mode-view">
                         <ImageUploader @filesSelected="handleImageSelect" :max="1" :multiple="false" />
-                        <button v-if="form.image" type="button" class="cancel-link" @click="toggleImageEdit">Annuler</button>
+                        <button v-if="form.image" type="button" class="cancel-link"
+                            @click="toggleImageEdit">Annuler</button>
                     </div>
                 </div>
             </div>
@@ -237,7 +242,7 @@ const handleDelete = async () => {
             <div class="section">
                 <h3 class="text-h4 text-neutral-800 mb-4">Mes préférences</h3>
 
-                
+
                 <div class="pref-group">
                     <label class="label sub-label">Espèces recherchées</label>
                     <div class="tags-container">
@@ -250,8 +255,7 @@ const handleDelete = async () => {
                     <label class="label sub-label">Taille préférée</label>
                     <div class="tags-container">
                         <TagButton v-for="opt in SIZE_OPTIONS" :key="opt.value" :label="opt.label"
-                            :selected="hasPref('size', opt.value)"
-                            @toggle="togglePref('size', opt.value)" />
+                            :selected="hasPref('size', opt.value)" @toggle="togglePref('size', opt.value)" />
                     </div>
                 </div>
 
@@ -259,8 +263,7 @@ const handleDelete = async () => {
                     <label class="label sub-label">Âge préféré</label>
                     <div class="tags-container">
                         <TagButton v-for="opt in AGE_OPTIONS" :key="opt.value" :label="opt.label"
-                            :selected="hasPref('age', opt.value)"
-                            @toggle="togglePref('age', opt.value)" />
+                            :selected="hasPref('age', opt.value)" @toggle="togglePref('age', opt.value)" />
                     </div>
                 </div>
 
@@ -268,8 +271,7 @@ const handleDelete = async () => {
                     <label class="label sub-label">Poids préféré</label>
                     <div class="tags-container">
                         <TagButton v-for="opt in WEIGHT_OPTIONS" :key="opt.value" :label="opt.label"
-                            :selected="hasPref('weight', opt.value)"
-                            @toggle="togglePref('weight', opt.value)" />
+                            :selected="hasPref('weight', opt.value)" @toggle="togglePref('weight', opt.value)" />
                     </div>
                 </div>
 
@@ -277,11 +279,10 @@ const handleDelete = async () => {
                     <label class="label sub-label">Sexe préféré</label>
                     <div class="tags-container">
                         <TagButton v-for="opt in SEX_OPTIONS" :key="opt.value" :label="opt.label"
-                            :selected="hasPref('sex', opt.value)"
-                            @toggle="togglePref('sex', opt.value)" />
+                            :selected="hasPref('sex', opt.value)" @toggle="togglePref('sex', opt.value)" />
                     </div>
                 </div>
-<div class="pref-group">
+                <div class="pref-group">
                     <label class="label sub-label">Mon environnement</label>
                     <div class="tags-container">
                         <TagButton v-for="opt in ENV_OPTIONS" :key="opt.value" :label="opt.label"
@@ -294,8 +295,7 @@ const handleDelete = async () => {
                     <label class="label sub-label">Dressage</label>
                     <div class="tags-container">
                         <TagButton v-for="opt in TRAINING_OPTIONS" :key="opt.value" :label="opt.label"
-                            :selected="hasPref('dressage', opt.value)"
-                            @toggle="togglePref('dressage', opt.value)" />
+                            :selected="hasPref('dressage', opt.value)" @toggle="togglePref('dressage', opt.value)" />
                     </div>
                 </div>
 
@@ -489,7 +489,7 @@ const handleDelete = async () => {
     max-width: 100%;
 }
 
-.form-age{
+.form-age {
     max-width: 40%;
 }
 

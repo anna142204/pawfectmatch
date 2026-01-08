@@ -25,6 +25,7 @@ const categories = [
   { id: 'chien', label: 'Chiens', image: dogImg },
   { id: 'chat', label: 'Chats', image: catImg },
   { id: 'lapin', label: 'Lapins', image: rodentImg },
+  { id: 'rongeur', label: 'Rongeurs', image: rodentImg },
   { id: 'oiseau', label: 'Oiseaux', image: birdImg },
   { id: 'autre', label: 'Autres', image: otherImg }
 ];
@@ -340,7 +341,6 @@ const isCategorySelected = (categoryId) => {
   transform: scale(0.9);
 }
 
-/* État vide */
 .empty-message {
   padding: var(--spacing-12) 0;
   text-align: center;

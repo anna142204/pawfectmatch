@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
 import Button from '@/components/Button.vue'
@@ -9,7 +9,6 @@ import dogImg from '@/assets/images/dog.webp'
 import catImg from '@/assets/images/cat.webp'
 import birdImg from '@/assets/images/bird.webp'
 import rodentImg from '@/assets/images/rodent.webp'
-import fishImg from '@/assets/images/fish.webp'
 import otherImg from '@/assets/images/other.webp'
 
 const router = useRouter()
@@ -23,19 +22,21 @@ const form = ref({
   species: [],
   size: [],
   age: [],
+  weight: [],
   sex: [],
   environment: [],
   dressage: [],
   personality: [],
+  maxPrice: null,
+  maxDistance: null,
 })
 
 const animalOptions = [
   { label: 'Chiens', value: 'chien', image: dogImg },
   { label: 'Chats', value: 'chat', image: catImg },
+  { label: 'Lapins', value: 'lapin', image: rodentImg },
   { label: 'Rongeurs', value: 'rongeur', image: rodentImg },
   { label: 'Oiseaux', value: 'oiseau', image: birdImg },
-  // Ton modèle Animal a "autre" + "lapin" mais tu n’as pas d’image lapin; tu peux adapter plus tard.
-  { label: 'Poissons', value: 'poisson', image: fishImg }, // ok côté adopter (string libre), mais tes animaux actuels n’ont pas "poisson"
   { label: 'Autres', value: 'autre', image: otherImg },
 ]
 
@@ -55,6 +56,14 @@ const ageOptions = [
 const sexOptions = [
   { label: 'Mâle', value: 'male' },
   { label: 'Femelle', value: 'female' },
+]
+
+const weightOptions = [
+  { label: '0-5 kg', value: '0-5' },
+  { label: '5-10 kg', value: '5-10' },
+  { label: '10-20 kg', value: '10-20' },
+  { label: '20-30 kg', value: '20-30' },
+  { label: '30+ kg', value: '30+' },
 ]
 
 const environmentOptions = [
@@ -93,10 +102,11 @@ const personalityOptions = [
 const questionTitle = computed(() => {
   if (step.value === 1) return 'Animaux*'
   if (step.value === 2) return 'Critères*'
-  return 'Affinités*'
+  if (step.value === 3) return 'Affinités*'
+  return 'Budget & Distance'
 })
 
-const questionSubTitle = computed(() => `Question N°${step.value} sur 3`)
+const questionSubTitle = computed(() => `Question N°${step.value} sur 4`)
 
 const toggleArrayValue = (arr, value) => {
   const idx = arr.indexOf(value)
@@ -119,23 +129,32 @@ const selectAllToggle = (targetArray, allValues) => {
 const canGoNext = computed(() => {
   if (step.value === 1) return form.value.species.length > 0
   if (step.value === 2) {
-    return form.value.size.length > 0 || form.value.age.length > 0 || form.value.sex.length > 0
+    return form.value.size.length > 0 || form.value.age.length > 0 || form.value.weight.length > 0 || form.value.sex.length > 0
   }
   if (step.value === 3) {
     return form.value.environment.length > 0 || form.value.dressage.length > 0 || form.value.personality.length > 0
   }
+  if (step.value === 4) {
+    return true
+  }
   return true
 })
+
+const preventInvalidChars = (e) => {
+  if (['-', '+', 'e', 'E'].includes(e.key)) {
+    e.preventDefault()
+  }
+}
 
 const handleNext = () => {
   error.value = ''
 
   if (step.value === 1 && form.value.species.length === 0) {
-    error.value = 'Sélectionne au moins un type d’animal'
+    error.value = "Sélectionne au moins un type d'animal"
     return
   }
 
-  if (step.value < 3) step.value++
+  if (step.value < 4) step.value++
 }
 
 const handleBack = () => {
@@ -196,12 +215,13 @@ const handleSave = async () => {
         <p class="subtitle">
           <template v-if="step === 1">Quels animaux souhaitez-vous adopter ?</template>
           <template v-else-if="step === 2">Quels sont vos critères d'adoption ?</template>
-          <template v-else>Quels sont vos critères de compatibilités ?</template>
+          <template v-else-if="step === 3">Quels sont vos critères de compatibilités ?</template>
+          <template v-else>Quel est votre budget et distance maximale ?</template>
           <br />
-          <small>(Vous pouvez en sélectionner plusieurs)</small>
+          <small v-if="step !== 4">(Vous pouvez en sélectionner plusieurs)</small>
+          <small v-else>(Ces critères sont optionnels)</small>
         </p>
 
-        <!-- STEP 1 -->
         <section v-if="step === 1" class="animals-grid">
           <button
             v-for="opt in animalOptions"
@@ -216,11 +236,10 @@ const handleSave = async () => {
           </button>
         </section>
 
-        <!-- STEP 2 -->
         <section v-else-if="step === 2" class="blocks">
           <div class="block">
             <div class="block-head">
-              <h2 class="block-title">Taille</h2>
+              <h4 class="block-title text-h4">Taille</h4>
               <button
                 type="button"
                 class="select-all"
@@ -248,7 +267,7 @@ const handleSave = async () => {
 
           <div class="block">
             <div class="block-head">
-              <h2 class="block-title">Âge</h2>
+              <h4 class="block-title text-h4">Âge</h4>
               <button
                 type="button"
                 class="select-all"
@@ -276,7 +295,35 @@ const handleSave = async () => {
 
           <div class="block">
             <div class="block-head">
-              <h2 class="block-title">Genre</h2>
+              <h4 class="block-title text-h4">Poids</h4>
+              <button
+                type="button"
+                class="select-all"
+                @click="selectAllToggle(form.weight, weightOptions.map(o => o.value))"
+              >
+                Tout sélectionner
+              </button>
+            </div>
+
+            <div class="cards-row">
+              <button
+                v-for="opt in weightOptions"
+                :key="opt.value"
+                type="button"
+                class="criteria-card"
+                :class="{ selected: isSelected(form.weight, opt.value) }"
+                @click="toggleArrayValue(form.weight, opt.value)"
+              >
+                <div class="criteria-card-inner">
+                  <div class="criteria-title">{{ opt.label }}</div>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <div class="block">
+            <div class="block-head">
+              <h4 class="block-title text-h4">Genre</h4>
               <button
                 type="button"
                 class="select-all"
@@ -303,11 +350,10 @@ const handleSave = async () => {
           </div>
         </section>
 
-        <!-- STEP 3 -->
-        <section v-else class="blocks">
+        <section v-else-if="step === 3" class="blocks">
           <div class="block">
             <div class="block-head">
-              <h2 class="block-title">Environnement</h2>
+              <h4 class="block-title text-h4">Environnement</h4>
               <button
                 type="button"
                 class="select-all"
@@ -330,7 +376,7 @@ const handleSave = async () => {
 
           <div class="block">
             <div class="block-head">
-              <h2 class="block-title">Dressage</h2>
+              <h4 class="block-title text-h4">Dressage</h4>
               <button
                 type="button"
                 class="select-all"
@@ -353,7 +399,7 @@ const handleSave = async () => {
 
           <div class="block">
             <div class="block-head">
-              <h2 class="block-title">Personnalité</h2>
+              <h4 class="block-title text-h4">Personnalité</h4>
               <button
                 type="button"
                 class="select-all"
@@ -375,6 +421,55 @@ const handleSave = async () => {
           </div>
         </section>
 
+       <section v-else class="blocks">
+          <div class="block">
+            <div class="block-head">
+              <h4 class="block-title text-h4">Budget maximum</h4>
+            </div>
+            <div class="input-group">
+              <div class="label-wrapper">
+                <label for="maxPrice" class="input-label">Prix maximum (CHF)</label>
+                <span class="optional-badge">Facultatif</span>
+              </div>
+              <input 
+                id="maxPrice"
+                v-model.number="form.maxPrice" 
+                type="number" 
+                min="0"
+                step="50"
+                placeholder="0"
+                class="number-input"
+                @keydown="preventInvalidChars"
+              />
+              <p class="helper-text">Laissez vide pour afficher tous les prix.</p>
+            </div>
+          </div>
+
+          <div class="block">
+            <div class="block-head">
+              <h4 class="block-title text-h4">Distance maximale</h4>
+            </div>
+            <div class="input-group">
+              <div class="label-wrapper">
+                <label for="maxDistance" class="input-label">Distance maximum (km)</label>
+                <span class="optional-badge">Facultatif</span>
+              </div>
+              <input 
+                id="maxDistance"
+                v-model.number="form.maxDistance" 
+                type="number" 
+                min="0"
+                step="5"
+                placeholder="0"
+                class="number-input"
+                @keydown="preventInvalidChars"
+              />
+              <p class="helper-text">Laissez vide pour rechercher dans toute la Suisse.</p>
+            </div>
+          </div>
+
+        </section>
+
         <div v-if="error" class="error-message">{{ error }}</div>
       </div>
 
@@ -384,7 +479,7 @@ const handleSave = async () => {
         </Button>
 
         <Button
-          v-if="step < 3"
+          v-if="step < 4"
           type="button"
           variant="primary"
           size="base"
@@ -448,8 +543,8 @@ const handleSave = async () => {
 .title {
   margin: 0;
   font-family: var(--font-family);
-  font-size: var(--heading-h1-size, 32px);
-  font-weight: var(--font-weight-bold);
+  font-size: var(--heading-h1-size);
+  font-weight: var(--font-weight-medium);
   color: var(--color-neutral-white);
 }
 
@@ -531,8 +626,6 @@ const handleSave = async () => {
 
 .block-title {
   margin: 0;
-  font-size: var(--heading-h3-size, 22px);
-  color: var(--color-neutral-900);
 }
 
 .select-all {
@@ -546,14 +639,14 @@ const handleSave = async () => {
 .cards-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: var(--spacing-4);
+  gap: var(--spacing-3);
 }
 
 .criteria-card {
   border: 2px solid var(--color-neutral-200);
   background: var(--color-neutral-white);
   border-radius: var(--radius-xl);
-  padding: var(--spacing-4);
+  padding: var(--spacing-3);
   cursor: pointer;
 }
 
@@ -566,6 +659,39 @@ const handleSave = async () => {
   font-size: var(--body-base-size);
   color: var(--color-neutral-900);
   text-align: center;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.input-label {
+  font-size: var(--body-sm-size);
+  color: var(--color-neutral-700);
+  font-weight: var(--font-weight-medium);
+}
+
+.number-input {
+  width: 100%;
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 2px solid var(--color-neutral-200);
+  border-radius: var(--radius-lg);
+  font-size: var(--body-base-size);
+  color: var(--color-neutral-900);
+  background: var(--color-neutral-white);
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.number-input:focus {
+  outline: none;
+  border-color: var(--color-primary-600);
+}
+
+.number-input::placeholder {
+  color: var(--color-neutral-400);
 }
 
 .chips {
@@ -606,6 +732,33 @@ const handleSave = async () => {
   border-radius: 50%;
   border-top-color: white;
   animation: spin 0.6s linear infinite;
+}
+
+.label-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.optional-badge {
+  font-size: 12px;
+  color: var(--color-neutral-500);
+  background-color: var(--color-neutral-100);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.helper-text {
+  margin: 4px 0 0 0;
+  font-size: 12px;
+  color: var(--color-neutral-500);
+  font-style: italic;
+}
+
+.number-input::placeholder {
+  color: var(--color-neutral-400);
+  font-style: italic;
 }
 
 @keyframes spin {

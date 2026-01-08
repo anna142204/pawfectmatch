@@ -35,10 +35,16 @@ const getIcon = (type) => {
 .toast-container {
   position: fixed;
   top: var(--spacing-4);
-  right: var(--spacing-4);
   z-index: 9999;
+  width: 100%;
+  max-width: 430px;
+  left: 50% !important;
+  transform: translateX(-50%) !important; 
+  padding: 0 var(--spacing-8);
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: var(--spacing-3);
   pointer-events: none;
 }
@@ -47,13 +53,12 @@ const getIcon = (type) => {
   display: flex;
   align-items: center;
   gap: var(--spacing-3);
-  padding: var(--spacing-4) var(--spacing-5);
+  padding: var(--spacing-3) var(--spacing-4);
   border-radius: var(--radius-lg);
   background: var(--color-neutral-white);
-  box-shadow: var(--shadow-lg);
-  min-width: 280px;
-  max-width: 400px;
-  pointer-events: auto;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  width: 100%; 
+  pointer-events: auto; 
   font-family: var(--font-family);
   font-size: var(--body-base-size);
   font-weight: var(--font-weight-medium);
@@ -82,6 +87,7 @@ const getIcon = (type) => {
 .toast-message {
   flex: 1;
   color: var(--color-neutral-black);
+  font-size: 14px;
 }
 
 /* Animations */
@@ -98,17 +104,5 @@ const getIcon = (type) => {
 .toast-leave-to {
   opacity: 0;
   transform: translateX(100%);
-}
-
-@media (max-width: 480px) {
-  .toast-container {
-    left: var(--spacing-4);
-    right: var(--spacing-4);
-  }
-
-  .toast {
-    min-width: auto;
-    width: 100%;
-  }
 }
 </style>

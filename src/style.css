@@ -10,7 +10,7 @@ body {
   overscroll-behavior-y: contain;
   touch-action: pan-y;
   font-family: var(--font-family);
-  background-color: var(--color-neutral-black);
+  background-color: var(--color-primary-50);
 }
 
 #app {
@@ -39,7 +39,7 @@ h1 {
   color: var(--color-primary-700);
   justify-content: center;
   display: flex;
-  margin: 16px 0;
+  margin: 12px 0;
 }
 
 h3 {
@@ -144,7 +144,7 @@ h4 {
   /* ============================================ */
   /* TYPOGRAPHY - HEADINGS */
   /* ============================================ */
-  --heading-h1-size: 34px;
+  --heading-h1-size: 32px;
   --heading-h1-weight: 700;
   --heading-h1-height: 54px;
   --heading-h1-spacing: -0.5px;
