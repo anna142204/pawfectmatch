@@ -21,14 +21,6 @@ const matchSchema = new Schema({
         enum: ['en_attente', 'refusé', 'validé', 'adopté'],
         default: 'en_attente'
     },
-    notificationPending: {
-        type: Boolean,
-        default: false,
-    },
-    notificationSentAt: {
-        type: Date,
-        default: null,
-    },
     discussion: [
         {
             sender: {

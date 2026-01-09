@@ -55,3 +55,10 @@ export function clearNotification() {
 export function resetUnreadNotifications() {
   unreadNotifications.value = 0
 }
+
+// Disconnect WebSocket (should only be called on logout)
+export function disconnectWebSocket() {
+  const { disconnect } = useWebSocket()
+  disconnect()
+  console.log('[WS Listeners] WebSocket disconnected')
+}

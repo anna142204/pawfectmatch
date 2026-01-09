@@ -77,7 +77,6 @@ router.delete('/owners/:id', deleteOwner);
 
 // Match routes
 router.get('/matches', getMatches);
-router.get('/matches/pending-notifications', getPendingNotifications);
 router.get('/matches/:id', getMatchById);
 router.post('/matches', createMatch);
 router.put('/matches/:id', updateMatch);
