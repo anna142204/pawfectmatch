@@ -2,6 +2,9 @@
 
 Application web complète de mise en relation pour l'adoption d'animaux, permettant aux adoptants de trouver leur compagnon idéal et aux propriétaires/refuges de gérer leurs animaux à l'adoption.
 
+<details>
+<summary><strong>⚡️ Guide de démarrage rapide</strong></summary>
+
 ## ⚡️ Guide de démarrage rapide
 
 ```bash
@@ -26,29 +29,38 @@ npm run backend   # backend sur http://localhost:8989
 npm run dev       # frontend sur http://localhost:5173
 ```
 
-Comptes de test (si vous avez seedé) :
+**Comptes de test (si vous avez seedé) :**
+
+| Rôle | Email | Mot de passe |
+|------|-------|--------------|
+| Adoptant | `alice@adopter.ch` | `password123` |
+| Adoptant | `ben@adopter.ch` | `password123` |
+| Propriétaire | `seb@particulier.ch` | `password123` |
+| Refuge | `marc@refuge.ch` | `password123` |
+
+</details>
 
 ## 📋 Table des matières
 
-- [Guide de démarrage rapide](#⚡️-guide-de-démarrage-rapide)
-- [Aperçu](#🎯-aperçu)
-- [Technologies](#🛠-technologies)
-- [Prérequis](#✅-prérequis)
-- [Installation](#🚀-installation)
-- [Utilisation](#🎮-utilisation)
-- [Structure du projet](#📂-structure-du-projet)
-- [Fonctionnalités](#✨-fonctionnalités)
-- [API & Documentation](#📡-api--documentation)
-- [Tests](#🧪-tests)
-- [Déploiement](#🚀-déploiement)
-- [Équipe](#👥-équipe)
+- [Guide de démarrage rapide](#️-guide-de-démarrage-rapide)
+- [Aperçu](#-aperçu)
+- [Technologies](#-technologies)
+- [Prérequis](#-prérequis)
+- [Installation](#-installation)
+- [Utilisation](#-utilisation)
+- [Structure du projet](#-structure-du-projet)
+- [Fonctionnalités](#-fonctionnalités)
+- [API & Documentation](#-api--documentation)
+- [Tests](#-tests)
+- [Déploiement](#-déploiement)
+- [Équipe](#-équipe)
 
 
 ## 🎯 Aperçu
 
 PawfectMatch est une plateforme moderne qui facilite l'adoption d'animaux en connectant adoptants et propriétaires à travers une interface intuitive de type "swipe", des notifications en temps réel et un système de messagerie instantanée.
 
-**Démo en ligne :** [Ici](https://pawfectmatch-ix6g.onrender.com/)
+**Démo en ligne :** [pawfectmatch-ix6g.onrender.com](https://pawfectmatch-ix6g.onrender.com/)
 
 ## 🛠 Technologies
 
@@ -224,7 +236,6 @@ npm run backend
 | `npm test` | Lance tous les tests |
 | `npm run test:watch` | Tests en mode surveillance |
 | `npm run test:coverage` | Tests avec rapport de couverture |
-| `npm run create-admin` | Crée un compte administrateur |
 
 ## 📂 Structure du projet
 
