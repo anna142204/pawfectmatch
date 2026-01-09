@@ -132,14 +132,10 @@ export function useWebSocket() {
   // Note: We don't automatically initialize WebSocket on mount
   // It will be initialized when needed (on subscribeToChatMessages)
 
-  onUnmounted(() => {
-    // Silently disconnect without throwing errors
-    try {
-      disconnect();
-    } catch (err) {
-      // Ignore errors during cleanup
-    }
-  });
+  // IMPORTANT: Do NOT disconnect WebSocket on component unmount
+  // The WebSocket connection is shared (singleton) and should persist
+  // across component lifecycles to continue receiving notifications.
+  // Only disconnect explicitly on logout or app closure.
 
   return {
     isConnected,

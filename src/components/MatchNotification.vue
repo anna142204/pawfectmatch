@@ -22,12 +22,12 @@ onMounted(() => {
 })
 
 const handleStartConversation = () => {
-  router.push(props.notification.conversationLink)
+  router.push(`/adopter/conversation/${props.notification.matchId}`)
   emit('close')
 }
 
 const handleViewProfile = () => {
-  // Close notification but don't navigate - user can manually view the profile
+  router.push(`/adopter/animal/${props.notification.animalId}`)
   emit('close')
 }
 </script>

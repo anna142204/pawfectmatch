@@ -200,6 +200,7 @@ export async function updateMatch(req, res) {
           // Prepare notification data for the popup
           const notificationData = {
             matchId: match._id.toString(),
+            animalId: match.animalId?._id?.toString() || '',
             animalImage: match.animalId?.images?.[0] || '',
             animalName: match.animalId?.name || '',
             animalSpecies: match.animalId?.species || '',
@@ -207,19 +208,14 @@ export async function updateMatch(req, res) {
             adopterImage: match.adopterId?.image || '',
             adopterName: `${match.adopterId?.firstName || ''} ${match.adopterId?.lastName || ''}`.trim(),
             ownerName: ownerName,
-            conversationLink: `/adopter/messages/${match._id.toString()}`
+            conversationLink: `/adopter/conversation/${match._id.toString()}`
           };
           
           wsServer.sendCmd(adopterClient, 'matchNotification', notificationData);
           console.log(`[Match Notification] ✓ Sent notification to adopter ${adopterId}`);
         } else {
           console.log(`[Match Notification] ⚠ Adopter ${adopterId} not currently connected via WebSocket`);
-          // Store notification flag in match for later retrieval when adopter connects
-          await Match.findByIdAndUpdate(match._id, { 
-            notificationPending: true,
-            notificationSentAt: null 
-          });
-          console.log(`[Match Notification] Marked match ${match._id} as having pending notification`);
+          // Adopter will see the match when they reconnect and check their matches
         }
         
         // Optionally notify owner as well if owner is connected
@@ -342,89 +338,3 @@ export async function getMatchDiscussion(req, res) {
   }
 }
 
-export async function getPendingNotifications(req, res) {
-  try {
-    // Extract JWT token from cookies or Authorization header
-    const cookies = parseCookies(req.headers.cookie || '');
-    const token = cookies?.auth_token || req.headers.authorization?.replace('Bearer ', '');
-
-    if (!token) {
-      console.log('[Pending Notifications] No token found in request');
-      return res.status(401).json({ error: 'Not authenticated' });
-    }
-
-    // Verify and decode JWT token
-    let decoded;
-    try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
-    } catch (jwtError) {
-      console.error('[Pending Notifications] JWT verification failed:', jwtError.message);
-      return res.status(401).json({ error: 'Invalid token' });
-    }
-    
-    // Only adopters can fetch pending notifications
-    if (decoded.type !== 'adopter') {
-      console.log(`[Pending Notifications] Access denied - user is ${decoded.type}, not adopter`);
-      return res.status(403).json({ error: 'Only adopters can fetch pending notifications' });
-    }
-
-    const adopterId = decoded.sub;
-
-    if (!adopterId) {
-      console.log('[Pending Notifications] No adopterId in token');
-      return res.status(401).json({ error: 'Invalid token' });
-    }
-
-    console.log(`[Pending Notifications] Fetching for adopter: ${adopterId}`);
-
-    // Find all matches with pending notifications for this adopter
-    const matches = await Match.find({
-      adopterId,
-      status: 'validé',
-      notificationPending: true
-    })
-    .populate('animalId', 'name species race images')
-    .populate({
-      path: 'animalId',
-      populate: {
-        path: 'ownerId',
-        select: 'firstName lastName'
-      }
-    })
-    .populate('adopterId', 'firstName lastName email image');
-
-    console.log(`[Pending Notifications] Found ${matches.length} pending notifications`);
-
-    // Format notification data for each match
-    const notifications = matches.map(match => ({
-      matchId: match._id.toString(),
-      animalImage: match.animalId?.images?.[0] || '',
-      animalName: match.animalId?.name || '',
-      animalSpecies: match.animalId?.species || '',
-      animalRace: match.animalId?.race || '',
-      adopterImage: match.adopterId?.image || '',
-      adopterName: `${match.adopterId?.firstName || ''} ${match.adopterId?.lastName || ''}`.trim(),
-      ownerName: match.animalId?.ownerId ? 
-        `${match.animalId.ownerId.firstName || ''} ${match.animalId.ownerId.lastName || ''}`.trim() : '',
-      conversationLink: `/adopter/messages/${match._id.toString()}`
-    }));
-
-    // Mark notifications as sent
-    if (notifications.length > 0) {
-      const matchIds = matches.map(m => m._id);
-      await Match.updateMany(
-        { _id: { $in: matchIds } },
-        { 
-          notificationPending: false,
-          notificationSentAt: new Date()
-        }
-      );
-      console.log(`[Pending Notifications] Marked ${notifications.length} notifications as sent`);
-    }
-
-    res.json(notifications);
-  } catch (error) {
-    console.error('Get pending notifications error:', error.message, error.stack);
-    res.status(500).json({ error: 'Failed to fetch pending notifications', details: error.message });
-  }
-}
