@@ -6,6 +6,7 @@ import OwnersList from './AdopterOwnersList.vue';
 import { ref, watch, onMounted } from 'vue'; 
 import { useRoute, useRouter } from 'vue-router';
 import { Map, ClipboardList, ArrowRight, Heart } from 'lucide-vue-next';
+import { initializeWebSocketListeners } from '@/store/wsCommandStore';
 
 const route = useRoute();
 const router = useRouter();
@@ -65,8 +66,23 @@ const fetchRecentMatches = async () => {
   }
 };
 
-onMounted(() => {
-  checkPreferences();
+onMounted(async () => {
+  await checkPreferences();
+  // Ensure WebSocket is initialized on mount
+  // This is a backup to the App.vue watcher, ensuring WebSocket + pending notifications
+  // are loaded even if the watcher triggers slowly
+  const userType = localStorage.getItem('user_type');
+  if (userType === 'adopter') {
+    console.log('[AdopterHomePage] Ensuring WebSocket listeners are initialized...');
+    try {
+      await initializeWebSocketListeners();
+      console.log('[AdopterHomePage] ✓ WebSocket listeners ensured');
+    } catch (error) {
+      console.error('[AdopterHomePage] Warning: WebSocket initialization failed:', error);
+      // Non-blocking error - app continues even if WebSocket setup fails
+    }
+  }
+  
   fetchRecentMatches();
 });
 </script>
