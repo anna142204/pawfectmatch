@@ -1,5 +1,5 @@
   <script setup>
-  import { onMounted, onUnmounted, ref, computed } from 'vue';
+  import { ref, computed, watch } from 'vue';
   import { useRoute } from 'vue-router';
   import { isAuth, ws, users, allMsg } from '@/store/app.js';
   import { connectToChat } from '@/store/app.js';
@@ -17,18 +17,24 @@ const isFullBleed = computed(() => {
   return route.meta?.fullBleed === true;
 });
 
-// Initialize WebSocket listeners on mount
-onMounted(async () => {
-  const userType = localStorage.getItem('user_type');
-  if (userType === 'adopter') {
-    try {
-      await initializeWebSocketListeners();
-      console.log('WebSocket listeners initialized for adopter');
-    } catch (error) {
-      console.error('Failed to initialize WebSocket listeners:', error);
+// Watch for user login/logout - initialize WebSocket listeners when adopter logs in
+watch(
+  () => localStorage.getItem('user_type'),
+  async (newUserType) => {
+    if (newUserType === 'adopter') {
+      console.log('[App] User logged in as adopter, initializing WebSocket listeners...');
+      try {
+        await initializeWebSocketListeners();
+        console.log('[App] ✓ WebSocket listeners initialized for adopter');
+      } catch (error) {
+        console.error('[App] ✗ Failed to initialize WebSocket listeners:', error);
+      }
+    } else {
+      console.log('[App] User logged out or is not an adopter');
     }
-  }
-});
+  },
+  { immediate: true }
+);
 
   // ws.on('close', () => {
   //   if (isAuth.value) {

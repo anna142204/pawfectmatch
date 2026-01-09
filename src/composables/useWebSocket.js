@@ -4,11 +4,13 @@ import { WSClient } from 'wsmini';
 let wsClient = null;
 const isConnected = ref(false);
 const connectionError = ref(null);
+let reconnectInterval = null;
 
 export function useWebSocket() {
   // Initialize WebSocket client
   const initializeWebSocket = async () => {
     if (wsClient && isConnected.value) {
+      console.log('[WS] WebSocket already connected');
       return wsClient;
     }
 
@@ -27,7 +29,7 @@ export function useWebSocket() {
       // Connect - if no token, let the browser send cookies automatically
       // The server's authCallback will extract it from cookies or the token parameter
       await wsClient.connect(token || undefined).catch(err => {
-        console.error('WebSocket connection error:', err);
+        console.error('[WS] WebSocket connection error:', err);
         connectionError.value = 'WebSocket connection failed (offline mode enabled)';
         // Don't throw - allow offline mode
         throw err;
@@ -35,11 +37,17 @@ export function useWebSocket() {
       
       isConnected.value = true;
       connectionError.value = null;
-      console.log('WebSocket connected successfully');
+      console.log('[WS] ✓ WebSocket connected successfully');
+      
+      // Clear any existing reconnect attempts
+      if (reconnectInterval) {
+        clearInterval(reconnectInterval);
+        reconnectInterval = null;
+      }
       
       return wsClient;
     } catch (err) {
-      console.error('WebSocket initialization error:', err);
+      console.error('[WS] ✗ WebSocket initialization error:', err);
       // Don't throw - continue with offline mode
       isConnected.value = false;
       wsClient = null;
@@ -118,24 +126,27 @@ export function useWebSocket() {
         if (typeof wsClient.close === 'function') {
           wsClient.close();
         }
-        console.log('WebSocket déconnecté avec succès');
+        console.log('[WS] ✓ WebSocket disconnected');
       } catch (err) {
         // Silently ignore disconnect errors
-        console.warn('WebSocket disconnect warning:', err.message);
+        console.warn('[WS] Disconnect warning:', err.message);
       } finally {
         wsClient = null;
         isConnected.value = false;
+        connectionError.value = 'Disconnected';
+        
+        // Clear any pending reconnect attempts
+        if (reconnectInterval) {
+          clearInterval(reconnectInterval);
+          reconnectInterval = null;
+        }
       }
     }
   };
 
   // Note: We don't automatically initialize WebSocket on mount
-  // It will be initialized when needed (on subscribeToChatMessages)
-
-  // IMPORTANT: Do NOT disconnect WebSocket on component unmount
-  // The WebSocket connection is shared (singleton) and should persist
-  // across component lifecycles to continue receiving notifications.
-  // Only disconnect explicitly on logout or app closure.
+  // It will be initialized when needed (on subscribeToChatMessages or by App.vue watcher)
+  // Only disconnect explicitly on logout or app closure (no auto-disconnect on unmount)
 
   return {
     isConnected,
