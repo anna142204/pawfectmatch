@@ -4,6 +4,7 @@ import Adopter from '../models/adopter.js';
 import { ensureMatchChannel, wsServer } from '../store/wsStore.mjs';
 import jwt from 'jsonwebtoken';
 import { parseCookies } from '../utils/parseCookies.mjs';
+import animal from '../models/animal.js';
 
 export async function getMatches(req, res) {
   try {
@@ -159,6 +160,7 @@ export async function updateMatch(req, res) {
     )
     .populate({
       path: 'animalId',
+      select: 'name species race images ownerId',
       populate: {
         path: 'ownerId',
         select: 'firstName lastName'
@@ -171,6 +173,8 @@ export async function updateMatch(req, res) {
     }
 
     console.log(`[Update Match] Match ${id} updated. Status: "${status}", isActive: ${match.isActive}`);
+    console.log(`[Update Match] DEBUG - match.animalId after populate:`, match.animalId);
+    console.log(`[Update Match] DEBUG - Is animalId an ObjectId?`, match.animalId?.constructor?.name);
 
     if (status === 'adopté' && match.animalId) {
       await Animal.findByIdAndUpdate(match.animalId._id, {
@@ -193,6 +197,11 @@ export async function updateMatch(req, res) {
         console.log(`[Match Notification] Adopter WebSocket connection: ${adopterClient ? 'FOUND' : 'NOT FOUND'}`);
         
         if (adopterClient) {
+          // Debug: Log the full match object to see what's populated
+          console.log(`[Match Notification] DEBUG - match.animalId:`, match.animalId);
+          console.log(`[Match Notification] DEBUG - match.animalId._id:`, match.animalId?._id);
+          console.log(`[Match Notification] DEBUG - typeof animalId._id:`, typeof match.animalId?._id);
+          
           // Get owner name from populated animal
           const ownerName = match.animalId?.ownerId ? 
             `${match.animalId.ownerId.firstName || ''} ${match.animalId.ownerId.lastName || ''}`.trim() : '';
@@ -200,6 +209,7 @@ export async function updateMatch(req, res) {
           // Prepare notification data for the popup
           const notificationData = {
             matchId: match._id.toString(),
+            animalId: match.animalId?._id ? match.animalId._id.toString() : 'NO_ANIMAL_ID',
             animalImage: match.animalId?.images?.[0] || '',
             animalName: match.animalId?.name || '',
             animalSpecies: match.animalId?.species || '',
@@ -210,6 +220,7 @@ export async function updateMatch(req, res) {
             conversationLink: `/adopter/messages/${match._id.toString()}`
           };
           
+          console.log(`[Match Notification] Notification data:`, notificationData);
           wsServer.sendCmd(adopterClient, 'matchNotification', notificationData);
           console.log(`[Match Notification] ✓ Sent notification to adopter ${adopterId}`);
         } else {
@@ -427,6 +438,7 @@ export async function getPendingNotifications(req, res) {
     // Format notification data for each match
     const notifications = matches.map(match => ({
       matchId: match._id.toString(),
+      animalId: match.animalId?._id.toString() || '',
       animalImage: match.animalId?.images?.[0] || '',
       animalName: match.animalId?.name || '',
       animalSpecies: match.animalId?.species || '',
