@@ -1,6 +1,7 @@
 <script setup>
 import { ref, reactive, onMounted, watch, computed } from 'vue';
 import { useRouter } from 'vue-router';
+import { useAuth } from '@/composables/useAuth';
 import { useToast } from '@/composables/useToast';
 import { Edit2, Trash2 } from 'lucide-vue-next'; 
 
@@ -21,6 +22,7 @@ import {
 } from '@/constants/animalOptions';
 
 const router = useRouter();
+const { userId, getAuthFetchOptions } = useAuth();
 const { error, success } = useToast();
 
 const currentStep = ref(0);
@@ -225,7 +227,7 @@ const submitForm = async () => {
                 dressage: [...form.characteristics.dressage],
                 personality: [...form.characteristics.personality]
             },
-            ownerId: localStorage.getItem('user_id'),
+            ownerId: userId.value,
             availability: true
         };
         
@@ -300,9 +302,9 @@ const handleModalConfirm = () => {
         <div class="view-header">
             <div class="header-content">
                 <BackButton manual @click="handleQuitRequest" />
-                <h1 class="page-title text-h2 text-primary-700">
+                <h2 class="page-title text-h2 text-primary-800">
                     {{ isEditMode ? 'Modifier' : 'Ajouter' }} un animal
-                </h1>
+                </h2>
             </div>
         </div>
         <div class="stepper-wrapper">
@@ -828,14 +830,19 @@ const handleModalConfirm = () => {
 .fixed-footer {
     position: fixed;
     bottom: 0;
-    left: 0;
-    right: 0;
-    padding: var(--spacing-4) var(--spacing-6) var(--spacing-6);
+    z-index: 20;
     background-color: var(--color-neutral-100);
+    border-top: 1px solid #eee;
+    padding: var(--spacing-4) var(--spacing-6) var(--spacing-6);
+    box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.05);
     display: flex;
     gap: var(--spacing-3);
-    box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.05);
-    z-index: 20;
+    justify-content: center;
+    width: 100%;
+    max-width: 430px;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    box-sizing: border-box;
 }
 
 .btn-flex {

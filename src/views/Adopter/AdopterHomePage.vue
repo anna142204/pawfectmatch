@@ -1,7 +1,8 @@
 <script setup>
+import { useAuth } from '@/composables/useAuth';
 import Menu from '@/components/Menu.vue';
-import OwnersMap from './OwnersMap.vue';
-import OwnersList from './OwnersList.vue';
+import OwnersMap from './AdopterOwnersMap.vue';
+import OwnersList from './AdopterOwnersList.vue';
 import { ref, watch, onMounted } from 'vue'; 
 import { useRoute, useRouter } from 'vue-router';
 import { Map, ClipboardList, ArrowRight, Heart } from 'lucide-vue-next';
@@ -9,11 +10,29 @@ import { initializeWebSocketListeners } from '@/store/wsCommandStore';
 
 const route = useRoute();
 const router = useRouter();
+const { userId, getAuthHeaders, getAuthFetchOptions } = useAuth();
 
 const showMapView = ref(route.query.view !== 'list');
 const recentMatches = ref([]);
 const loading = ref(true);
-const userId = localStorage.getItem('user_id');
+
+const checkPreferences = async () => {
+  if (!userId.value) return;
+  try {
+    const res = await fetch(`/api/adopters/${userId.value}`, getAuthFetchOptions());
+    if (res.ok) {
+      const adopter = await res.json();
+      const prefs = adopter?.preferences;
+      
+      // Vérifier si les préférences sont vides ou n'existent pas
+      if (!prefs || !prefs.species || prefs.species.length === 0) {
+        router.push('/adopter/preferences');
+      }
+    }
+  } catch (err) {
+    console.error('Erreur vérification préférences:', err);
+  }
+};
 
 const toggleView = (isMap) => {
   showMapView.value = isMap;
@@ -27,9 +46,9 @@ watch(() => route.query.view, (newView) => {
 });
 
 const fetchRecentMatches = async () => {
-  if (!userId) return;
+  if (!userId.value) return;
   try {
-    const res = await fetch(`/api/matches?adopterId=${userId}&limit=50`, { 
+    const res = await fetch(`/api/matches?adopterId=${userId.value}&limit=50`, { 
       credentials: 'include' 
     });
     if (res.ok) {
@@ -47,6 +66,8 @@ const fetchRecentMatches = async () => {
   }
 };
 
+onMounted(() => {
+  checkPreferences();
 onMounted(async () => {
   // Ensure WebSocket is initialized on mount
   // This is a backup to the App.vue watcher, ensuring WebSocket + pending notifications
@@ -69,7 +90,7 @@ onMounted(async () => {
 
 <template>
   <div class="home-page">
-    <header class="home-header">
+    <header class="header">
       <h1 class="text-h1">Découvrir</h1>
     </header>
 
@@ -146,10 +167,7 @@ onMounted(async () => {
   margin: 0 auto;
   min-height: 100vh;
 }
-.home-header {
-  padding-top: max(16px, env(safe-area-inset-top)); 
-  padding-bottom: 16px;
-}
+
 .subtitle {
   color: var(--color-neutral-500);
   font-size: 16px;

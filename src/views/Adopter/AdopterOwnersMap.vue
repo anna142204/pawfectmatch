@@ -2,8 +2,10 @@
 import { ref, onMounted, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import { X, User } from 'lucide-vue-next';
+import { useAuth } from '@/composables/useAuth';
 
 const router = useRouter();
+const { getAuthFetchOptions, requireAuth } = useAuth();
 const owners = ref([]);
 const loading = ref(true);
 const selectedOwner = ref(null);
@@ -16,8 +18,12 @@ const defaultCenter = [46.5197, 6.6323];
 const defaultZoom = 8;
 
 onMounted(async () => {
+  if (!requireAuth()) {
+    loading.value = false;
+    return;
+  }
   try {
-    const response = await fetch('/api/owners', { credentials: 'include' });
+    const response = await fetch('/api/owners', getAuthFetchOptions());
     if (response.ok) {
       const data = await response.json();
       owners.value = data.owners || data;

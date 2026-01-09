@@ -111,7 +111,7 @@ export async function getAdopters(req, res) {
     });
   } catch (error) {
     console.error('Get adopters error:', error);
-    res.status(500).json({ error: 'Failed to fetch adopters' });
+    res.status(500).json({ error: 'Échec de la récupération des adopteurs' });
   }
 }
 
@@ -122,13 +122,13 @@ export async function getAdopterById(req, res) {
     const adopter = await Adopter.findById(id);
 
     if (!adopter) {
-      return res.status(404).json({ error: 'Adopter not found' });
+      return res.status(404).json({ error: 'Adopteur introuvable' });
     }
 
     res.json(adopter);
   } catch (error) {
     console.error('Get adopter by id error:', error);
-    res.status(500).json({ error: 'Failed to fetch adopter' });
+    res.status(500).json({ error: 'Échec de la récupération de l\'adopteur' });
   }
 }
 
@@ -140,23 +140,52 @@ export async function updateAdopter(req, res) {
     // Don't allow password update through this route
     delete updates.password;
 
+    // Si on met à jour les préférences, utiliser la notation pointée
+    if (updates.preferences) {
+      const prefs = updates.preferences;
+      delete updates.preferences;
+      
+      if (prefs.species !== undefined) updates['preferences.species'] = prefs.species;
+      if (prefs.size !== undefined) updates['preferences.size'] = prefs.size;
+      if (prefs.age !== undefined) updates['preferences.age'] = prefs.age;
+      if (prefs.weight !== undefined) updates['preferences.weight'] = prefs.weight;
+      if (prefs.sex !== undefined) updates['preferences.sex'] = prefs.sex;
+      if (prefs.dressage !== undefined) updates['preferences.dressage'] = prefs.dressage;
+      if (prefs.personality !== undefined) updates['preferences.personality'] = prefs.personality;
+      if (prefs.environment !== undefined) updates['preferences.environment'] = prefs.environment;
+      if (prefs.maxPrice !== undefined) updates['preferences.maxPrice'] = prefs.maxPrice;
+      if (prefs.maxDistance !== undefined) updates['preferences.maxDistance'] = prefs.maxDistance;
+    }
+
     const adopter = await Adopter.findByIdAndUpdate(
       id,
-      updates,
+      { $set: updates },
       { new: true, runValidators: true }
     );
 
     if (!adopter) {
-      return res.status(404).json({ error: 'Adopter not found' });
+      return res.status(404).json({ error: 'Adopteur introuvable' });
     }
 
     res.json({
-      message: 'Adopter updated successfully',
+      message: 'Adopteur mis à jour avec succès',
       adopter
     });
   } catch (error) {
     console.error('Update adopter error:', error);
-    res.status(500).json({ error: 'Failed to update adopter' });
+    
+    // Retourner le détail de l'erreur de validation
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ 
+        error: 'Erreur de validation', 
+        details: error.message 
+      });
+    }
+    
+    res.status(500).json({ 
+      error: 'Échec de la mise à jour de l\'adopteur',
+      details: error.message 
+    });
   }
 }
 
@@ -167,12 +196,12 @@ export async function deleteAdopter(req, res) {
     const adopter = await Adopter.findByIdAndDelete(id);
 
     if (!adopter) {
-      return res.status(404).json({ error: 'Adopter not found' });
+      return res.status(404).json({ error: 'Adopteur introuvable' });
     }
 
-    res.json({ message: 'Adopter deleted successfully' });
+    res.json({ message: 'Adopteur supprimé avec succès' });
   } catch (error) {
     console.error('Delete adopter error:', error);
-    res.status(500).json({ error: 'Failed to delete adopter' });
+    res.status(500).json({ error: 'Échec de la suppression de l\'adopteur' });
   }
 }

@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import { useAuth } from '@/composables/useAuth';
 import { ChevronRight, CheckCheck } from 'lucide-vue-next';
 import Menu from '@/components/Menu.vue';
 import Toast from '@/components/Toast.vue';
@@ -15,6 +16,7 @@ const props = defineProps({
 
 const router = useRouter();
 const route = useRoute();
+const { userId, getAuthHeaders } = useAuth();
 const toast = ref(null);
 
 const selectedAnimal = ref(null);
@@ -35,12 +37,8 @@ const refreshData = async () => {
     isLoading.value = true;
     
     if (props.userType === 'owner') {
-      const ownerId = localStorage.getItem('user_id');
-      
-      const animalsResponse = await fetch(`/api/animals?ownerId=${ownerId}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`
-        }
+      const animalsResponse = await fetch(`/api/animals?ownerId=${userId.value}`, {
+        headers: getAuthHeaders()
       });
       
       if (animalsResponse.ok) {
@@ -71,14 +69,11 @@ const loadConversations = async (animalId = null) => {
     if (props.userType === 'owner' && animalId) {
       params.append('animalId', animalId);
     } else if (props.userType === 'adopter') {
-      const adopterId = localStorage.getItem('user_id');
-      params.append('adopterId', adopterId);
+      params.append('adopterId', userId.value);
     }
     
     const response = await fetch(`/api/matches?${params.toString()}`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`
-      }
+      headers: getAuthHeaders()
     });
     
     if (response.ok) {
@@ -92,8 +87,13 @@ const loadConversations = async (animalId = null) => {
 };
 
 const selectAnimal = (animal) => {
-  selectedAnimal.value = animal;
-  loadConversations(animal._id);
+  if (selectedAnimal.value?._id === animal._id) {
+    selectedAnimal.value = null;
+    loadConversations(null);
+  } else {
+    selectedAnimal.value = animal;
+    loadConversations(animal._id);
+  }
 };
 
 const selectMatch = (match) => {
@@ -114,6 +114,7 @@ const formatTimeAgo = (timestamp) => {
   const now = new Date();
   const diffInDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
   
+  if (diffInDays < 0) return "aujourd'hui";
   if (diffInDays === 0) return "aujourd'hui";
   if (diffInDays === 1) return "il y a 1 jour";
   if (diffInDays < 7) return `il y a ${diffInDays} jours`;
@@ -125,6 +126,28 @@ const getLastMessage = (discussion) => {
   if (!discussion || discussion.length === 0) return 'Aucun message';
   const lastMsg = discussion[discussion.length - 1];
   return lastMsg.message.length > 40 ? lastMsg.message.substring(0, 40) + '...' : lastMsg.message;
+};
+
+const hasUnreadMessages = (conversation) => {
+  if (!conversation.discussion || conversation.discussion.length === 0) return false;
+  
+  const lastMessage = conversation.discussion[conversation.discussion.length - 1];
+  
+  if (lastMessage.sender.toString() === userId.value) return false;
+  
+  const lastReadKey = `lastRead_${conversation._id}`;
+  const lastReadTimestamp = localStorage.getItem(lastReadKey);
+  
+  if (lastReadTimestamp) {
+    const lastReadDate = new Date(lastReadTimestamp);
+    const lastMessageDate = new Date(lastMessage.timestamp);
+    
+    const TOLERANCE_MS = 10000; // 10 secondes
+    
+    if (lastReadDate.getTime() + TOLERANCE_MS >= lastMessageDate.getTime()) return false;
+  }
+  
+  return true;
 };
 
 const getConversationName = (conversation) => {
@@ -226,13 +249,29 @@ const getAnimalLabel = (conversation) => {
           class="conversation-item"
           @click="openConversation(conversation._id)"
         >
-          <div class="conversation-avatar">
+          <div class="avatar-group">
             <img 
               v-if="getConversationImage(conversation)" 
               :src="getConversationImage(conversation)" 
               :alt="getConversationName(conversation)"
+              class="main-avatar"
             />
-            <div v-else class="avatar-placeholder"></div>
+            <div v-else class="main-avatar avatar-placeholder"></div>
+            
+            <img 
+              v-if="userType === 'owner' && conversation.animalId?.images?.[0]" 
+              :src="conversation.animalId.images[0]" 
+              :alt="conversation.animalId?.name"
+              class="sub-avatar"
+            />
+            <img 
+              v-else-if="userType === 'adopter' && conversation.animalId?.ownerId?.image" 
+              :src="conversation.animalId.ownerId.image" 
+              :alt="conversation.animalId?.ownerId?.firstName"
+              class="sub-avatar"
+            />
+            
+            <div v-if="hasUnreadMessages(conversation)" class="unread-badge"></div>
           </div>
           
           <div class="conversation-content">
@@ -275,14 +314,6 @@ const getAnimalLabel = (conversation) => {
   padding-bottom: 120px;
 }
 
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding-top: max(16px, env(safe-area-inset-top)); 
-  padding-bottom: 16px;
-  width: 100%;
-}
 
 .main-title {
   font-family: var(--font-family);
@@ -313,7 +344,7 @@ const getAnimalLabel = (conversation) => {
   display: flex;
   gap: 12px;
   overflow-x: auto;
-  padding: 0 5px 10px 5px;
+  padding: 8px 5px 10px 5px;
   scrollbar-width: none;
 }
 
@@ -337,7 +368,7 @@ const getAnimalLabel = (conversation) => {
 
 .animal-card:hover,
 .match-card:hover {
-  transform: scale(1.05);
+  transform: scale(1.02);
 }
 
 .animal-card-selected {
@@ -453,18 +484,45 @@ const getAnimalLabel = (conversation) => {
   transform: translateX(5px);
 }
 
-.conversation-avatar {
-  width: 54px;
-  height: 54px;
-  border-radius: 50%;
-  overflow: hidden;
+.avatar-group {
+  position: relative;
+  width: 56px;
+  height: 56px;
   flex-shrink: 0;
+  margin-right: 15px;
 }
 
-.conversation-avatar img {
+.main-avatar {
   width: 100%;
   height: 100%;
+  border-radius: 50%;
   object-fit: cover;
+  border: 2px solid white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+}
+
+.sub-avatar {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.unread-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 12px;
+  height: 12px;
+  background-color: var(--color-primary-500);
+  border-radius: 50%;
+  border: 2px solid white;
+  z-index: 2;
 }
 
 .avatar-placeholder {

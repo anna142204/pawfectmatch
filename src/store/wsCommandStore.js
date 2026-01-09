@@ -1,6 +1,5 @@
 import { ref } from 'vue'
 import { useWebSocket } from '@/composables/useWebSocket'
-import { fetchJson } from '@/utils/fetchJson'
 
 // Global state for match notifications
 export const matchNotification = ref(null)

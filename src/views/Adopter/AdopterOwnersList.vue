@@ -2,8 +2,10 @@
 import { ref, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { MapPin, User, ChevronRight, PawPrint, Building2, Home, Search } from 'lucide-vue-next';
+import { useAuth } from '@/composables/useAuth';
 
 const router = useRouter();
+const { getAuthFetchOptions, requireAuth } = useAuth();
 
 const owners = ref([]);
 const loading = ref(false);
@@ -16,6 +18,7 @@ const totalItems = ref(0);
 let debounceTimeout = null;
 
 const fetchOwners = async () => {
+  if (!requireAuth()) return;
   loading.value = true;
   try {
     const params = new URLSearchParams({
@@ -25,9 +28,7 @@ const fetchOwners = async () => {
       search: searchQuery.value
     });
 
-    const response = await fetch(`/api/owners?${params.toString()}`, {
-      credentials: 'include'
-    });
+    const response = await fetch(`/api/owners?${params.toString()}`, getAuthFetchOptions());
 
     if (response.ok) {
       const data = await response.json();

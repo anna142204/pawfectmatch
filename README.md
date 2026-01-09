@@ -1,81 +1,96 @@
-# PawfectMatch API
+# PawfectMatch 🐾
 
-Une API RESTful pour connecter les adoptants d'animaux avec les animaux disponibles à l'adoption, implémentée avec [Express][express] et [MongoDB][mongo].
+Application web complète de mise en relation pour l'adoption d'animaux, permettant aux adoptants de trouver leur compagnon idéal et aux propriétaires/refuges de gérer leurs animaux à l'adoption.
 
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+<details>
+<summary><strong>⚡️ Guide de démarrage rapide</strong></summary>
 
-- [Prérequis](#prérequis)
-- [Guide de démarrage rapide](#guide-de-démarrage-rapide)
-- [Installation](#installation)
-- [Utilisation](#utilisation)
-- [Configuration](#configuration)
-- [Fonctionnalités de l'application](#fonctionnalités-de-lapplication)
-- [Ressources API](#ressources-api)
-- [Documentation API](#documentation-api)
-- [Support WebSocket](#support-websocket)
-- [Tests automatisés](#tests-automatisés)
-- [Dépannage](#dépannage)
-- [Déploiement en production](#déploiement-en-production)
-- [Licence](#licence)
-
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
-
-## Prérequis
-
-- [Node.js][node] 18.x ou supérieur
-- [MongoDB][mongo] 7.x ou 8.x (local ou distant)
-- [npm][npm] 9.x ou supérieur
-- Compte [Cloudinary][cloudinary] (pour la fonctionnalité d'upload d'images)
-
-## Guide de démarrage rapide
-
-Pour faire fonctionner l'application rapidement :
+## ⚡️ Guide de démarrage rapide
 
 ```bash
-# 1. Clonez et installez
 git clone https://github.com/HEIG-VD/pawfectmatch.git
 cd pawfectmatch
+
+# 1) Installer les dépendances
 npm install
 
-# 2. Copiez le fichier d'environnement et ajoutez les identifiants Cloudinary
+# 2) Copier la configuration et renseigner Cloudinary
 cp .env.example .env
-# Modifiez le fichier .env avec vos identifiants Cloudinary
+# Éditez .env et complétez CLOUDINARY_CLOUD_NAME / API_KEY / API_SECRET
 
-# 3. Démarrez MongoDB (s'il n'est pas déjà en cours d'exécution)
-mongod  # Ou : brew services start mongodb-community (macOS)
+# 3) Démarrer MongoDB (en local)
+mongod  # ou brew services start mongodb-community
 
-# 4. Seedez la base de données avec des données d'exemple (optionnel)
-cd server
-node seed-animals-users.js
-cd ..
+# 4) (Optionnel) Peupler la base avec des données de test
+cd server && node seed-animals-users.js && cd ..
 
-# 5. Démarrez le backend et le frontend
-# Terminal 1:
-npm run backend
-
-# Terminal 2:
-npm run dev
+# 5) Lancer backend et frontend
+npm run backend   # backend sur http://localhost:8989
+npm run dev       # frontend sur http://localhost:5173
 ```
 
-Ouvrez [http://localhost:5173](http://localhost:5173) dans votre navigateur et
-matchez avec vos animaux préférés !
+**Comptes de test (si vous avez seedé) :**
 
-### Identifiants d'exemple
+| Rôle | Email | Mot de passe |
+|------|-------|--------------|
+| Adoptant | `alice@adopter.ch` | `password123` |
+| Adoptant | `ben@adopter.ch` | `password123` |
+| Propriétaire | `seb@particulier.ch` | `password123` |
+| Refuge | `marc@refuge.ch` | `password123` |
 
-Si vous avez peuplé la base de données, vous pouvez utiliser ces comptes de test :
+</details>
 
-**Adoptants :**
+## 📋 Table des matières
 
-- Email : `adopter1@example.com` | Mot de passe : `password123`
-- Email : `adopter2@example.com` | Mot de passe : `password123`
+- [Guide de démarrage rapide](#️-guide-de-démarrage-rapide)
+- [Aperçu](#-aperçu)
+- [Technologies](#-technologies)
+- [Prérequis](#-prérequis)
+- [Installation](#-installation)
+- [Utilisation](#-utilisation)
+- [Structure du projet](#-structure-du-projet)
+- [Fonctionnalités](#-fonctionnalités)
+- [API & Documentation](#-api--documentation)
+- [Tests](#-tests)
+- [Déploiement](#-déploiement)
+- [Équipe](#-équipe)
 
-**Propriétaires :**
 
-- Email : `owner1@example.com` | Mot de passe : `password123`
-- Email : `refuge@example.com` | Mot de passe : `password123`
+## 🎯 Aperçu
 
-## Installation
+PawfectMatch est une plateforme moderne qui facilite l'adoption d'animaux en connectant adoptants et propriétaires à travers une interface intuitive de type "swipe", des notifications en temps réel et un système de messagerie instantanée.
+
+**Démo en ligne :** [pawfectmatch-ix6g.onrender.com](https://pawfectmatch-ix6g.onrender.com/)
+
+## 🛠 Technologies
+
+### Backend
+- **Node.js** 18+ & **Express.js** - API RESTful
+- **MongoDB** 7/8 - Base de données NoSQL
+- **JWT** - Authentification sécurisée
+- **WsMini** - Communication WebSocket temps réel
+- **Cloudinary** - Stockage et gestion d'images
+
+### Frontend
+- **Vue 3** - Framework JavaScript progressif
+- **Vite** - Build tool ultra-rapide
+- **Vue Router** - Routage SPA
+
+### Tests
+- **Jest** - Framework de tests JavaScript
+- **SuperTest** - Tests d'API HTTP
+
+## ✅ Prérequis
+
+- **Node.js** ≥ 18.x ([Télécharger](https://nodejs.org))
+- **npm** ≥ 9.x (inclus avec Node.js)
+- **MongoDB** 7.x ou 8.x ([Guide d'installation](https://docs.mongodb.com/manual/installation/))
+- **Compte Cloudinary** (gratuit) pour l'upload d'images ([S'inscrire](https://cloudinary.com))
+
+
+## 🚀 Installation
+
+### 1. Clonez le dépôt
 
 ```bash
 git clone https://github.com/HEIG-VD/pawfectmatch.git
@@ -88,485 +103,309 @@ cd pawfectmatch
 npm install
 ```
 
-### 3. Configurez les variables d'environnement
+### 3. Configuration
 
-Copiez le fichier `.env.example` vers `.env` et mettez-le à jour avec votre configuration :
+Créez un fichier `.env` à la racine du projet :
 
 ```bash
 cp .env.example .env
 ```
 
-Modifiez le fichier `.env` avec vos paramètres (voir la section [Configuration](#configuration) ci-dessous)
-
-### 4. Démarrez MongoDB
-
-Assurez-vous que MongoDB est en cours d'exécution sur votre système :
-
-```bash
-# Sur macOS avec Homebrew
-brew services start mongodb-community
-
-# Ou démarrez MongoDB manuellement
-mongod
-```
-
-Pour plus d'informations sur la configuration de MongoDB, consultez la [documentation MongoDB][mongo-setup].
-
-### 5. (Optionnel) Peuplez la base de données avec des données d'exemple
-
-Pour remplir la base de données avec des utilisateurs, animaux et correspondances d'exemple :
-
-```bash
-# Depuis le répertoire du serveur
-cd server
-node seed-animals-users.js
-```
-
-Cela crée :
-
-- Des adoptants et propriétaires d'exemple
-- Des animaux d'exemple avec caractéristiques
-- Des correspondances d'exemple pour la démonstration
-
-## Utilisation
-
-### Mode développement (Stack complète)
-
-```bash
-# Terminal 1 : Démarrez le serveur backend avec rechargement à chaud
-npm run backend
-```
-
-L'API backend sera disponible à [http://localhost:8989](http://localhost:8989)
-
-```bash
-# Terminal 2 : Démarrez le frontend (serveur de développement Vite)
-npm run dev
-```
-
-Le frontend sera disponible à [http://localhost:5173](http://localhost:5173) (ou le port affiché dans votre terminal)
-
-### Construction de production
-
-```bash
-# Construisez le frontend
-npm run build
-
-# Démarrez le backend pour la production
-npm run backend
-```
-
-### Scripts utiles
-
-```bash
-# Exécutez les tests automatisés
-npm test
-
-# Exécutez les tests avec rapport de couverture
-npm run test:coverage
-
-# Exécutez les tests en mode surveillance
-npm run test:watch
-
-# Créez un compte administrateur (si vous utilisez le panneau d'administration)
-npm run create-admin
-```
-
-## Configuration
-
-### Variables d'environnement
-
-Créez un fichier `.env` dans le répertoire racine avec les variables suivantes :
+**Configuration complète (.env prêt à copier)** :
 
 ```env
-# Connexion MongoDB
+# MongoDB
+# Base de données
 DATABASE_URL=mongodb://localhost/pawfectmatch
 
-# Configuration du serveur
+# Serveur
 BACKEND_PORT=8989
-JWT_SECRET=your-secret-key-change-in-production
+NODE_ENV=development
+
+# Authentification
+JWT_SECRET=votre-clé-secrète-sécurisée
 JWT_EXPIRES_IN=7d
 
-# Configuration WebSocket (Frontend)
+# WebSocket (Frontend)
 VITE_WS_HOST=localhost
 VITE_WS_PORT=8989
 VITE_WS_PROTOCOL=ws
 
-# Upload d'images Cloudinary
-CLOUDINARY_CLOUD_NAME=your-cloudinary-cloud-name
-CLOUDINARY_API_KEY=your-cloudinary-api-key
-CLOUDINARY_API_SECRET=your-cloudinary-api-secret
+# Cloudinary (Upload d'images)
+CLOUDINARY_CLOUD_NAME=votre-cloud-name
+CLOUDINARY_API_KEY=votre-api-key
+CLOUDINARY_API_SECRET=votre-api-secret
 
-# Compte administrateur (pour l'initialisation)
+# Admin (créé automatiquement au démarrage si défini)
 ADMIN_EMAIL=admin@example.com
-ADMIN_PASSWORD=SecurePassword123!
+ADMIN_PASSWORD=MotDePasseSecurise123!
+ADMIN_NAME=Administrator
 ```
 
-### Détails de configuration
+> **Obtenir vos identifiants Cloudinary :** Connectez-vous à votre [Dashboard Cloudinary](https://cloudinary.com/console) et copiez les identifiants affichés.
 
-| Variable                | Description                                       | Par défaut                         | Requis                 |
-| ----------------------- | ------------------------------------------------- | ---------------------------------- | ---------------------- |
-| `DATABASE_URL`          | Chaîne de connexion MongoDB                       | `mongodb://localhost/pawfectmatch` | Non                    |
-| `BACKEND_PORT`          | Port du serveur                                   | `8989`                             | Non                    |
-| `JWT_SECRET`            | Clé secrète pour les jetons JWT (changez en prod) | -                                  | Oui                    |
-| `JWT_EXPIRES_IN`        | Durée d'expiration du jeton JWT                   | `7d`                               | Non                    |
-| `VITE_WS_HOST`          | Hôte WebSocket pour le frontend                   | `localhost`                        | Non                    |
-| `VITE_WS_PORT`          | Port WebSocket                                    | `8989`                             | Non                    |
-| `VITE_WS_PROTOCOL`      | Protocole WebSocket                               | `ws` (ou `wss` pour la production) | Non                    |
-| `CLOUDINARY_CLOUD_NAME` | Nom du cloud Cloudinary                           | -                                  | Oui (pour les uploads) |
-| `CLOUDINARY_API_KEY`    | Clé API Cloudinary                                | -                                  | Oui (pour les uploads) |
-| `CLOUDINARY_API_SECRET` | Secret API Cloudinary                             | -                                  | Oui (pour les uploads) |
-| `ADMIN_EMAIL`           | Email de l'utilisateur administrateur             | -                                  | Non                    |
-| `ADMIN_PASSWORD`        | Mot de passe de l'utilisateur administrateur      | -                                  | Non                    |
+> **Création automatique de l'admin (optionnel) :** Si vous définissez `ADMIN_EMAIL` et `ADMIN_PASSWORD`, un compte administrateur sera créé automatiquement au démarrage du serveur.
 
-### Configuration de Cloudinary
+#### Descriptions des variables
 
-Pour activer les uploads d'images, vous avez besoin d'un compte Cloudinary :
+| Variable | Description | Valeur par défaut | Requis |
+|----------|-------------|-------------------|---------|
+| `DATABASE_URL` | URL de connexion MongoDB | `mongodb://localhost/pawfectmatch` | ✅ |
+| `BACKEND_PORT` | Port du serveur (utile uniquement sur VPS/serveur propre) | `8989` | Non |
+| `NODE_ENV` | Environnement (`development` ou `production`) | `development` | Non |
+| `JWT_SECRET` | Clé secrète pour les tokens JWT | - | ✅ |
+| `JWT_EXPIRES_IN` | Durée de validité des tokens | `7d` | Non |
+| `VITE_WS_HOST` | Hôte WebSocket | `localhost` | Non |
+| `VITE_WS_PORT` | Port WebSocket | `8989` | Non |
+| `VITE_WS_PROTOCOL` | Protocole WebSocket | `ws` (dev) / `wss` (prod) | Non |
+| `CLOUDINARY_CLOUD_NAME` | Nom du cloud Cloudinary | - | ✅ |
+| `CLOUDINARY_API_KEY` | Clé API Cloudinary | - | ✅ |
+| `CLOUDINARY_API_SECRET` | Secret API Cloudinary | - | ✅ |
+| `ADMIN_EMAIL` | Email de l'administrateur (créé au démarrage si défini) | - | Non |
+| `ADMIN_PASSWORD` | Mot de passe de l'administrateur | - | Non |
+| `ADMIN_NAME` | Nom de l'administrateur | `Administrator` | Non |
 
-1. Inscrivez-vous à [https://cloudinary.com](https://cloudinary.com)
-2. Allez sur votre [Tableau de bord](https://cloudinary.com/console)
-3. Copiez votre **Nom du cloud**, **Clé API** et **Secret API**
-4. Ajoutez-les à votre fichier `.env`
-
-### Utilisation d'une MongoDB distante
-
-Si vous souhaitez utiliser une instance MongoDB distante (par exemple, MongoDB Atlas) :
-
-```env
-DATABASE_URL=mongodb+srv://username:password@cluster0.mongodb.net/pawfectmatch?retryWrites=true&w=majority
-```
-
-### Configuration locale de MongoDB
-
-**macOS :**
+### 4. Démarrez MongoDB
 
 ```bash
-# Installez MongoDB avec Homebrew
-brew install mongodb-community
-
-# Démarrez le service MongoDB
-brew services start mongodb-community
-
-# Arrêtez le service MongoDB
-brew services stop mongodb-community
-```
-
-**Windows :**
-
-- Téléchargez et installez depuis [MongoDB Community](https://www.mongodb.com/try/download/community)
-- MongoDB démarrera automatiquement
-
-**Linux (Ubuntu/Debian) :**
-
-```bash
-# Installez MongoDB
-sudo apt-get install -y mongodb
-
-# Démarrez le service MongoDB
-sudo systemctl start mongodb
-```
-
-### Configurations d'exemple
-
-**Développement (MongoDB local) :**
-
-```env
-# Base de données locale sur votre ordinateur
-DATABASE_URL=mongodb://localhost/pawfectmatch
-
-# Port local (8989)
-BACKEND_PORT=8989
-
-# Clé secrète simple pour développement (À CHANGER EN PRODUCTION !)
-JWT_SECRET=dev-secret-key-change-in-production
-
-# WebSocket en HTTP (pas sécurisé, ok en local)
-VITE_WS_PROTOCOL=ws
-
-# Identifiants Cloudinary (remplacez par les vôtres)
-CLOUDINARY_CLOUD_NAME=your-cloud-name
-CLOUDINARY_API_KEY=your-api-key
-CLOUDINARY_API_SECRET=your-api-secret
-```
-
-**Production (MongoDB distant & SSL) :**
-
-```env
-# Base de données hébergée sur MongoDB Atlas (serveur distant)
-DATABASE_URL=mongodb+srv://user:pass@cluster.mongodb.net/pawfectmatch
-
-# Port HTTPS standard (443) pour sécurité
-BACKEND_PORT=443
-
-# Clé secrète très sécurisée et complexe en production
-JWT_SECRET=your-very-secure-random-key-here
-
-# WebSocket sécurisé avec chiffrement SSL/TLS
-VITE_WS_PROTOCOL=wss
-
-# Identifiants Cloudinary (mêmes que développement)
-CLOUDINARY_CLOUD_NAME=your-cloud-name
-CLOUDINARY_API_KEY=your-api-key
-CLOUDINARY_API_SECRET=your-api-secret
-```
-
-#### Explications des différences :
-
-| Paramètre            | Développement             | Production          | Pourquoi ?                                                |
-| -------------------- | ------------------------- | ------------------- | --------------------------------------------------------- |
-| **DATABASE_URL**     | `mongodb://localhost/...` | `mongodb+srv://...` | En dev, DB locale; en prod, DB cloud sécurisée            |
-| **BACKEND_PORT**     | `8989`                    | `443`               | 8989 = port de dev; 443 = port HTTPS standard             |
-| **JWT_SECRET**       | Simple                    | Très complexe       | En dev, pas grave; en prod, pour sécurité maximale        |
-| **VITE_WS_PROTOCOL** | `ws`                      | `wss`               | ws = non sécurisé (ok local); wss = sécurisé avec SSL/TLS |
-| **CLOUDINARY\_\***   | Vos identifiants          | Vos identifiants    | Identiques (l'upload d'images fonctionne pareil)          |
-
-## Ressources API
-
-Cette API vous permet de travailler avec les ressources suivantes :
-
-### Ressources principales
-
-- **Adoptants** - Utilisateurs cherchant à adopter des animaux
-
-  - S'inscrire en tant qu'adoptant
-  - Parcourir et filtrer les adoptants
-  - Mettre à jour le profil d'adoptant
-  - Supprimer le compte d'adoptant
-
-- **Propriétaires** - Utilisateurs proposant des animaux à l'adoption
-
-  - S'inscrire en tant que propriétaire
-  - Parcourir et filtrer les propriétaires
-  - Mettre à jour le profil du propriétaire
-  - Supprimer le compte propriétaire (s'il n'y a pas d'animaux associés)
-
-- **Animaux** - Animaux de compagnie disponibles à l'adoption
-
-  - Créer et gérer les annonces d'animaux
-  - Parcourir les animaux avec filtrage (espèce, ville, nom)
-  - Mettre à jour les informations et la disponibilité des animaux
-  - Supprimer les annonces d'animaux
-
-- **Correspondances** - Connexions entre adoptants et animaux
-  - Créer des correspondances entre adoptants et animaux
-  - Gérer le statut des correspondances (actif/inactif)
-  - Échanger des messages dans une discussion de correspondance
-  - Consulter l'historique des discussions
-
-### Ressources connexes
-
-- **Images** - Gestion des uploads d'images
-
-  - Télécharger une ou plusieurs images (jusqu'à 10 fichiers)
-  - Supprimer des images
-
-- **Admin** - Points de terminaison administratifs
-  - Récupérer les statistiques API (utilisateurs totaux, animaux, correspondances)
-
-## Fonctionnalités de l'application
-
-### Pour les adoptants
-
-- **Parcourir les animaux** - Parcourez les animaux disponibles avec des recommandations intelligentes basées sur vos préférences
-- **Détails des animaux** - Voir les informations détaillées sur chaque animal (photos, caractéristiques, informations du propriétaire)
-- **Like/Correspondance** - Aimez les animaux pour exprimer votre intérêt et créer une correspondance
-- **Demandes** - Consulter toutes vos demandes d'adoption et leur statut (en attente, validée, adoptée, refusée)
-- **Messages** - Messagerie en temps réel avec les propriétaires via WebSocket
-- **Profil utilisateur** - Gérez votre profil, vos préférences et votre historique d'adoption
-- **Vue carte** - Voir les emplacements des animaux sur une carte interactive
-
-### Pour les propriétaires
-
-- **Créer des annonces d'animaux** - Ajoutez de nouveaux animaux avec photos, caractéristiques et descriptions
-- **Gérer les animaux** - Modifiez, mettez à jour la disponibilité et gérez toutes vos annonces
-- **Demandes** - Voir et gérer les demandes d'adoption des adoptants
-- **Notifications en temps réel** - Recevez des notifications instantanées quand les adoptants aiment ou créent une correspondance avec vos animaux
-- **Messagerie** - Communiquez directement avec les adoptants intéressés
-- **Profil utilisateur** - Gérez votre profil d'organisation/personnel
-
-### Technologie principale
-
-- **Frontend** - Vue 3 avec Vite pour un développement rapide
-- **Backend** - Express.js avec Node.js
-- **Base de données** - MongoDB avec Mongoose ORM
-- **Communication en temps réel** - Support WebSocket avec WsMini
-- **Authentification** - Authentification sécurisée basée sur JWT
-- **Stockage d'images** - Cloudinary pour les uploads et la gestion des images
-
-## Documentation API
-
-La documentation API complète est disponible dans la [spécification OpenAPI](openapi.yml).
-
-Vous pouvez voir la documentation interactive en utilisant :
-
-1. **Swagger UI** - Copiez le contenu de `openapi.yml` vers https://editor.swagger.io/
-2. **ReDoc** - Consultez https://redocly.github.io/redoc/ (collez le YAML)
-
-### Caractéristiques principales
-
-- **Authentification** - Authentification par jeton JWT pour les points de terminaison sécurisés
-- **Pagination** - Tous les points de terminaison de liste supportent la pagination avec les paramètres `page` et `limit`
-- **Filtrage** - Filtrez les ressources par divers critères (firstName, lastName, email, city, species, etc.)
-- **Gestion des erreurs** - Réponses d'erreur complètes avec codes de statut HTTP appropriés
-- **Validation** - Validation des données de requête avec messages d'erreur détaillés
-
-## Support WebSocket
-
-Cette application utilise [WsMini][wsmini] - une bibliothèque WebSocket légère pour la communication en temps réel.
-
-### Fonctionnalités en temps réel
-
-- **Notifications en direct** - Les propriétaires reçoivent des notifications instantanées quand les adoptants aiment leurs animaux
-- **Messagerie en direct** - Chat en temps réel entre adoptants et propriétaires
-- **Mises à jour des correspondances** - Les changements de statut sont reflétés immédiatement à tous les clients connectés
-
-Pour plus d'informations sur WsMini, consultez la [documentation officielle][wsmini].
-
-## Tests automatisés
-
-Cette application inclut une suite de tests automatisés utilisant [Jest][jest] et [SuperTest][supertest].
-
-### Exécuter les tests
-
-```bash
-# Exécutez tous les tests
-npm test
-
-# Exécutez les tests avec rapport de couverture
-npm run test:coverage
-
-# Exécutez les tests en mode surveillance (auto-exécution lors des modifications)
-npm run test:watch
-```
-
-### Base de données de test
-
-Les tests utilisent automatiquement une base de données MongoDB séparée à `mongodb://127.0.0.1/pawfectmatch-test` pour éviter d'affecter vos données de développement.
-
-### Structure des tests
-
-- `server/spec/adopter.spec.js` - Tests API des adoptants
-- `server/spec/animal.spec.js` - Tests API des animaux
-- `server/spec/owner.spec.js` - Tests API des propriétaires
-- `server/spec/match.spec.js` - Tests de correspondance et de messagerie
-
-## Dépannage
-
-### Problèmes de connexion MongoDB
-
-**Erreur : `MongoNetworkError: connect ECONNREFUSED 127.0.0.1:27017`**
-
-MongoDB n'est pas en cours d'exécution. Démarrez-le avec :
-
-```bash
-# macOS
+# macOS (Homebrew)
 brew services start mongodb-community
 
 # Linux
 sudo systemctl start mongodb
 
-# Windows
-# Démarrez le service MongoDB à partir de l'application Services
+# Ou manuellement
+mongod
 ```
 
-### Port déjà utilisé
+### 5. (Optionnel) Données d'exemple
 
-**Erreur : `Error: listen EADDRINUSE: address already in use :::8989`**
-
-Une autre application utilise le port 8989. Vous pouvez soit :
-
-- Arrêter l'autre application
-- Changer le port dans `.env` : `BACKEND_PORT=3000`
-
-### L'upload Cloudinary échoue
-
-**Erreur : `Unauthorized to access resource`**
-
-Vérifiez vos identifiants Cloudinary dans `.env` :
-
-- Vérifiez que `CLOUDINARY_CLOUD_NAME` est correct
-- Vérifiez que `CLOUDINARY_API_KEY` est correct
-- Vérifiez que `CLOUDINARY_API_SECRET` est correct
-
-### Problèmes de connexion WebSocket
-
-**Le frontend ne peut pas se connecter à WebSocket**
-
-Vérifiez votre fichier `.env` :
-
-```env
-VITE_WS_HOST=localhost  # Doit correspondre à l'hôte de votre backend
-VITE_WS_PORT=8989       # Doit correspondre à votre BACKEND_PORT
-VITE_WS_PROTOCOL=ws     # Utilisez 'wss' pour HTTPS
-```
-
-### Les tests échouent avec erreur de base de données
-
-Videz la base de données de test et réessayez :
+Peuplez la base de données avec des utilisateurs et animaux de test :
 
 ```bash
-# La base de données de test est automatiquement nettoyée avant chaque suite de tests
-# Si les problèmes persistent, supprimez la base de données de test manuellement :
-# mongo pawfectmatch-test --eval "db.dropDatabase()"
-
-npm test
+cd server
+node seed-animals-users.js
+cd ..
 ```
 
-## Déploiement en production
+**Comptes de test créés :**
 
-### Avant de mettre en ligne
+| Rôle | Email | Mot de passe |
+|------|-------|--------------|
+| Adoptant | `alice@adopter.ch` | `password123` |
+| Adoptant | `ben@adopter.ch` | `password123` |
+| Propriétaire | `seb@particulier.ch` | `password123` |
+| Refuge | `marc@refuge.ch` | `password123` |
 
-1. **Changez la clé secrète JWT**
+## 🎮 Utilisation
 
-   ```env
-   JWT_SECRET=your-very-secure-random-key-here
-   ```
+### Développement
 
-2. **Utilisez une MongoDB distante**
+Lancez le backend et le frontend simultanément :
 
-   ```env
-   DATABASE_URL=mongodb+srv://username:password@cluster.mongodb.net/pawfectmatch
-   ```
+```bash
+# Terminal 1 - Backend (API + WebSocket)
+npm run backend
 
-3. **Mettez à jour le protocole WebSocket**
+# Terminal 2 - Frontend (Vite dev server)
+npm run dev
+```
 
-   ```env
-   VITE_WS_PROTOCOL=wss  # WebSocket sécurisé
-   ```
+**Accédez à l'application :**
+- Frontend : [http://localhost:5173](http://localhost:5173)
+- API Backend : [http://localhost:8989](http://localhost:8989)
 
-4. **Construisez le frontend**
+### Production
 
-   ```bash
-   npm run build
-   ```
+```bash
+# 1. Build du frontend
+npm run build
 
-5. **Définissez NODE_ENV**
-   ```env
-   NODE_ENV=production
-   ```
+# 2. Démarrage du serveur
+npm run backend
+```
 
-### Variables d'environnement pour la production
+### Scripts disponibles
+
+| Script | Description |
+|--------|-------------|
+| `npm run backend` | Démarre le serveur backend avec nodemon |
+| `npm run dev` | Démarre le serveur de développement Vite |
+| `npm run build` | Build de production du frontend |
+| `npm run preview` | Prévisualise le build de production |
+| `npm test` | Lance tous les tests |
+| `npm run test:watch` | Tests en mode surveillance |
+| `npm run test:coverage` | Tests avec rapport de couverture |
+
+## 📂 Structure du projet
+
+```
+pawfectmatch/
+├── public/              # Fichiers statiques
+├── server/              # Backend Express
+│   ├── api/            # Routes API
+│   ├── config/         # Configuration (Cloudinary, etc.)
+│   ├── models/         # Modèles Mongoose
+│   ├── spec/           # Tests unitaires
+│   ├── store/          # Store WebSocket
+│   ├── utils/          # Utilitaires (geocoder, cookies)
+│   └── app.mjs         # Point d'entrée du serveur
+├── src/                 # Frontend Vue 3
+│   ├── assets/         # Images et ressources
+│   ├── components/     # Composants réutilisables
+│   ├── composables/    # Composables Vue
+│   ├── constants/      # Constantes de l'application
+│   ├── router/         # Configuration Vue Router
+│   ├── store/          # Stores
+│   ├── utils/          # Utilitaires frontend
+│   ├── views/          # Pages de l'application
+│   ├── App.vue         # Composant racine
+│   └── main.js         # Point d'entrée frontend
+├── .env                 # Variables d'environnement (à créer)
+├── openapi.yml         # Documentation API OpenAPI
+├── package.json        # Dépendances et scripts
+└── vite.config.js      # Configuration Vite
+```
+
+## ✨ Fonctionnalités
+
+### Pour les adoptants 🏠
+
+- **Swipe intelligent** - Parcourez les animaux avec des recommandations basées sur vos préférences
+- **Profil détaillé** - Consultez les informations complètes sur chaque animal (photos, caractéristiques, localisation)
+- **Système de match** - Likez les animaux qui vous intéressent et créez des connexions
+- **Gestion des demandes** - Suivez toutes vos demandes d'adoption (en attente, validées, refusées)
+- **Messagerie temps réel** - Communiquez instantanément avec les propriétaires
+- **Vue carte interactive** - Visualisez les refuges/propriétaires disponibles sur une carte géographique
+- **Notifications** - Recevez des alertes dans l'app lors de nouveaux matchs 
+
+### Pour les propriétaires/refuges 🐕
+
+- **Gestion d'animaux** - Créez et gérez les profils de vos animaux à l'adoption
+- **Upload d'images** - Ajoutez jusqu'à 10 photos par animal
+- **Demandes d'adoption** - Consultez et gérez toutes les demandes reçues
+- **Messagerie** - Échangez avec les adoptants intéressés
+
+### Pour les administrateurs 👨‍💼
+
+- **Dashboard** - Statistiques globales de la plateforme
+- **Gestion des utilisateurs** - Supervision des comptes
+- **Modération** - Gestion du contenu de la plateforme
+
+## 📡 API & Documentation
+
+### Ressources principales
+
+| Ressource | Description | Points de terminaison |
+|-----------|-------------|----------------------|
+| **Auth** | Inscription / connexion / déconnexion | `POST /api/auth/register/adopter`, `POST /api/auth/register/owner`, `POST /api/auth/login`, `POST /api/auth/logout` |
+| **Adopter** | Gestion des adoptants | `GET /api/adopters`, `GET /api/adopters/:id`, `PUT /api/adopters/:id`, `DELETE /api/adopters/:id` |
+| **Owner** | Gestion des propriétaires | `GET /api/owners`, `GET /api/owners/:id`, `PUT /api/owners/:id`, `DELETE /api/owners/:id` |
+| **Animal** | Gestion des animaux | `GET /api/animals`, `GET /api/animals/:id`, `POST /api/animals`, `PUT /api/animals/:id`, `DELETE /api/animals/:id` |
+| **Match** | Matches, notifications, discussion | `GET /api/matches`, `GET /api/matches/pending-notifications`, `GET /api/matches/:id`, `POST /api/matches`, `PUT /api/matches/:id`, `PATCH /api/matches/:id/adopt`, `DELETE /api/matches/:id`, `POST /api/matches/:id/messages`, `GET /api/matches/:id/discussion` |
+| **Images** | Upload / suppression d'images | `POST /api/images/:type`, `DELETE /api/images` |
+| **Admin** | Statistiques globales | `GET /api/admin/stats` |
+
+### Documentation interactive
+
+La documentation API complète est disponible en format OpenAPI dans [`openapi.yml`](openapi.yml).
+
+**Visualisation interactive :**
+1. **Swagger UI** - Copiez le contenu d'`openapi.yml` sur [editor.swagger.io](https://editor.swagger.io/)
+2. **ReDoc** - Utilisez [Redocly](https://redocly.github.io/redoc/)
+
+### Fonctionnalités API
+
+- **Authentification JWT** - Sécurisation des endpoints
+- **Pagination** - Paramètres `page` et `limit` sur les listes
+- **Filtrage** - Recherche par nom, ville, espèce, etc.
+- **Validation** - Validation complète des données
+- **Gestion d'erreurs** - Codes HTTP appropriés et messages détaillés
+
+### WebSocket (Temps réel)
+
+L'application utilise [WsMini](https://github.com/Chabloz/WsMini) pour la communication temps réel :
+
+- **Notifications instantanées** - Alertes de nouveaux matchs
+- **Messagerie en direct** - Chat en temps réel entre utilisateurs
+- **Mises à jour live** - Synchronisation automatique des états
+
+## 🧪 Tests
+
+### Exécuter les tests
+
+```bash
+# Tous les tests
+npm test
+
+# Mode surveillance (re-exécute au changement)
+npm run test:watch
+
+# Avec couverture de code
+npm run test:coverage
+```
+
+### Structure des tests
+
+- `server/spec/adopter.spec.js` - Tests API des adoptants
+- `server/spec/owner.spec.js` - Tests API des propriétaires
+- `server/spec/animal.spec.js` - Tests API des animaux
+- `server/spec/match.spec.js` - Tests de match et messagerie
+
+> 💡 Les tests utilisent automatiquement une base de données séparée (`pawfectmatch-test`) pour ne pas affecter vos données de développement.
+
+## 🚀 Déploiement
+
+### Checklist pré-déploiement
+
+- [ ] Changez `JWT_SECRET` pour une valeur sécurisée aléatoire
+- [ ] Configurez MongoDB distant (ex: MongoDB Atlas)
+- [ ] Utilisez `VITE_WS_PROTOCOL=wss` pour WebSocket sécurisé
+- [ ] Définissez `NODE_ENV=production`
+- [ ] Configurez les variables d'environnement sur votre plateforme
+- [ ] Buildez le frontend : `npm run build`
+
+### Configuration production
 
 ```env
-DATABASE_URL=<your-mongodb-atlas-url>
-BACKEND_PORT=443
+# Production
 NODE_ENV=production
-JWT_SECRET=<your-secure-secret>
-JWT_EXPIRES_IN=7d
-VITE_WS_HOST=<your-domain.com>
-VITE_WS_PORT=443
+
+# MongoDB Atlas (remplacez par votre vraie URL depuis MongoDB Atlas)
+DATABASE_URL=mongodb+srv://username:password@votre-cluster.mongodb.net/pawfectmatch
+
+# JWT (générez une clé aléatoire sécurisée)
+JWT_SECRET=clé-aléatoire-ultra-sécurisée-64-caractères-minimum
+
+# WebSocket (remplacez par votre domaine)
 VITE_WS_PROTOCOL=wss
-CLOUDINARY_CLOUD_NAME=<your-cloud-name>
-CLOUDINARY_API_KEY=<your-api-key>
-CLOUDINARY_API_SECRET=<your-api-secret>
+VITE_WS_HOST=votredomaine.com
+VITE_WS_PORT=443
+
+# Cloudinary
+CLOUDINARY_CLOUD_NAME=votre-cloud-name
+CLOUDINARY_API_KEY=votre-api-key
+CLOUDINARY_API_SECRET=votre-api-secret
 ```
 
-[express]: https://expressjs.com
-[jest]: https://jestjs.io
-[mongo]: https://www.mongodb.com
-[mongo-setup]: https://docs.mongodb.com/manual/installation/
-[cloudinary]: https://cloudinary.com
-[node]: https://nodejs.org
-[npm]: https://www.npmjs.com
-[supertest]: https://github.com/visionmedia/supertest#readme
-[wsmini]: https://github.com/Chabloz/WsMini
+### Plateformes recommandées
+
+- **Backend** : Heroku, Railway, Render, DigitalOcean
+- **Base de données** : MongoDB Atlas (gratuit jusqu'à 512MB)
+- **Images** : Cloudinary (gratuit jusqu'à 25GB)
+
+## 👥 Équipe
+
+Projet réalisé dans le cadre des cours de **ArchiOWeb** (back-end) et **DévMobil** (front-end) à la HEIG-VD.
+
+**Développement :**
+- Anna Tranchida
+- Doriane Rosset
+- Agathe Makumbi
+- Christel Espinasse
+
+---
+
+<p align="center">
+  Fait avec ❤️ pour les animaux qui cherchent un foyer 🐾
+</p>

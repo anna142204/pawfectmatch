@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, reactive } from 'vue';
 import { useRouter } from 'vue-router';
+import { useAuth } from '@/composables/useAuth';
 import { useToast } from '@/composables/useToast';
 import { Camera, Trash2, Settings, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-vue-next';
 import BackButton from '@/components/BackButton.vue';
@@ -13,10 +14,10 @@ import ConfirmModal from '@/components/ConfirmModal.vue';
 import { SPECIES_OPTIONS, ENV_OPTIONS, SIZE_OPTIONS, AGE_OPTIONS, WEIGHT_OPTIONS, SEX_OPTIONS, TRAINING_OPTIONS, PERSONALITY_OPTIONS } from '@/constants/animalOptions';
 
 const router = useRouter();
+const { userId, getAuthFetchOptions, requireAuth } = useAuth();
 const { success, error } = useToast();
 const loading = ref(true);
 const isSaving = ref(false);
-const userId = localStorage.getItem('user_id');
 
 const showImageUploader = ref(false);
 const showDeleteModal = ref(false);
@@ -38,9 +39,9 @@ const form = reactive({
 });
 
 onMounted(async () => {
-    if (!userId) return router.push('/login');
+    if (!requireAuth() || !userId.value) return;
     try {
-        const res = await fetch(`/api/adopters/${userId}`, { credentials: 'include' });
+        const res = await fetch(`/api/adopters/${userId.value}`, { credentials: 'include' });
         if (!res.ok) throw new Error('Erreur chargement profil');
         const data = await res.json();
         Object.assign(form, {
@@ -102,17 +103,17 @@ const submitForm = async () => {
         if (newImageFile.value) {
             const formData = new FormData();
             formData.append('image', newImageFile.value);
-            
-            const uploadRes = await fetch('/api/images/adopter', { 
-                method: 'POST', 
-                body: formData, 
-                credentials: 'include' 
+
+            const uploadRes = await fetch('/api/images/adopter', {
+                method: 'POST',
+                body: formData,
+                credentials: 'include'
             });
 
             if (!uploadRes.ok) throw new Error("Erreur upload image");
-            
+
             const uploadData = await uploadRes.json();
-            
+
             if (uploadData.data && uploadData.data.url) {
                 finalImageUrl = uploadData.data.url;
             } else if (uploadData.url) {
@@ -130,14 +131,19 @@ const submitForm = async () => {
             preferences: form.preferences
         };
 
-        const res = await fetch(`/api/adopters/${userId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
-            credentials: 'include'
-        });
+        const res = await fetch(
+            `/api/adopters/${userId.value}`,
+            getAuthFetchOptions({
+                method: 'PUT',
+                body: JSON.stringify(payload)
+            })
+        );
 
-        if (!res.ok) throw new Error('Erreur sauvegarde');
+        if (!res.ok) {
+            const errorData = await res.json().catch(() => ({}));
+            console.error('Server error:', errorData);
+            throw new Error(errorData.error || 'Erreur sauvegarde');
+        }
         success('Profil mis à jour');
         router.push('/adopter/profile');
     } catch (e) {
@@ -159,7 +165,10 @@ const confirmDeleteAccount = () => {
 const handleDelete = async () => {
     showDeleteModal.value = false;
     try {
-        const res = await fetch(`/api/adopters/${userId}`, { method: 'DELETE', credentials: 'include' });
+        const res = await fetch(
+            `/api/adopters/${userId.value}`,
+            getAuthFetchOptions({ method: 'DELETE' })
+        );
         if (!res.ok) throw new Error('Erreur suppression');
         success('Compte supprimé');
         router.push('/logout');
@@ -196,7 +205,8 @@ const handleDelete = async () => {
                     </div>
                     <div v-else class="upload-mode-view">
                         <ImageUploader @filesSelected="handleImageSelect" :max="1" :multiple="false" />
-                        <button v-if="form.image" type="button" class="cancel-link" @click="toggleImageEdit">Annuler</button>
+                        <button v-if="form.image" type="button" class="cancel-link"
+                            @click="toggleImageEdit">Annuler</button>
                     </div>
                 </div>
             </div>
@@ -232,7 +242,7 @@ const handleDelete = async () => {
             <div class="section">
                 <h3 class="text-h4 text-neutral-800 mb-4">Mes préférences</h3>
 
-                
+
                 <div class="pref-group">
                     <label class="label sub-label">Espèces recherchées</label>
                     <div class="tags-container">
@@ -245,8 +255,7 @@ const handleDelete = async () => {
                     <label class="label sub-label">Taille préférée</label>
                     <div class="tags-container">
                         <TagButton v-for="opt in SIZE_OPTIONS" :key="opt.value" :label="opt.label"
-                            :selected="hasPref('size', opt.value)"
-                            @toggle="togglePref('size', opt.value)" />
+                            :selected="hasPref('size', opt.value)" @toggle="togglePref('size', opt.value)" />
                     </div>
                 </div>
 
@@ -254,8 +263,7 @@ const handleDelete = async () => {
                     <label class="label sub-label">Âge préféré</label>
                     <div class="tags-container">
                         <TagButton v-for="opt in AGE_OPTIONS" :key="opt.value" :label="opt.label"
-                            :selected="hasPref('age', opt.value)"
-                            @toggle="togglePref('age', opt.value)" />
+                            :selected="hasPref('age', opt.value)" @toggle="togglePref('age', opt.value)" />
                     </div>
                 </div>
 
@@ -263,8 +271,7 @@ const handleDelete = async () => {
                     <label class="label sub-label">Poids préféré</label>
                     <div class="tags-container">
                         <TagButton v-for="opt in WEIGHT_OPTIONS" :key="opt.value" :label="opt.label"
-                            :selected="hasPref('weight', opt.value)"
-                            @toggle="togglePref('weight', opt.value)" />
+                            :selected="hasPref('weight', opt.value)" @toggle="togglePref('weight', opt.value)" />
                     </div>
                 </div>
 
@@ -272,11 +279,10 @@ const handleDelete = async () => {
                     <label class="label sub-label">Sexe préféré</label>
                     <div class="tags-container">
                         <TagButton v-for="opt in SEX_OPTIONS" :key="opt.value" :label="opt.label"
-                            :selected="hasPref('sex', opt.value)"
-                            @toggle="togglePref('sex', opt.value)" />
+                            :selected="hasPref('sex', opt.value)" @toggle="togglePref('sex', opt.value)" />
                     </div>
                 </div>
-<div class="pref-group">
+                <div class="pref-group">
                     <label class="label sub-label">Mon environnement</label>
                     <div class="tags-container">
                         <TagButton v-for="opt in ENV_OPTIONS" :key="opt.value" :label="opt.label"
@@ -289,8 +295,7 @@ const handleDelete = async () => {
                     <label class="label sub-label">Dressage</label>
                     <div class="tags-container">
                         <TagButton v-for="opt in TRAINING_OPTIONS" :key="opt.value" :label="opt.label"
-                            :selected="hasPref('dressage', opt.value)"
-                            @toggle="togglePref('dressage', opt.value)" />
+                            :selected="hasPref('dressage', opt.value)" @toggle="togglePref('dressage', opt.value)" />
                     </div>
                 </div>
 
@@ -392,7 +397,7 @@ const handleDelete = async () => {
 
 .section {
     background: white;
-    padding: 0 20px 20px 20px;
+    padding: 20px;
     border-radius: 16px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
     width: 100%;
@@ -484,7 +489,7 @@ const handleDelete = async () => {
     max-width: 100%;
 }
 
-.form-age{
+.form-age {
     max-width: 40%;
 }
 
@@ -613,14 +618,17 @@ const handleDelete = async () => {
 .actions {
     position: fixed;
     bottom: 0;
-    left: 0;
-    right: 0;
-    padding: 20px;
+    z-index: 50;
     background: white;
     border-top: 1px solid #eee;
-    z-index: 50;
+    padding: 20px;
     display: flex;
     justify-content: center;
+    width: 100%;
+    max-width: 430px;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    box-sizing: border-box;
 }
 
 .save-btn {

@@ -1,6 +1,7 @@
 <script setup>
-import { computed, ref, onMounted } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
+import { useAuth } from '@/composables/useAuth'
 import { Home, Layers, MessageCircle, Paperclip, User, PawPrint, ClipboardList, GalleryHorizontalEnd } from 'lucide-vue-next'
 import { unreadNotifications } from '@/store/wsCommandStore'
 
@@ -14,16 +15,8 @@ const props = defineProps({
 })
 
 const route = useRoute()
-const currentUserType = ref(props.userType || 'adopter')
-
-onMounted(() => {
-    if (!props.userType) {
-        const storedUserType = localStorage.getItem('user_type')
-        if (storedUserType) {
-            currentUserType.value = storedUserType
-        }
-    }
-})
+const { userType: authUserType } = useAuth()
+const currentUserType = ref(props.userType || authUserType.value || 'adopter')
 
 const menuItems = computed(() => {
     if (currentUserType.value === 'adopter') {
@@ -92,7 +85,7 @@ const hasAdoptionBadge = computed(() => {
     gap: 0;
     background-color: var(--color-neutral-white);
     border-top: 1px solid var(--color-neutral-200);
-    padding: var(--spacing-3) var(--spacing-2);
+    padding: var(--spacing-3) 0;
     padding-bottom: calc(var(--spacing-3) + env(safe-area-inset-bottom));
     z-index: 1000;
     box-shadow: var(--shadow-lg);
@@ -104,7 +97,7 @@ const hasAdoptionBadge = computed(() => {
     align-items: center;
     justify-content: flex-start;
     gap: var(--spacing-1);
-    padding: var(--spacing-2) var(--spacing-1);
+    padding: var(--spacing-2) 0;
     text-decoration: none;
     color: var(--color-neutral-900);
     transition: all 0.3s ease;

@@ -1,19 +1,20 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { useAuth } from '@/composables/useAuth';
 import Menu from '@/components/Menu.vue';
 import SwipeCard from '@/components/SwipeCard.vue';
 
 const router = useRouter();
+const { userId, getAuthFetchOptions, requireAuth } = useAuth();
 
 const animals = ref([]);
 const currentIndex = ref(0);
 const loading = ref(true);
 const error = ref(null);
-const userId = localStorage.getItem('user_id');
 
 const getIgnoredAnimalIds = () => {
-  const ignored = localStorage.getItem(`ignored_animals_${userId}`);
+  const ignored = localStorage.getItem(`ignored_animals_${userId.value}`);
   return ignored ? JSON.parse(ignored) : [];
 };
 
@@ -21,7 +22,7 @@ const saveIgnoredAnimal = (animalId) => {
   const ignored = getIgnoredAnimalIds();
   if (!ignored.includes(animalId)) {
     ignored.push(animalId);
-    localStorage.setItem(`ignored_animals_${userId}`, JSON.stringify(ignored));
+    localStorage.setItem(`ignored_animals_${userId.value}`, JSON.stringify(ignored));
   }
 };
 
@@ -30,21 +31,21 @@ const fetchAnimals = async () => {
     loading.value = true;
     error.value = null;
 
-    if (!userId) throw new Error("Utilisateur non connecté");
+    if (!userId.value) throw new Error("Utilisateur non connecté");
 
     // 1. Charger les animaux
-    const animalsResponse = await fetch('/api/animals?availability=true', {
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' }
-    });
+    const animalsResponse = await fetch(
+      '/api/animals?availability=true',
+      getAuthFetchOptions({ headers: { 'Content-Type': 'application/json' } })
+    );
     if (!animalsResponse.ok) throw new Error('Erreur chargement animaux');
     const animalsData = await animalsResponse.json();
 
     // 2. Charger les matchs existants
-    const matchesResponse = await fetch(`/api/matches?adopterId=${userId}`, {
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' }
-    });
+    const matchesResponse = await fetch(
+      `/api/matches?adopterId=${userId.value}`,
+      getAuthFetchOptions({ headers: { 'Content-Type': 'application/json' } })
+    );
     
     let matchedIds = [];
     if (matchesResponse.ok) {
@@ -95,13 +96,15 @@ const handleSwipeLeft = (animal) => {
 
 const handleSwipeRight = async (animal) => {
   try {
-    console.log(`[Swipe] Creating match for animal: ${animal.id}, adopter: ${userId}`);
-    const response = await fetch('/api/matches', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ adopterId: userId, animalId: animal.id }),
-    });
+    console.log(`[Swipe] Creating match for animal: ${animal.id}, adopter: ${userId.value}`);
+    const response = await fetch(
+      '/api/matches',
+      getAuthFetchOptions({
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ adopterId: userId.value, animalId: animal.id }),
+      })
+    );
     
     if (response.ok) {
       const data = await response.json();
@@ -127,7 +130,7 @@ const handleCardClick = (animal) => {
 <template>
   <div class="viewport">
     <header class="header">
-      <h1 class="title text-h1">Swipe</h1>
+      <h1 class="text-h1">Swipe</h1>
     </header>
 
     <main class="main-content">
@@ -174,20 +177,13 @@ const handleCardClick = (animal) => {
   overflow: hidden;
 }
 
-.header {
-  flex-shrink: 0;
-  padding: 0;
-  padding-top: max(16px, env(safe-area-inset-top)); 
-  text-align: center;
-  z-index: 10;
-}
+
 
 .main-content {
   flex: 1;
   display: flex;
   flex-direction: column;
   position: relative;
-  width: 100%;
   padding-bottom: calc(80px + 16px + env(safe-area-inset-bottom));
   padding-left: 16px;
   padding-right: 16px;
@@ -195,12 +191,12 @@ const handleCardClick = (animal) => {
 }
 
 .cards-area {
-  width: 100%;
   height: 100%;
   position: relative;
   display: flex;
   justify-content: center;
   align-items: flex-start;
+  overflow: hidden;
 }
 
 :deep(.swipe-card), .card-instance {

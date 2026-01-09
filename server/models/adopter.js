@@ -77,7 +77,11 @@ const adopterSchema = new Schema({
     },
     preferences: {
         species: {
-            type: [{ type: String, maxlength: 50 }],
+            type: [{
+                type: String,
+                enum: ['chat', 'chien', 'lapin', 'oiseau', 'rongeur', 'autre'],
+                maxlength: 50
+            }],
             required: false,
             default: [],
         },

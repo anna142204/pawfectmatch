@@ -5,9 +5,12 @@
   import { connectToChat } from '@/store/app.js';
   import { matchNotification, initializeWebSocketListeners, clearNotification } from '@/store/wsCommandStore.js';
 import Button from './components/Button.vue';
+import { onMounted } from 'vue';
+import { useAuth } from '@/composables/useAuth';
+import { initializeWebSocketListeners, matchNotification, clearNotification } from '@/store/wsCommandStore.js';
 import Toast from './components/Toast.vue';
 import MatchNotification from './components/MatchNotification.vue';
-import './style.css';
+import '@/style.css';
 
 const route = useRoute();
 const isAuthPage = computed(() => {
@@ -66,6 +69,18 @@ watch(
   // onUnmounted(() => {
   //   document.removeEventListener('visibilitychange', handleVisibilityChange);
   // });
+const { userType, isAuthenticated } = useAuth();
+
+onMounted(async () => {
+  if (!isAuthenticated.value || userType.value !== 'adopter') return;
+
+  try {
+    await initializeWebSocketListeners();
+    console.log('WebSocket listeners initialized for adopter');
+  } catch (error) {
+    console.error('Failed to initialize WebSocket listeners:', error);
+  }
+});
 </script>
 
 <template>
@@ -77,7 +92,3 @@ watch(
   />
     <router-view />
 </template>
-
-<style scoped>
-
-</style>

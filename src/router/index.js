@@ -4,14 +4,13 @@ import { useWebSocket } from '@/composables/useWebSocket'
 // Public
 import LoginPage from '../views/Shared/LoginPage.vue'
 import RegisterPage from '../views/Shared/RegisterPage.vue'
-import TestPage from '../views/TestPage.vue'
-import PopupMatch from '../views/PopupMatch.vue'
 
 // Adopter
 import AdopterHomePage from '../views/Adopter/AdopterHomePage.vue'
 import AdopterSwipe from '../views/Adopter/AdopterSwipe.vue'
 import AdopterAnimalDetails from '../views/Adopter/AdopterAnimalDetails.vue'
 import AdopterProfileEdit from '../views/Adopter/AdopterProfileEdit.vue'
+import AdopterPreferences from '../views/Adopter/AdopterPreferences.vue'
 
 // Owner
 import OwnerAnimals from '../views/Owner/OwnerAnimals.vue'
@@ -34,11 +33,6 @@ const routes = [
   {
     path: '/',
     redirect: '/login'
-  },
-  {
-    path: '/test',
-    name: 'Test',
-    component: TestPage
   },
   {
     path: '/login',
@@ -68,27 +62,23 @@ const routes = [
       } catch (error) {
         console.error('Erreur lors de la déconnexion:', error);
       } finally {
-        // Nettoyer le localStorage
         localStorage.removeItem('user_type');
         localStorage.removeItem('user_id');
-        localStorage.removeItem('token'); // Clear the JWT token
-        // Rediriger vers la page de connexion
+        localStorage.removeItem('token');
         next('/login');
       }
     }
   },
   {
-    path: '/match',
-    name: 'PopupMatch',
-    component: PopupMatch,
-    meta: { requiresAuth: true }
-  },
-
-  // Adopter Routes
-  {
     path: '/adopter',
     name: 'AdopterHome',
     component: AdopterHomePage,
+    meta: { requiresAuth: true, userType: 'adopter' }
+  },
+  {
+    path: '/adopter/preferences',
+    name: 'AdopterPreferences',
+    component: AdopterPreferences,
     meta: { requiresAuth: true, userType: 'adopter' }
   },
   {
@@ -97,13 +87,13 @@ const routes = [
     component: AdopterProfile,
     meta: { requiresAuth: true, userType: 'adopter' }
   },
-   {
+  {
     path: '/adopter/profile/edit',
     name: 'AdopterProfileEdit',
     component: AdopterProfileEdit,
     meta: { requiresAuth: true, userType: 'adopter' }
   },
-  
+
   {
     path: '/adopter/swipe',
     name: 'AdopterSwipe',

@@ -3,8 +3,10 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import Button from '@/components/Button.vue';
 import Input from '@/components/Input.vue';
+import { useAuth } from '@/composables/useAuth';
 
 const router = useRouter();
+const { setAuthData } = useAuth();
 
 const email = ref('');
 const password = ref('');
@@ -47,12 +49,11 @@ const handleLogin = async () => {
 
     const data = await response.json();
     
-    // Stocker les informations utilisateur
-    localStorage.setItem('user_type', data.type);
-    localStorage.setItem('user_id', data.user._id);
-    if (data.token) {
-      localStorage.setItem('token', data.token);
-    }
+    setAuthData({
+      token: data.token,
+      userId: data.user?._id,
+      userType: data.type
+    });
     
     // Redirection selon le type d'utilisateur
     if (data.type === 'admin') {
@@ -80,7 +81,7 @@ const handleLogin = async () => {
 
       <div class="cat-container">
         <img 
-          src="@/images/login-cat.png" 
+          src="@/assets/images/login-cat.png" 
           alt="Chat mignon"
           class="cat-image"
         />

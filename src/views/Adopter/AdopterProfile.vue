@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import { useAuth } from '@/composables/useAuth';
 import { MapPinIcon, Clock, PartyPopper } from "lucide-vue-next";
 import Menu from '@/components/Menu.vue';
 import Button from '@/components/Button.vue';
@@ -8,6 +9,7 @@ import BackButton from "../../components/BackButton.vue";
 
 const router = useRouter();
 const route = useRoute();
+const { userId: loggedInUserId, userType: viewerType, getAuthFetchOptions } = useAuth();
 
 const user = ref(null);
 const loading = ref(true);
@@ -15,9 +17,6 @@ const error = ref('');
 
 const requestsCount = ref(0);
 const adoptedCount = ref(0);
-
-const viewerType = computed(() => localStorage.getItem('user_type'));
-const loggedInUserId = computed(() => localStorage.getItem('user_id'));
 
 const profileAdopterId = computed(() => {
   return route.params?.id ? String(route.params.id) : String(loggedInUserId.value || '');
@@ -102,9 +101,6 @@ const handleContact = () => router.push({ name: 'OwnerDiscussions', query: { ado
 
 <template>
   <div class="profile-page">
-    <div v-if="!isSelfView">
-      <BackButton variant="overlay" />
-    </div>
 
     <div v-if="loading" class="loading">
       <p>Chargement...</p>
@@ -113,13 +109,19 @@ const handleContact = () => router.push({ name: 'OwnerDiscussions', query: { ado
       <p>{{ error }}</p>
     </div>
 
-    <div v-else-if="user" class="profile-wrapper">
-      <div class="photo-section">
-        <img v-if="user.image" :src="user.image" alt="Photo de profil" class="profile-image-full">
-        <div v-else class="photo-placeholder">
-          <p>Pas de photo de profil</p>
-        </div>
-      </div>
+<div v-else-if="user" class="profile-wrapper">
+  
+  <div class="photo-section">
+    <BackButton 
+      v-if="!isSelfView" 
+      variant="overlay" 
+    />
+
+    <img v-if="user.image" :src="user.image" alt="Photo de profil" class="profile-image-full">
+    <div v-else class="photo-placeholder">
+      <p>Pas de photo de profil</p>
+    </div>
+  </div>
 
       <div class="content-section">
         <div class="profile-header">
@@ -343,6 +345,7 @@ const handleContact = () => router.push({ name: 'OwnerDiscussions', query: { ado
   gap: 12px;
   position: relative; 
 }
+
 
 .header-left {
   width: 70%; 

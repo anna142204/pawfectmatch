@@ -1,29 +1,31 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
+import { useAuth } from '@/composables/useAuth';
 import { Edit } from 'lucide-vue-next';
 import Menu from '@/components/Menu.vue';
 import Button from '@/components/Button.vue';
 import { useToast } from '@/composables/useToast';
 
-import dogImg from '@/images/dog.webp';
-import catImg from '@/images/cat.webp';
-import birdImg from '@/images/bird.webp';
-import rodentImg from '@/images/rodent.webp';
-import otherImg from '@/images/other.webp';
+import dogImg from '@/assets/images/dog.webp';
+import catImg from '@/assets/images/cat.webp';
+import birdImg from '@/assets/images/bird.webp';
+import rodentImg from '@/assets/images/rodent.webp';
+import otherImg from '@/assets/images/other.webp';
 
 const router = useRouter();
+const { userId: ownerId, requireAuth, getAuthFetchOptions } = useAuth();
 const { success, error } = useToast();
 
 const animals = ref([]);
 const loading = ref(true);
-const ownerId = ref(null);
 const selectedCategory = ref(null);
 
 const categories = [
   { id: 'chien', label: 'Chiens', image: dogImg },
   { id: 'chat', label: 'Chats', image: catImg },
   { id: 'lapin', label: 'Lapins', image: rodentImg },
+  { id: 'rongeur', label: 'Rongeurs', image: rodentImg },
   { id: 'oiseau', label: 'Oiseaux', image: birdImg },
   { id: 'autre', label: 'Autres', image: otherImg }
 ];
@@ -38,21 +40,17 @@ const filteredAnimals = computed(() => {
 const hasFilteredAnimals = computed(() => filteredAnimals.value.length > 0);
 
 onMounted(async () => {
-  ownerId.value = localStorage.getItem('user_id');
-  if (!ownerId.value) {
-    error('Utilisateur non identifié');
-    router.push('/login');
-    return;
-  }
+  if (!requireAuth()) return;
   await fetchAnimals();
 });
 
 const fetchAnimals = async () => {
   loading.value = true;
   try {
-    const response = await fetch(`/api/animals?ownerId=${ownerId.value}`, {
-      credentials: 'include'
-    });
+    const response = await fetch(
+      `/api/animals?ownerId=${ownerId.value}`,
+      getAuthFetchOptions()
+    );
 
     if (!response.ok) {
       throw new Error('Erreur lors de la récupération des animaux');
@@ -78,31 +76,6 @@ const editAnimal = (animalId) => {
   router.push('/owner/animal/edit/' + animalId);
 };
 
-const deleteAnimal = async (animal) => {
-  if (!confirm(`Êtes-vous sûr de vouloir supprimer ${animal.name} ?`)) {
-    return;
-  }
-
-  try {
-    const response = await fetch(`/api/animals/${animal._id}`, {
-      method: 'DELETE',
-      credentials: 'include'
-    });
-
-    if (!response.ok) {
-      throw new Error('Erreur lors de la suppression');
-    }
-
-    success(`${animal.name} a été supprimé avec succès`);
-    await fetchAnimals();
-  } catch (err) {
-    error(err.message || 'Impossible de supprimer l\'animal');
-  }
-};
-
-const getAvailabilityText = (available) => available ? 'Disponible' : 'Adopté';
-
-const getAvailabilityClass = (available) => available ? 'available' : 'adopted';
 
 const selectCategory = (categoryId) => {
   if (selectedCategory.value === categoryId) {
@@ -119,9 +92,9 @@ const isCategorySelected = (categoryId) => {
 
  <template>
   <div class="owner-animals-page">
-    <div class="page-header">
+    <header class="header">
       <h1 class="text-h1">Animaux</h1>
-    </div>
+    </header>
 
     <div class="page-content">
       <section class="categories-section">
@@ -187,11 +160,6 @@ const isCategorySelected = (categoryId) => {
   display: flex;
   flex-direction: column;
   padding-bottom: 80px;
-}
-
-.page-header {
-  padding-top: max(16px, env(safe-area-inset-top)); 
-  padding-bottom: 16px;
 }
 
 .page-title {
@@ -373,7 +341,6 @@ const isCategorySelected = (categoryId) => {
   transform: scale(0.9);
 }
 
-/* État vide */
 .empty-message {
   padding: var(--spacing-12) 0;
   text-align: center;
@@ -383,20 +350,22 @@ const isCategorySelected = (categoryId) => {
   margin: 0;
 }
 
-/* Bouton flottant */
 .floating-add-button {
   position: fixed;
   bottom: 96px;
-  left: 0;
-  right: 0;
+  z-index: 90;
+  width: 100%;
+  max-width: 430px;
+  left: 50%;
+  transform: translateX(-50%);
   padding: var(--spacing-4) var(--spacing-6);
-  z-index: 100;
-  pointer-events: none;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  pointer-events: auto; 
 }
 
 .btn-add-animal {
-  width: 100%;
-  pointer-events: auto;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 

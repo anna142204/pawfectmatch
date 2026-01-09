@@ -32,7 +32,8 @@ import {
   deleteMatch,
   addMessage,
   getMatchDiscussion,
-  getPendingNotifications
+  getPendingNotifications,
+  finalizeAdoption
 } from '../api/matches.mjs';
 import {
   uploadEntityImages,
@@ -80,6 +81,7 @@ router.get('/matches/pending-notifications', getPendingNotifications);
 router.get('/matches/:id', getMatchById);
 router.post('/matches', createMatch);
 router.put('/matches/:id', updateMatch);
+router.patch('/matches/:id/adopt', finalizeAdoption);
 router.delete('/matches/:id', deleteMatch);
 router.post('/matches/:id/messages', addMessage);
 router.get('/matches/:id/discussion', getMatchDiscussion);

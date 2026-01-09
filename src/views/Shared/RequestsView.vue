@@ -1,20 +1,21 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import { useAuth } from '@/composables/useAuth';
 import Menu from '@/components/Menu.vue';
 import ConfirmModal from '@/components/ConfirmModal.vue';
 import { CheckIcon, XIcon, MessageCircleIcon, Trash2Icon, User, PawPrint } from 'lucide-vue-next';
 
 const router = useRouter();
 const route = useRoute();
+const { userId, userType, getAuthFetchOptions } = useAuth();
+
 const requests = ref([]);
 const loading = ref(true);
 const activeTab = ref(route.query.tab || 'pending');
 const imageErrors = ref({});
 
-const userId = localStorage.getItem('user_id');
-const userType = localStorage.getItem('user_type');
-const isOwner = computed(() => userType === 'owner');
+const isOwner = computed(() => userType.value === 'owner');
 
 const confirmModal = ref({
     show: false, title: '', message: '', confirmText: 'Confirmer', type: 'warning', pendingAction: null
@@ -43,13 +44,13 @@ const fetchRequests = async () => {
     try {
         loading.value = true;
         let url = '/api/matches';
-        if (!isOwner.value) url += `?adopterId=${userId}`;
-        const response = await fetch(url, { credentials: 'include' });
+        if (!isOwner.value) url += `?adopterId=${userId.value}`;
+        const response = await fetch(url, getAuthFetchOptions());
         if (response.ok) {
             const data = await response.json();
             if (isOwner.value) {
                 requests.value = data.matches.filter(match =>
-                    match.animalId?.ownerId?._id === userId || match.animalId?.ownerId === userId
+                    match.animalId?.ownerId?._id === userId.value || match.animalId?.ownerId === userId.value
                 );
             } else {
                 requests.value = data.matches;
@@ -88,10 +89,14 @@ const refusedRequests = computed(() => historyRequests.value.filter(req => req.s
 // --- ACTIONS API ---
 const executeUpdateStatus = async (matchId, status, isActive) => {
     try {
-        const response = await fetch(`/api/matches/${matchId}`, {
-            method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
-            body: JSON.stringify({ status, isActive })
-        });
+        const response = await fetch(
+            `/api/matches/${matchId}`,
+            getAuthFetchOptions({
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status, isActive })
+            })
+        );
         if (response.ok) {
             const match = requests.value.find(r => r._id === matchId);
             if (match) {
@@ -105,7 +110,10 @@ const executeUpdateStatus = async (matchId, status, isActive) => {
 
 const executeDeleteMatch = async (matchId) => {
     try {
-        const response = await fetch(`/api/matches/${matchId}`, { method: 'DELETE', credentials: 'include' });
+        const response = await fetch(
+            `/api/matches/${matchId}`,
+            getAuthFetchOptions({ method: 'DELETE' })
+        );
         if (response.ok) requests.value = requests.value.filter(r => r._id !== matchId);
     } catch (e) { console.error(e); }
 };
@@ -130,7 +138,7 @@ const closeModal = () => { confirmModal.value.show = false; confirmModal.value.p
 
 const goToDiscussion = (matchId) => {
     const prefix = isOwner.value ? 'owner' : 'adopter';
-    router.push(`/${prefix}/messages/${matchId}`);
+    router.push(`/${prefix}/conversation/${matchId}`);
 };
 
 onMounted(fetchRequests);
@@ -139,7 +147,7 @@ onMounted(fetchRequests);
 <template>
     <div class="page-container bg-gray-50">
         <div class="sticky-header">
-            <h1 class="page-title text-h1">Demandes</h1>
+            <h1 class="text-h1">Demandes</h1>
             <div class="tabs-container">
                 <button class="tab-btn" :class="{ active: activeTab === 'pending' }" @click="activeTab = 'pending'">
                     En attente <span class="badge-count" v-if="pendingRequests.length">{{ pendingRequests.length
@@ -347,7 +355,7 @@ onMounted(fetchRequests);
     left: 0;
     right: 0;
     z-index: 10;
-   padding-top: max(16px, env(safe-area-inset-top)); 
+   padding-top: max(5px, env(safe-area-inset-top)); 
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
 }
 
@@ -582,8 +590,8 @@ onMounted(fetchRequests);
 }
 
 .chat-btn {
-    width: 36px;
-    height: 36px;
+    width: 45px;
+    height: 45px;
     border-radius: 50%;
     border: none;
     background: var(--color-primary-50);
@@ -597,7 +605,7 @@ onMounted(fetchRequests);
 
 .chat-btn.secondary {
     background: white;
-    border: 1px solid var(--color-primary-100);
+    border: 1px solid var(--color-neutral-100);
 }
 
 .history-wrapper {

@@ -21,6 +21,14 @@ body {
   box-shadow: var(--shadow-xl);
 }
 
+.header {
+  flex-shrink: 0;
+  padding-top: max(5px, env(safe-area-inset-top)); 
+  text-align: center;
+  z-index: 10;
+  padding-bottom: 10px;
+}
+
 button,
 .btn {
   -webkit-user-select: none;
@@ -31,11 +39,17 @@ h1 {
   color: var(--color-primary-700);
   justify-content: center;
   display: flex;
-  margin: 16px 0;
+  margin: 12px 0;
+}
+
+h3 {
+  color: var(--color-neutral-900);
+  font-size: var(--heading-h3-size);
+  margin: 0 0 8px 0;
 }
 
 h4 {
-  color: var(--color-neutral-900);
+  color: var(--color-neutral-black);
   margin: 0 0 12px 0;
 }
 
@@ -130,17 +144,17 @@ h4 {
   /* ============================================ */
   /* TYPOGRAPHY - HEADINGS */
   /* ============================================ */
-  --heading-h1-size: 34px;
+  --heading-h1-size: 32px;
   --heading-h1-weight: 700;
   --heading-h1-height: 54px;
   --heading-h1-spacing: -0.5px;
 
-  --heading-h2-size: 32px;
+  --heading-h2-size: 26px;
   --heading-h2-weight: 700;
   --heading-h2-height: 38px;
   --heading-h2-spacing: -0.25px;
 
-  --heading-h3-size: 24px;
+  --heading-h3-size: 20px;
   --heading-h3-weight: 700;
   --heading-h3-height: 28px;
   --heading-h3-spacing: 0px;
@@ -150,7 +164,7 @@ h4 {
   --heading-h4-height: 24px;
   --heading-h4-spacing: 0px;
 
-  --heading-h5-size: 18px;
+  --heading-h5-size: 16px;
   --heading-h5-weight: 600;
   --heading-h5-height: 22px;
   --heading-h5-spacing: 0px;

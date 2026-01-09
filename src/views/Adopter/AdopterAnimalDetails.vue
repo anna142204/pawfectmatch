@@ -1,20 +1,103 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import { useAuth } from '@/composables/useAuth';
 import Menu from '@/components/Menu.vue';
 import BackButton from '@/components/BackButton.vue';
 import { Cat, MapPin, Mars, Venus, Heart, User, PawPrint } from 'lucide-vue-next';
 
 const router = useRouter();
 const route = useRoute();
+const { userId, getAuthFetchOptions } = useAuth();
 const animal = ref(null);
 const loading = ref(true);
 const error = ref(null);
 const isLiked = ref(false);
-const userId = localStorage.getItem('user_id');
 
 const imageErrors = ref({});
 const handleImageError = (id) => { imageErrors.value[id] = true; };
+
+// Lightbox logic
+const isLightboxOpen = ref(false);
+const lightboxImageIndex = ref(0);
+
+const openLightbox = (index) => {
+  lightboxImageIndex.value = index;
+  isLightboxOpen.value = true;
+  document.body.style.overflow = 'hidden'; // Prevent scrolling
+};
+
+const closeLightbox = () => {
+  isLightboxOpen.value = false;
+  document.body.style.overflow = ''; // Restore scrolling
+};
+
+const goToNextLightboxImage = () => {
+  if (animal.value?.images && lightboxImageIndex.value < animal.value.images.length - 1) {
+    lightboxImageIndex.value++;
+  }
+};
+
+const goToPreviousLightboxImage = () => {
+  if (lightboxImageIndex.value > 0) {
+    lightboxImageIndex.value--;
+  }
+};
+
+// Image carousel logic
+const currentImageIndex = ref(0);
+const touchStartX = ref(0);
+const touchEndX = ref(0);
+const isDragging = ref(false);
+
+const hasMultipleImages = computed(() => 
+  animal.value?.images && animal.value.images.length > 1
+);
+
+const goToNextImage = () => {
+  if (animal.value?.images && currentImageIndex.value < animal.value.images.length - 1) {
+    currentImageIndex.value++;
+  }
+};
+
+const goToPreviousImage = () => {
+  if (currentImageIndex.value > 0) {
+    currentImageIndex.value--;
+  }
+};
+
+const goToImage = (index) => {
+  currentImageIndex.value = index;
+};
+
+const handleTouchStart = (e) => {
+  touchStartX.value = e.touches[0].clientX;
+  isDragging.value = true;
+};
+
+const handleTouchMove = (e) => {
+  if (!isDragging.value) return;
+  touchEndX.value = e.touches[0].clientX;
+};
+
+const handleTouchEnd = () => {
+  if (!isDragging.value) return;
+  
+  const swipeThreshold = 50;
+  const diff = touchStartX.value - touchEndX.value;
+
+  if (Math.abs(diff) > swipeThreshold) {
+    if (diff > 0) {
+      goToNextImage();
+    } else {
+      goToPreviousImage();
+    }
+  }
+
+  isDragging.value = false;
+  touchStartX.value = 0;
+  touchEndX.value = 0;
+};
 
 const toggleLike = async () => {
   if (!isLiked.value && animal.value) {
@@ -50,10 +133,11 @@ const fetchAnimal = async () => {
     animal.value = data.animal || data;
 
     // Vérifier si un match existe déjà pour cet animal
-    if (userId) {
-      const matchesResponse = await fetch(`/api/matches?adopterId=${userId}&animalId=${id}`, {
-        credentials: 'include',
-      });
+    if (userId.value) {
+      const matchesResponse = await fetch(
+        `/api/matches?adopterId=${userId.value}&animalId=${id}`,
+        getAuthFetchOptions()
+      );
       if (matchesResponse.ok) {
         const matchesData = await matchesResponse.json();
         isLiked.value = matchesData.matches && matchesData.matches.length > 0;
@@ -128,8 +212,47 @@ const formatPrice = (price) => {
     <div v-else-if="animal" class="profile-wrapper">
       <div class="photo-section">
         <BackButton @click="goBackToSwipe" variant="overlay" />
-        <img v-if="animal?.images && animal.images.length && !imageErrors['main']" :src="animal.images[0]"
-          alt="photo animal" class="animal-photo" @error="handleImageError('main')" />
+        
+        <!-- Image Carousel -->
+        <div 
+          v-if="animal?.images && animal.images.length"
+          class="image-carousel"
+          @touchstart="handleTouchStart"
+          @touchmove="handleTouchMove"
+          @touchend="handleTouchEnd"
+        >
+          <div 
+            class="carousel-track"
+            :style="{ transform: `translateX(-${currentImageIndex * 100}%)` }"
+          >
+            <div 
+              v-for="(image, index) in animal.images" 
+              :key="index"
+              class="carousel-slide"
+            >
+              <img 
+                :src="image" 
+                :alt="`${animal.name} ${index + 1}`"
+                class="animal-photo"
+                @click="openLightbox(index)"
+                @error="handleImageError(`image-${index}`)"
+              />
+            </div>
+          </div>
+
+          <!-- Dots indicator -->
+          <div class="carousel-dots">
+            <button
+              v-for="(image, index) in animal.images"
+              :key="index"
+              class="dot"
+              :class="{ active: currentImageIndex === index }"
+              @click="goToImage(index)"
+              :aria-label="`Aller à l'image ${index + 1}`"
+            ></button>
+          </div>
+        </div>
+        
         <div v-else class="animal-placeholder">
           <div class="placeholder-content">
             <PawPrint :size="80" stroke-width="1.5" />
@@ -240,6 +363,51 @@ const formatPrice = (price) => {
       </div>
     </div>
 
+    <!-- Lightbox Modal -->
+    <div v-if="isLightboxOpen" class="lightbox-overlay" @click="closeLightbox">
+      <button class="lightbox-close" @click="closeLightbox" aria-label="Fermer">
+        ✕
+      </button>
+      
+      <div class="lightbox-content" @click.stop>
+        <img 
+          :src="animal.images[lightboxImageIndex]" 
+          :alt="`${animal.name} ${lightboxImageIndex + 1}`"
+          class="lightbox-image"
+        />
+        
+        <!-- Navigation arrows for multiple images -->
+        <button 
+          v-if="lightboxImageIndex > 0"
+          class="lightbox-arrow lightbox-arrow-left"
+          @click="goToPreviousLightboxImage"
+          aria-label="Image précédente"
+        >
+          ‹
+        </button>
+        <button 
+          v-if="lightboxImageIndex < animal.images.length - 1"
+          class="lightbox-arrow lightbox-arrow-right"
+          @click="goToNextLightboxImage"
+          aria-label="Image suivante"
+        >
+          ›
+        </button>
+        
+        <!-- Dots indicator -->
+        <div v-if="animal.images.length > 1" class="lightbox-dots">
+          <button
+            v-for="(image, index) in animal.images"
+            :key="index"
+            class="lightbox-dot"
+            :class="{ active: lightboxImageIndex === index }"
+            @click="lightboxImageIndex = index"
+            :aria-label="`Aller à l'image ${index + 1}`"
+          ></button>
+        </div>
+      </div>
+    </div>
+
     <Menu />
   </div>
 </template>
@@ -278,10 +446,224 @@ const formatPrice = (price) => {
   overflow: hidden;
 }
 
+/* Image Carousel Styles */
+.image-carousel {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  touch-action: pan-y;
+}
+
+.carousel-track {
+  display: flex;
+  height: 100%;
+  transition: transform 0.3s ease-out;
+}
+
+.carousel-slide {
+  min-width: 100%;
+  height: 100%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.carousel-dots {
+  position: absolute;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  z-index: 10;
+  padding: 8px 16px;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(4px);
+  border-radius: 20px;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.dot:hover {
+  background: rgba(255, 255, 255, 0.7);
+  transform: scale(1.1);
+}
+
+.dot.active {
+  background: white;
+  border-color: white;
+  width: 28px;
+  border-radius: 6px;
+}
+
 .animal-photo {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.animal-photo:hover {
+  opacity: 0.95;
+}
+
+/* Lightbox Styles */
+.lightbox-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.2s ease;
+  margin: 0;
+  padding: 0;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.lightbox-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  font-size: 28px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10001;
+  transition: all 0.2s ease;
+}
+
+.lightbox-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.lightbox-close:active {
+  transform: scale(0.95);
+}
+
+.lightbox-content {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lightbox-image {
+  max-width: 100%;
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.lightbox-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  font-size: 40px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 10001;
+}
+
+.lightbox-arrow:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.lightbox-arrow:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+.lightbox-arrow-left {
+  left: 20px;
+}
+
+.lightbox-arrow-right {
+  right: 20px;
+}
+
+.lightbox-dots {
+  position: absolute;
+  bottom: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 12px;
+  padding: 10px 20px;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  border-radius: 24px;
+}
+
+.lightbox-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.3s ease;
+}
+
+.lightbox-dot:hover {
+  background: rgba(255, 255, 255, 0.6);
+  transform: scale(1.15);
+}
+
+.lightbox-dot.active {
+  background: white;
+  width: 32px;
+  border-radius: 8px;
 }
 
 .animal-placeholder {

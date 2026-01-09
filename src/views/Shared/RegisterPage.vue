@@ -5,8 +5,10 @@ import Button from '@/components/Button.vue';
 import Input from '@/components/Input.vue';
 import ImageUploader from '@/components/ImageUploader.vue';
 import { MapPin } from 'lucide-vue-next';
+import { useAuth } from '@/composables/useAuth';
 
 const router = useRouter();
+const { setAuthData } = useAuth();
 
 const step = ref(1);
 const userType = ref('adopter');
@@ -114,11 +116,7 @@ const handleNextStep = () => {
       error.value = 'Vous devez avoir au moins 18 ans pour adopter';
       return;
     }
-    if (userType.value === 'owner') {
-      handleRegister();
-    } else {
-      step.value = 3;
-    }
+    handleRegister();
   }
 };
 
@@ -193,11 +191,11 @@ const handleRegister = async () => {
     const data = await response.json();
 
     if (response.ok) {
-      localStorage.setItem('user_type', userType.value);
-      localStorage.setItem('user_id', data.user._id);
-      if (data.token) {
-        localStorage.setItem('token', data.token);
-      }
+      setAuthData({
+        token: data.token,
+        userId: data.user?._id,
+        userType: userType.value
+      });
       router.push(userType.value === 'adopter' ? '/adopter' : '/owner/requests');
     } else {
       error.value = data.error || 'Erreur lors de l\'inscription';
@@ -223,11 +221,7 @@ const handleRegister = async () => {
         <div class="steps-indicator">
           <div :class="['step-dot', { active: step >= 1, completed: step > 1 }]">1</div>
           <div class="step-line" :class="{ active: step > 1 }"></div>
-          <div :class="['step-dot', { active: step >= 2, completed: step > 2 }]">2</div>
-          <template v-if="userType === 'adopter'">
-            <div class="step-line" :class="{ active: step > 2 }"></div>
-            <div :class="['step-dot', { active: step >= 3 }]">3</div>
-          </template>
+          <div :class="['step-dot', { active: step >= 2 }]">2</div>
         </div>
 
         <form @submit.prevent="handleNextStep" class="register-form">
@@ -297,34 +291,11 @@ const handleRegister = async () => {
             </div>
           </template>
 
-          <template v-if="step === 3">
-            <div class="input-group">
-              <label class="field-label">Environnement</label>
-              <div class="checkbox-group">
-                <label class="checkbox-item"><input type="checkbox" value="appartement" v-model="preferences.environment" /><span>Appartement</span></label>
-                <label class="checkbox-item"><input type="checkbox" value="voiture" v-model="preferences.environment" /><span>Voiture</span></label>
-                <label class="checkbox-item"><input type="checkbox" value="enfant" v-model="preferences.environment" /><span>Enfants</span></label>
-                <label class="checkbox-item"><input type="checkbox" value="chien" v-model="preferences.environment" /><span>Chien</span></label>
-                <label class="checkbox-item"><input type="checkbox" value="chat" v-model="preferences.environment" /><span>Chat</span></label>
-                <label class="checkbox-item"><input type="checkbox" value="autre animaux" v-model="preferences.environment" /><span>Autres animaux</span></label>
-              </div>
-            </div>
-
-            <div class="input-group">
-              <label class="field-label">Taille préférée</label>
-              <div class="checkbox-group">
-                <label class="checkbox-item"><input type="checkbox" value="petit" v-model="preferences.sizePreference" /><span>Petit</span></label>
-                <label class="checkbox-item"><input type="checkbox" value="moyen" v-model="preferences.sizePreference" /><span>Moyen</span></label>
-                <label class="checkbox-item"><input type="checkbox" value="grand" v-model="preferences.sizePreference" /><span>Grand</span></label>
-              </div>
-            </div>
-          </template>
-
           <div v-if="error" class="error-message">{{ error }}</div>
 
           <div class="form-actions">
             <Button v-if="step > 1" type="button" variant="secondary" size="base" @click="handlePreviousStep" class="btn-back">Retour</Button>
-            <Button v-if="step < 3" type="submit" variant="primary" size="base" class="btn-next">Suivant</Button>
+            <Button v-if="step < 2" type="submit" variant="primary" size="base" class="btn-next">Suivant</Button>
             <Button v-else type="button" variant="primary" size="base" :disabled="loading" @click="handleRegister" class="btn-next">
               <span v-if="loading" class="loader"></span>
               <span v-else>S'inscrire</span>
