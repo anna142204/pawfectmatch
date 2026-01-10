@@ -74,18 +74,18 @@ const fetchRecentMatches = async () => {
 
 onMounted(async () => {
   await checkPreferences();
-  // Ensure WebSocket is initialized on mount
-  // This is a backup to the App.vue watcher, ensuring WebSocket + pending notifications
-  // are loaded even if the watcher triggers slowly
+  
+  // Attendre que userId soit disponible avant d'initialiser WebSocket
   const userType = localStorage.getItem('user_type');
-  if (userType === 'adopter') {
-    console.log('[AdopterHomePage] Ensuring WebSocket listeners are initialized...');
+  const token = localStorage.getItem('token');
+  
+  if (userType === 'adopter' && token) {
+    console.log('[AdopterHomePage] Initializing WebSocket listeners...');
     try {
       await initializeWebSocketListeners();
-      console.log('[AdopterHomePage] ✓ WebSocket listeners ensured');
+      console.log('[AdopterHomePage] ✓ WebSocket listeners initialized');
     } catch (error) {
       console.error('[AdopterHomePage] Warning: WebSocket initialization failed:', error);
-      // Non-blocking error - app continues even if WebSocket setup fails
     }
   }
   

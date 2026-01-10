@@ -7,7 +7,12 @@ import { getGeoJSON } from '../utils/geocoder.mjs';
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '15m';
 
-
+/**
+ * Inscription d'un nouvel adopteur
+ * @param {Object} req - Requête Express
+ * @param {Object} res - Réponse Express
+ * @returns {Object} Token JWT et informations utilisateur
+ */
 export async function registerAdopter(req, res) {
   try {
     const { firstName, lastName, email, password, address, age, about, preferences, image } = req.body;
@@ -52,17 +57,22 @@ const location = await getGeoJSON(address.zip, address.city);
     );
 
     res.status(201).json({ 
-      message: 'Adopter registered successfully',
+      message: 'Inscription réussie',
       token,
       user: adopter
     });
 
   } catch (error) {
-    console.error('Register adopter error:', error);
     res.status(500).json({ error: 'Échec de l\'inscription' });
   }
 }
 
+/**
+ * Inscription d'un nouveau propriétaire
+ * @param {Object} req - Requête Express
+ * @param {Object} res - Réponse Express
+ * @returns {Object} Token JWT et informations utilisateur
+ */
 export async function registerOwner(req, res) {
   try {
     const { firstName, lastName, email, password, address, phoneNumber, about, image } = req.body;
@@ -104,16 +114,21 @@ const location = await getGeoJSON(address.zip, address.city);
     );
 
     res.status(201).json({ 
-      message: 'Owner registered successfully',
+      message: 'Inscription réussie',
       token,
       user: owner
     });
   } catch (error) {
-    console.error('Register owner error:', error);
     res.status(500).json({ error: 'Échec de l\'inscription' });
   }
 }
 
+/**
+ * Connexion d'un utilisateur (adopteur, propriétaire ou admin)
+ * @param {Object} req - Requête Express
+ * @param {Object} res - Réponse Express
+ * @returns {Object} Token JWT, type d'utilisateur et informations
+ */
 export async function login(req, res) {
   try {
     const { email, password } = req.body;
@@ -165,10 +180,9 @@ export async function login(req, res) {
     res.json({ 
       user,
       type,
-      token // Return token so client can store it in localStorage for WebSocket
+      token
     });
   } catch (error) {
-    console.error('Login error:', error);
     res.status(500).json({ error: 'Échec de la connexion' });
   }
 }

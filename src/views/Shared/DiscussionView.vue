@@ -66,9 +66,22 @@ const loadConversations = async (animalId = null) => {
   try {
     const params = new URLSearchParams();
     
-    if (props.userType === 'owner' && animalId) {
-      params.append('animalId', animalId);
+    if (props.userType === 'owner') {
+      if (animalId) {
+        // Si animal sélectionné, filtrer par cet animal
+        params.append('animalId', animalId);
+      }
+      // Récupérer les matches où l'animal appartient au owner
+      const allAnimalIds = animals.value.map(a => a._id);
+      if (allAnimalIds.length > 0) {
+        allAnimalIds.forEach(id => params.append('animalId', id));
+      } else {
+        // Pas d'animaux = pas de conversations
+        conversations.value = [];
+        return;
+      }
     } else if (props.userType === 'adopter') {
+      // Pour adopteur: filtrer par adopterId
       params.append('adopterId', userId.value);
     }
     

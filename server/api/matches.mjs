@@ -4,8 +4,13 @@ import Adopter from '../models/adopter.js';
 import { ensureMatchChannel, wsServer } from '../store/wsStore.mjs';
 import jwt from 'jsonwebtoken';
 import { parseCookies } from '../utils/parseCookies.mjs';
-import animal from '../models/animal.js';
 
+/**
+ * Récupère la liste des matches avec pagination et filtres
+ * @param {Object} req - Requête Express
+ * @param {Object} res - Réponse Express
+ * @returns {Object} Liste des matches avec pagination
+ */
 export async function getMatches(req, res) {
   try {
     const {
@@ -22,18 +27,17 @@ export async function getMatches(req, res) {
     if (animalId) query.animalId = animalId;
     if (isActive !== undefined) query.isActive = isActive === 'true';
 
-    // Pagination
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const total = await Match.countDocuments(query);
 
     const matches = await Match.find(query)
-      .populate('adopterId', 'firstName lastName email image') 
+      .populate('adopterId', 'firstName lastName email image')
       .populate({
         path: 'animalId',
         select: 'name species race age images',
         populate: {
           path: 'ownerId',
-          select: 'firstName lastName email phoneNumber societyName image' 
+          select: 'firstName lastName email phoneNumber societyName image'
         }
       })
       .sort({ createdAt: -1 })
@@ -50,11 +54,17 @@ export async function getMatches(req, res) {
       }
     });
   } catch (error) {
-    console.error('Get matches error:', error);
-    res.status(500).json({ error: 'Failed to fetch matches' });
+    res.status(500).json({ error: 'Échec de la récupération des matchs' });
   }
 }
 
+
+/**
+ * Récupère un match par son ID avec toutes les informations détaillées
+ * @param {Object} req - Requête Express
+ * @param {Object} res - Réponse Express
+ * @returns {Object} Match avec informations de l'adopteur, animal et propriétaire
+ */
 export async function getMatchById(req, res) {
   try {
     const { id } = req.params;
@@ -68,43 +78,49 @@ export async function getMatchById(req, res) {
           select: 'firstName lastName email phoneNumber address societyName image'
         }
       })
-      .populate('discussion.sender', 'firstName lastName image'); 
+      .populate('discussion.sender', 'firstName lastName image');
 
     if (!match) {
-      return res.status(404).json({ error: 'Match not found' });
+      return res.status(404).json({ error: 'Match introuvable' });
     }
 
-    // Ensure WebSocket channel exists for this match
     await ensureMatchChannel(id);
 
     res.json(match);
   } catch (error) {
-    console.error('Get match by id error:', error);
-    res.status(500).json({ error: 'Failed to fetch match' });
+    res.status(500).json({ error: 'Échec de la récupération du match' });
   }
 }
 
+
+/**
+ * Crée un nouveau match entre un adopteur et un animal
+ * @param {Object} req - Requête Express
+ * @param {Object} res - Réponse Express
+ * @returns {Object} Match créé avec canal WebSocket
+ */
 export async function createMatch(req, res) {
   try {
-    const { adopterId, animalId } = req.body;
+    const { animalId } = req.body;
+    const adopterId = req.user.sub; // Forcer l'ID de l'utilisateur authentifié
 
-    if (!adopterId || !animalId) {
-      return res.status(400).json({ error: 'adopterId and animalId are required' });
+    if (!animalId) {
+      return res.status(400).json({ error: "L'identifiant de l'animal est requis" });
     }
 
     const adopter = await Adopter.findById(adopterId);
-    if (!adopter) return res.status(404).json({ error: 'Adopter not found' });
+    if (!adopter) return res.status(404).json({ error: 'Adopteur introuvable' });
 
     const animal = await Animal.findById(animalId);
-    if (!animal) return res.status(404).json({ error: 'Animal not found' });
-    
+    if (!animal) return res.status(404).json({ error: 'Animal introuvable' });
+
     if (!animal.availability) {
-      return res.status(400).json({ error: 'Animal is not available' });
+      return res.status(400).json({ error: "L'animal n'est pas disponible" });
     }
 
     const existingMatch = await Match.findOne({ adopterId, animalId });
     if (existingMatch) {
-      return res.status(409).json({ error: 'Match already exists' });
+      return res.status(409).json({ error: 'Ce match existe déjà' });
     }
 
     const match = new Match({
@@ -113,10 +129,8 @@ export async function createMatch(req, res) {
       isActive: false,
       discussion: []
     });
-    // Create WebSocket channel for this match
-    await ensureMatchChannel(match._id.toString());
 
-    
+    await ensureMatchChannel(match._id.toString());
     await match.save();
 
     const populatedMatch = await Match.findById(match._id)
@@ -130,15 +144,21 @@ export async function createMatch(req, res) {
       });
 
     res.status(201).json({
-      message: 'Match created successfully',
+      message: 'Match créé avec succès',
       match: populatedMatch
     });
   } catch (error) {
-    console.error('Create match error:', error);
-    res.status(500).json({ error: 'Failed to create match' });
+    res.status(500).json({ error: 'Échec de la création du match' });
   }
 }
 
+
+/**
+ * Met à jour un match et envoie des notifications WebSocket
+ * @param {Object} req - Requête Express
+ * @param {Object} res - Réponse Express
+ * @returns {Object} Match mis à jour
+ */
 export async function updateMatch(req, res) {
   try {
     const { id } = req.params;
@@ -158,23 +178,19 @@ export async function updateMatch(req, res) {
       updateData,
       { new: true, runValidators: true }
     )
-    .populate({
-      path: 'animalId',
-      select: 'name species race images ownerId',
-      populate: {
-        path: 'ownerId',
-        select: 'firstName lastName'
-      }
-    })
-    .populate('adopterId', 'firstName lastName email image');
+      .populate({
+        path: 'animalId',
+        select: 'name species race images ownerId',
+        populate: {
+          path: 'ownerId',
+          select: 'firstName lastName'
+        }
+      })
+      .populate('adopterId', 'firstName lastName email image');
 
     if (!match) {
-      return res.status(404).json({ error: 'Match not found' });
+      return res.status(404).json({ error: 'Match introuvable' });
     }
-
-    console.log(`[Update Match] Match ${id} updated. Status: "${status}", isActive: ${match.isActive}`);
-    console.log(`[Update Match] DEBUG - match.animalId after populate:`, match.animalId);
-    console.log(`[Update Match] DEBUG - Is animalId an ObjectId?`, match.animalId?.constructor?.name);
 
     if (status === 'adopté' && match.animalId) {
       await Animal.findByIdAndUpdate(match.animalId._id, {
@@ -182,31 +198,17 @@ export async function updateMatch(req, res) {
       });
     }
 
-    // Send match notification to adopter via WebSocket when status is validated
-    console.log(`[Match Notification] Checking if should send notification. Status received: "${status}"`);
-    
     if (status === 'validé') {
       try {
         const adopterId = match.adopterId._id.toString();
         const ownerId = match.animalId?.ownerId?._id ? match.animalId.ownerId._id.toString() : null;
-        
-        console.log(`[Match Notification] Match validated. Adopter: ${adopterId}, Owner: ${ownerId}`);
-        
-        // Try to send notification to adopter via WebSocket
+
         const adopterClient = wsServer.getClientSocket(adopterId);
-        console.log(`[Match Notification] Adopter WebSocket connection: ${adopterClient ? 'FOUND' : 'NOT FOUND'}`);
-        
+
         if (adopterClient) {
-          // Debug: Log the full match object to see what's populated
-          console.log(`[Match Notification] DEBUG - match.animalId:`, match.animalId);
-          console.log(`[Match Notification] DEBUG - match.animalId._id:`, match.animalId?._id);
-          console.log(`[Match Notification] DEBUG - typeof animalId._id:`, typeof match.animalId?._id);
-          
-          // Get owner name from populated animal
-          const ownerName = match.animalId?.ownerId ? 
+          const ownerName = match.animalId?.ownerId ?
             `${match.animalId.ownerId.firstName || ''} ${match.animalId.ownerId.lastName || ''}`.trim() : '';
-          
-          // Prepare notification data for the popup
+
           const notificationData = {
             matchId: match._id.toString(),
             animalId: match.animalId?._id ? match.animalId._id.toString() : 'NO_ANIMAL_ID',
@@ -219,21 +221,15 @@ export async function updateMatch(req, res) {
             ownerName: ownerName,
             conversationLink: `/adopter/messages/${match._id.toString()}`
           };
-          
-          console.log(`[Match Notification] Notification data:`, notificationData);
+
           wsServer.sendCmd(adopterClient, 'matchNotification', notificationData);
-          console.log(`[Match Notification] ✓ Sent notification to adopter ${adopterId}`);
         } else {
-          console.log(`[Match Notification] ⚠ Adopter ${adopterId} not currently connected via WebSocket`);
-          // Store notification flag in match for later retrieval when adopter connects
-          await Match.findByIdAndUpdate(match._id, { 
+          await Match.findByIdAndUpdate(match._id, {
             notificationPending: true,
-            notificationSentAt: null 
+            notificationSentAt: null
           });
-          console.log(`[Match Notification] Marked match ${match._id} as having pending notification`);
         }
-        
-        // Optionally notify owner as well if owner is connected
+
         if (ownerId) {
           const ownerClient = wsServer.getClientSocket(ownerId);
           if (ownerClient) {
@@ -242,86 +238,102 @@ export async function updateMatch(req, res) {
               animalName: match.animalId?.name || '',
               adopterName: `${match.adopterId?.firstName || ''} ${match.adopterId?.lastName || ''}`.trim()
             });
-            console.log(`[Match Notification] ✓ Sent validation confirmation to owner ${ownerId}`);
           }
         }
       } catch (error) {
-        console.error('[Match Notification] ✗ Error sending match notification:', error);
-        // Don't fail the request if notification fails to send
+        // Continue même si l'envoi de notification échoue
       }
     }
 
     res.json({
-      message: 'Match updated successfully',
+      message: 'Match mis à jour avec succès',
       match
     });
   } catch (error) {
-    console.error('Update match error:', error);
-    res.status(500).json({ error: 'Failed to update match' });
+    res.status(500).json({ error: 'Échec de la mise à jour du match' });
   }
 }
 
+
+/**
+ * Finalise l'adoption d'un animal et désactive sa disponibilité
+ * @param {Object} req - Requête Express
+ * @param {Object} res - Réponse Express
+ * @returns {Object} Match finalisé
+ */
 export async function finalizeAdoption(req, res) {
   try {
     const { id } = req.params;
-    
+
     const match = await Match.findById(id).populate('animalId');
-    if (!match) return res.status(404).json({ error: 'Match not found' });
-    
+    if (!match) return res.status(404).json({ error: 'Match introuvable' });
+
     if (match.status !== 'validé') {
-      return res.status(400).json({ error: 'Match must be validated before adoption' });
+      return res.status(400).json({ error: 'Le match doit être validé avant l\'adoption' });
     }
-    
+
     match.status = 'adopté';
     match.isActive = false;
     await match.save();
-    
+
     if (match.animalId) {
       await Animal.findByIdAndUpdate(match.animalId._id, { availability: false });
     }
-    
-    res.json({ 
-      message: 'Adoption finalized successfully',
-      match 
+
+    res.json({
+      message: 'Adoption finalisée avec succès',
+      match
     });
   } catch (error) {
-    console.error('Finalize adoption error:', error);
-    res.status(500).json({ error: 'Failed to finalize adoption' });
+    res.status(500).json({ error: 'Échec de la finalisation de l\'adoption' });
   }
 }
 
+
+/**
+ * Supprime un match de la base de données
+ * @param {Object} req - Requête Express
+ * @param {Object} res - Réponse Express
+ * @returns {Object} Message de confirmation
+ */
 export async function deleteMatch(req, res) {
   try {
     const { id } = req.params;
     const match = await Match.findByIdAndDelete(id);
 
-    if (!match) return res.status(404).json({ error: 'Match not found' });
+    if (!match) return res.status(404).json({ error: 'Match introuvable' });
 
-    res.json({ message: 'Match deleted successfully' });
+    res.json({ message: 'Match supprimé avec succès' });
   } catch (error) {
-    console.error('Delete match error:', error);
-    res.status(500).json({ error: 'Failed to delete match' });
+    res.status(500).json({ error: 'Échec de la suppression du match' });
   }
 }
 
+
+/**
+ * Ajoute un message à la discussion d'un match
+ * @param {Object} req - Requête Express
+ * @param {Object} res - Réponse Express
+ * @returns {Object} Match mis à jour avec le nouveau message
+ */
 export async function addMessage(req, res) {
   try {
     const { id } = req.params;
     const { sender, senderModel, message } = req.body;
 
     if (!sender || !senderModel || !message) {
-      return res.status(400).json({ error: 'sender, senderModel, and message are required' });
+      return res.status(400).json({ error: 'L\'expéditeur, le modèle d\'expéditeur et le message sont requis' });
     }
 
     if (!['Adopter', 'Owner'].includes(senderModel)) {
-      return res.status(400).json({ error: 'senderModel must be either "Adopter" or "Owner"' });
+      return res.status(400).json({ error: 'Le modèle d\'expéditeur doit être "Adopter" ou "Owner"' });
     }
 
     const match = await Match.findById(id);
-    if (!match) return res.status(404).json({ error: 'Match not found' });
+    if (!match) return res.status(404).json({ error: 'Match introuvable' });
 
     if (match.status !== 'validé' && match.status !== 'adopté') {
-      return res.status(400).json({ error: 'Cannot send message to inactive match' });
+      return res.status(400).json({ error: 'Impossible d\'envoyer un message à un match inactif' });
     }
 
     match.discussion.push({
@@ -345,15 +357,21 @@ export async function addMessage(req, res) {
       .populate('discussion.sender', 'firstName lastName image');
 
     res.json({
-      message: 'Message added successfully',
+      message: 'Message ajouté avec succès',
       match: updatedMatch
     });
   } catch (error) {
-    console.error('Add message error:', error);
-    res.status(500).json({ error: 'Failed to add message' });
+    res.status(500).json({ error: 'Échec de l\'ajout du message' });
   }
 }
 
+
+/**
+ * Récupère la discussion d'un match spécifique
+ * @param {Object} req - Requête Express
+ * @param {Object} res - Réponse Express
+ * @returns {Object} Discussion avec informations du match
+ */
 export async function getMatchDiscussion(req, res) {
   try {
     const { id } = req.params;
@@ -363,10 +381,8 @@ export async function getMatchDiscussion(req, res) {
       .populate('discussion.sender', 'firstName lastName image');
 
     if (!match) {
-    // Ensure WebSocket channel exists for this match
-    await ensureMatchChannel(id);
-
-      return res.status(404).json({ error: 'Match not found' });
+      await ensureMatchChannel(id);
+      return res.status(404).json({ error: 'Match introuvable' });
     }
 
     res.json({
@@ -377,65 +393,58 @@ export async function getMatchDiscussion(req, res) {
       discussion: match.discussion
     });
   } catch (error) {
-    console.error('Get match discussion error:', error);
-    res.status(500).json({ error: 'Failed to fetch discussion' });
+    res.status(500).json({ error: 'Échec de la récupération de la discussion' });
   }
 }
 
+
+/**
+ * Récupère les notifications en attente pour un adopteur authentifié
+ * @param {Object} req - Requête Express
+ * @param {Object} res - Réponse Express
+ * @returns {Array} Liste des notifications en attente
+ */
 export async function getPendingNotifications(req, res) {
   try {
-    // Extract JWT token from cookies or Authorization header
     const cookies = parseCookies(req.headers.cookie || '');
     const token = cookies?.auth_token || req.headers.authorization?.replace('Bearer ', '');
 
     if (!token) {
-      console.log('[Pending Notifications] No token found in request');
-      return res.status(401).json({ error: 'Not authenticated' });
+      return res.status(401).json({ error: 'Non authentifié' });
     }
 
-    // Verify and decode JWT token
     let decoded;
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
     } catch (jwtError) {
-      console.error('[Pending Notifications] JWT verification failed:', jwtError.message);
-      return res.status(401).json({ error: 'Invalid token' });
+      return res.status(401).json({ error: 'Token invalide' });
     }
-    
-    // Only adopters can fetch pending notifications
+
     if (decoded.type !== 'adopter') {
-      console.log(`[Pending Notifications] Access denied - user is ${decoded.type}, not adopter`);
-      return res.status(403).json({ error: 'Only adopters can fetch pending notifications' });
+      return res.status(403).json({ error: 'Seuls les adopteurs peuvent récupérer les notifications en attente' });
     }
 
     const adopterId = decoded.sub;
 
     if (!adopterId) {
-      console.log('[Pending Notifications] No adopterId in token');
-      return res.status(401).json({ error: 'Invalid token' });
+      return res.status(401).json({ error: 'Token invalide' });
     }
 
-    console.log(`[Pending Notifications] Fetching for adopter: ${adopterId}`);
-
-    // Find all matches with pending notifications for this adopter
     const matches = await Match.find({
       adopterId,
       status: 'validé',
       notificationPending: true
     })
-    .populate('animalId', 'name species race images')
-    .populate({
-      path: 'animalId',
-      populate: {
-        path: 'ownerId',
-        select: 'firstName lastName'
-      }
-    })
-    .populate('adopterId', 'firstName lastName email image');
+      .populate('animalId', 'name species race images')
+      .populate({
+        path: 'animalId',
+        populate: {
+          path: 'ownerId',
+          select: 'firstName lastName'
+        }
+      })
+      .populate('adopterId', 'firstName lastName email image');
 
-    console.log(`[Pending Notifications] Found ${matches.length} pending notifications`);
-
-    // Format notification data for each match
     const notifications = matches.map(match => ({
       matchId: match._id.toString(),
       animalId: match.animalId?._id.toString() || '',
@@ -445,27 +454,24 @@ export async function getPendingNotifications(req, res) {
       animalRace: match.animalId?.race || '',
       adopterImage: match.adopterId?.image || '',
       adopterName: `${match.adopterId?.firstName || ''} ${match.adopterId?.lastName || ''}`.trim(),
-      ownerName: match.animalId?.ownerId ? 
+      ownerName: match.animalId?.ownerId ?
         `${match.animalId.ownerId.firstName || ''} ${match.animalId.ownerId.lastName || ''}`.trim() : '',
       conversationLink: `/adopter/messages/${match._id.toString()}`
     }));
 
-    // Mark notifications as sent
     if (notifications.length > 0) {
       const matchIds = matches.map(m => m._id);
       await Match.updateMany(
         { _id: { $in: matchIds } },
-        { 
+        {
           notificationPending: false,
           notificationSentAt: new Date()
         }
       );
-      console.log(`[Pending Notifications] Marked ${notifications.length} notifications as sent`);
     }
 
     res.json(notifications);
   } catch (error) {
-    console.error('Get pending notifications error:', error.message, error.stack);
-    res.status(500).json({ error: 'Failed to fetch pending notifications', details: error.message });
+    res.status(500).json({ error: 'Échec de la récupération des notifications en attente', details: error.message });
   }
 }

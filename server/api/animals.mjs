@@ -275,15 +275,16 @@ export async function updateAnimal(req, res) {
   try {
     const { id } = req.params;
     const updates = req.body;
+    const userId = req.user.sub;
 
-    const animal = await Animal.findByIdAndUpdate(
-      id,
+    const animal = await Animal.findOneAndUpdate(
+      { _id: id, ownerId: userId },
       updates,
       { new: true, runValidators: true }
     );
 
     if (!animal) {
-      return res.status(404).json({ error: 'Animal not found' });
+      return res.status(404).json({ error: 'Animal introuvable ou accès non autorisé' });
     }
 
     res.json({
@@ -299,11 +300,12 @@ export async function updateAnimal(req, res) {
 export async function deleteAnimal(req, res) {
   try {
     const { id } = req.params;
+    const userId = req.user.sub;
 
-    const animal = await Animal.findByIdAndDelete(id);
+    const animal = await Animal.findOneAndDelete({ _id: id, ownerId: userId });
 
     if (!animal) {
-      return res.status(404).json({ error: 'Animal not found' });
+      return res.status(404).json({ error: 'Animal introuvable ou accès non autorisé' });
     }
 
     res.json({ message: 'Animal deleted successfully' });

@@ -191,11 +191,14 @@ const submitForm = async () => {
                 formData.append('image', fileItem.file);
             });
 
-            const uploadRes = await fetch('/api/images/animal', {
+            const authOptions = getAuthFetchOptions({
                 method: 'POST',
-                body: formData,
-                credentials: 'include'
+                body: formData
             });
+            
+            delete authOptions.headers['Content-Type'];
+
+            const uploadRes = await fetch('/api/images/animal', authOptions);
 
             if (!uploadRes.ok) throw new Error("Erreur lors de l'upload des images");
 
@@ -238,12 +241,10 @@ const submitForm = async () => {
         const url = isEditMode.value ? `/api/animals/${editingId.value}` : '/api/animals';
         const method = isEditMode.value ? 'PUT' : 'POST';
 
-        const res = await fetch(url, {
+        const res = await fetch(url, getAuthFetchOptions({
             method, 
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include', 
             body: JSON.stringify(payload)
-        });
+        }));
 
         if (!res.ok) throw new Error(`Erreur ${isEditMode.value ? 'modification' : 'création'}`);
 
@@ -268,7 +269,7 @@ const confirmDelete = () => {
 
 const executeDelete = async () => {
     try {
-        const res = await fetch(`/api/animals/${editingId.value}`, { method: 'DELETE', credentials: 'include' });
+        const res = await fetch(`/api/animals/${editingId.value}`, getAuthFetchOptions({ method: 'DELETE' }));
         if (!res.ok) throw new Error('Erreur suppression');
         cleanUpAndExit('Animal supprimé');
     } catch (err) { error(err.message); }

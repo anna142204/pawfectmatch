@@ -80,10 +80,7 @@ export function useAuth() {
    */
   const logout = async () => {
     try {
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include'
-      })
+      await fetch('/api/auth/logout', getAuthFetchOptions({ method: 'POST' }))
     } catch (error) {
       console.error('Erreur lors de la déconnexion:', error)
     } finally {

@@ -103,12 +103,10 @@ const toggleLike = async () => {
   if (!isLiked.value && animal.value) {
     // Créer un match
     try {
-      await fetch('/api/matches', {
+      await fetch('/api/matches', getAuthFetchOptions({
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ adopterId: userId, animalId: animal.value._id }),
-      });
+        body: JSON.stringify({ animalId: animal.value._id }),
+      }));
     } catch (e) {
       console.error('Erreur lors de la création du match:', e);
     }

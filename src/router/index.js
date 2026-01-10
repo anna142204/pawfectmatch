@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useWebSocket } from '@/composables/useWebSocket'
+import { useAuth } from '@/composables/useAuth'
 
 // Public
 import LoginPage from '../views/Shared/LoginPage.vue'
@@ -55,10 +56,8 @@ const routes = [
         console.log('WebSocket disconnected on logout')
         
         // Appeler l'API de logout
-        await fetch('/api/auth/logout', {
-          method: 'POST',
-          credentials: 'include'
-        });
+        const { getAuthFetchOptions } = useAuth()
+        await fetch('/api/auth/logout', getAuthFetchOptions({ method: 'POST' }));
       } catch (error) {
         console.error('Erreur lors de la déconnexion:', error);
       } finally {

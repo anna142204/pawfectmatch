@@ -105,8 +105,7 @@ const handleSwipeRight = async (animal) => {
       '/api/matches',
       getAuthFetchOptions({
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ adopterId: userId.value, animalId: animal.id }),
+        body: JSON.stringify({ animalId: animal.id }),
       })
     );
     
