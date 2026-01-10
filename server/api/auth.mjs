@@ -131,21 +131,33 @@ const location = await getGeoJSON(address.zip, address.city);
  */
 export async function login(req, res) {
   try {
-    const { email, password } = req.body;
+    const { email, password, type } = req.body;
     
     if (!email || !password) {
       return res.status(400).json({ error: 'Email et mot de passe requis' });
     }
 
-    // Search for user in all collections in parallel
-    const [adopter, owner, admin] = await Promise.all([
-      Adopter.findOne({ email }),
-      Owner.findOne({ email }),
-      Admin.findOne({ email })
-    ]);
+    if (!type || !['adopter', 'owner'].includes(type)) {
+      return res.status(400).json({ error: 'Type d\'utilisateur invalide' });
+    }
 
-    const user = adopter || owner || admin;
-    const type = adopter ? 'adopter' : owner ? 'owner' : admin ? 'admin' : null;
+    // Search in the specified collection
+    let user;
+    let userType = type;
+    
+    if (type === 'adopter') {
+      user = await Adopter.findOne({ email });
+    } else if (type === 'owner') {
+      user = await Owner.findOne({ email });
+    }
+
+    // Si pas trouvé, chercher dans Admin
+    if (!user) {
+      user = await Admin.findOne({ email });
+      if (user) {
+        userType = 'admin';
+      }
+    }
 
     if (!user) {
       return res.status(401).json({ error: 'Email ou mot de passe invalide' });
@@ -160,7 +172,7 @@ export async function login(req, res) {
 
     // Generate JWT token
     const token = jwt.sign(
-      { sub: user._id, email: user.email, type },
+      { sub: user._id, email: user.email, type: userType },
       JWT_SECRET,
       {
         expiresIn: JWT_EXPIRES_IN,
@@ -179,7 +191,7 @@ export async function login(req, res) {
 
     res.json({ 
       user,
-      type,
+      type: userType,
       token
     });
   } catch (error) {

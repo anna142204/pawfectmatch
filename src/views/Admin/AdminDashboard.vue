@@ -10,7 +10,10 @@ const { success, error } = useToast();
 const router = useRouter();
 const { getAuthFetchOptions, requireUserType, logout } = useAuth();
 // État
-const stats = ref({ totalAdopters: 0, totalOwners: 0, totalAnimals: 0, totalMatches: 0 });
+const stats = ref({ 
+  global: { adopters: 0, owners: 0, animals: 0, matches: 0 },
+  details: { animalsBySpecies: [], matchesByStatus: [] }
+});
 const adopters = ref([]);
 const owners = ref([]);
 const loading = ref(true);
@@ -156,10 +159,10 @@ const handleLogout = () => {
             <section class="stats-section">
                 <div class="stats-grid">
                     <div class="stat-card" v-for="(value, key) in {
-                        Adoptants: stats.totalAdopters,
-                        Propriétaires: stats.totalOwners,
-                        Animaux: stats.totalAnimals,
-                        Matches: stats.totalMatches
+                        Adoptants: stats.global.adopters,
+                        Propriétaires: stats.global.owners,
+                        Animaux: stats.global.animals,
+                        Matches: stats.global.matches
                     }" :key="key">
                         <span class="stat-value text-h2 text-primary-700">{{ value }}</span>
                         <span class="stat-label text-label-base text-neutral-600">{{ key }}</span>

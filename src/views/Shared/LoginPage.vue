@@ -12,6 +12,7 @@ const email = ref('');
 const password = ref('');
 const loading = ref(false);
 const error = ref('');
+const userType = ref('adopter'); // 'adopter' ou 'owner'
 
 const handleLogin = async () => {
   // Validation des champs requis
@@ -36,7 +37,8 @@ const handleLogin = async () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         email: email.value,
-        password: password.value
+        password: password.value,
+        type: userType.value
       }),
       credentials: 'include'
     });
@@ -89,6 +91,23 @@ const handleLogin = async () => {
 
       <div class="login-form-wrapper">
         <form @submit.prevent="handleLogin" class="login-form">
+          <div class="toggle-group">
+            <button 
+              type="button"
+              :class="['toggle-btn', { active: userType === 'adopter' }]"
+              @click="userType = 'adopter'"
+            >
+              Adoptant
+            </button>
+            <button 
+              type="button"
+              :class="['toggle-btn', { active: userType === 'owner' }]"
+              @click="userType = 'owner'"
+            >
+              Propriétaire
+            </button>
+          </div>
+
           <div class="input-group">
             <Input
               v-model="email"
@@ -261,5 +280,31 @@ top: calc(var(--spacing-12) + 57px);
   color: var(--color-primary-600);
   text-decoration: underline;
   padding: var(--spacing-3);
+}
+
+.toggle-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-8);
+}
+
+.toggle-btn {
+  padding: var(--spacing-2) var(--spacing-3);
+  border: 2px solid var(--color-neutral-300);
+  border-radius: var(--radius-full);
+  background: var(--color-neutral-white);
+  color: var(--color-neutral-700);
+  font-family: var(--font-family);
+  font-size: var(--body-sm-size);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.toggle-btn.active {
+  background: var(--color-primary-600);
+  border-color: var(--color-primary-600);
+  color: var(--color-neutral-white);
 }
 </style>

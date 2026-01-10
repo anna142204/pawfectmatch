@@ -1,6 +1,5 @@
 import { ref } from 'vue'
 import { useWebSocket } from '@/composables/useWebSocket'
-import { useAuth } from '@/composables/useAuth'
 import { fetchJson } from '@/utils/fetchJson'
 
 export const matchNotification = ref(null)
@@ -38,13 +37,16 @@ export async function initializeWebSocketListeners() {
 
 async function fetchPendingNotifications() {
   try {
-    const { getAuthFetchOptions } = useAuth()
-    const authHeaders = getAuthFetchOptions().headers
+    const token = localStorage.getItem('token')
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` })
+    }
     
     const { request } = fetchJson({ 
       url: '/api/matches/pending-notifications', 
       method: 'GET',
-      headers: authHeaders
+      headers
     })
     const response = await request
     
