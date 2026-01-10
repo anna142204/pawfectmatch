@@ -14,7 +14,7 @@ import rodentImg from '@/assets/images/rodent.webp';
 import otherImg from '@/assets/images/other.webp';
 
 const router = useRouter();
-const { userId: ownerId, requireAuth, getAuthFetchOptions } = useAuth();
+const { userId: ownerId, requireAuth, getAuthFetchOptions, handleAuthError } = useAuth();
 const { success, error } = useToast();
 
 const animals = ref([]);
@@ -51,6 +51,11 @@ const fetchAnimals = async () => {
       `/api/animals?ownerId=${ownerId.value}`,
       getAuthFetchOptions()
     );
+
+    if (response.status === 401 || response.status === 403) {
+      handleAuthError();
+      return;
+    }
 
     if (!response.ok) {
       throw new Error('Erreur lors de la récupération des animaux');

@@ -27,7 +27,12 @@ const handleStartConversation = () => {
 }
 
 const handleViewProfile = () => {
-  router.push(`/adopter/animal/${props.notification.animalId}`)
+  if (!props.notification.animalId || props.notification.animalId === 'NO_ANIMAL_ID') {
+    console.error('Animal ID not available')
+    emit('close')
+    return
+  }
+  router.push({ name: 'AdopterAnimalDetails', params: { id: props.notification.animalId } })
   emit('close')
 }
 </script>

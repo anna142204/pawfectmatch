@@ -188,7 +188,7 @@ export async function updateMatch(req, res) {
     if (status === 'validé') {
       try {
         const adopterId = match.adopterId._id.toString();
-        const ownerId = match.ownerId ? match.ownerId._id.toString() : null;
+        const ownerId = match.animalId?.ownerId?._id ? match.animalId.ownerId._id.toString() : null;
         
         console.log(`[Match Notification] Match validated. Adopter: ${adopterId}, Owner: ${ownerId}`);
         

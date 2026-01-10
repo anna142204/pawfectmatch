@@ -10,7 +10,7 @@ import { initializeWebSocketListeners } from '@/store/wsCommandStore';
 
 const route = useRoute();
 const router = useRouter();
-const { userId, getAuthHeaders, getAuthFetchOptions } = useAuth();
+const { userId, getAuthHeaders, getAuthFetchOptions, handleAuthError } = useAuth();
 
 const showMapView = ref(route.query.view !== 'list');
 const recentMatches = ref([]);
@@ -20,6 +20,10 @@ const checkPreferences = async () => {
   if (!userId.value) return;
   try {
     const res = await fetch(`/api/adopters/${userId.value}`, getAuthFetchOptions());
+    if (res.status === 401 || res.status === 403) {
+      handleAuthError();
+      return;
+    }
     if (res.ok) {
       const adopter = await res.json();
       const prefs = adopter?.preferences;
@@ -48,9 +52,11 @@ watch(() => route.query.view, (newView) => {
 const fetchRecentMatches = async () => {
   if (!userId.value) return;
   try {
-    const res = await fetch(`/api/matches?adopterId=${userId.value}&limit=50`, { 
-      credentials: 'include' 
-    });
+    const res = await fetch(`/api/matches?adopterId=${userId.value}&limit=50`, getAuthFetchOptions());
+    if (res.status === 401 || res.status === 403) {
+      handleAuthError();
+      return;
+    }
     if (res.ok) {
       const data = await res.json();
       console.log('Tous les matchs:', data.matches);

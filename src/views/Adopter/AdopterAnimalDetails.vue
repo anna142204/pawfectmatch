@@ -8,7 +8,7 @@ import { Cat, MapPin, Mars, Venus, Heart, User, PawPrint } from 'lucide-vue-next
 
 const router = useRouter();
 const route = useRoute();
-const { userId, getAuthFetchOptions } = useAuth();
+const { userId, getAuthFetchOptions, handleAuthError } = useAuth();
 const animal = ref(null);
 const loading = ref(true);
 const error = ref(null);

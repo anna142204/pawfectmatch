@@ -38,6 +38,10 @@ onMounted(async () => {
     if (!requireAuth() || !userId.value) return;
     try {
         const res = await fetch(`/api/owners/${userId.value}`, { credentials: 'include' });
+        if (res.status === 401 || res.status === 403) {
+            handleAuthError();
+            return;
+        }
         if (!res.ok) throw new Error('Erreur chargement profil');
         const data = await res.json();
         Object.assign(form, {

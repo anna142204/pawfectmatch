@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuth } from '@/composables/useAuth';
+import { unreadNotifications, resetUnreadNotifications } from '@/store/wsCommandStore';
 import Menu from '@/components/Menu.vue';
 import ConfirmModal from '@/components/ConfirmModal.vue';
 import { CheckIcon, XIcon, MessageCircleIcon, Trash2Icon, User, PawPrint } from 'lucide-vue-next';
@@ -14,6 +15,7 @@ const requests = ref([]);
 const loading = ref(true);
 const activeTab = ref(route.query.tab || 'pending');
 const imageErrors = ref({});
+const historyNewCount = ref(0);
 
 const isOwner = computed(() => userType.value === 'owner');
 
@@ -28,6 +30,13 @@ watch(activeTab, (newTab) => {
             tab: newTab 
         } 
     });
+    if (newTab === 'history') historyNewCount.value = 0;
+});
+
+watch(unreadNotifications, (newVal, oldVal) => {
+    if (!isOwner.value && newVal > oldVal) {
+        historyNewCount.value += (newVal - oldVal);
+    }
 });
 
 // --- NAVIGATION VERS LE PROFIL ---
@@ -141,7 +150,13 @@ const goToDiscussion = (matchId) => {
     router.push(`/${prefix}/conversation/${matchId}`);
 };
 
-onMounted(fetchRequests);
+onMounted(async () => {
+    if (!isOwner.value) {
+        historyNewCount.value = unreadNotifications.value;
+        resetUnreadNotifications();
+    }
+    await fetchRequests();
+});
 </script>
 
 <template>
@@ -154,7 +169,7 @@ onMounted(fetchRequests);
                         }}</span>
                 </button>
                 <button class="tab-btn" :class="{ active: activeTab === 'history' }" @click="activeTab = 'history'">
-                    Historique
+                    Historique <span class="badge-count" v-if="historyNewCount">{{ historyNewCount }}</span>
                 </button>
             </div>
         </div>

@@ -21,7 +21,7 @@ const props = defineProps({
 
 const route = useRoute();
 const router = useRouter();
-const { userId, getAuthHeaders, getAuthFetchOptions } = useAuth();
+const { userId, getAuthHeaders, getAuthFetchOptions, handleAuthError } = useAuth();
 
 const messageInput = ref('');
 const messages = ref([]);

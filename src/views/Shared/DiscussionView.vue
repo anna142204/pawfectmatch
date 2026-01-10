@@ -16,7 +16,7 @@ const props = defineProps({
 
 const router = useRouter();
 const route = useRoute();
-const { userId, getAuthHeaders } = useAuth();
+const { userId, getAuthHeaders, handleAuthError } = useAuth();
 const toast = ref(null);
 
 const selectedAnimal = ref(null);
@@ -75,6 +75,11 @@ const loadConversations = async (animalId = null) => {
     const response = await fetch(`/api/matches?${params.toString()}`, {
       headers: getAuthHeaders()
     });
+    
+    if (response.status === 401 || response.status === 403) {
+      handleAuthError();
+      return;
+    }
     
     if (response.ok) {
       const data = await response.json();

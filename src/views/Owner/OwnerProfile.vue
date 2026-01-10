@@ -9,7 +9,7 @@ import BackButton from "../../components/BackButton.vue";
 
 const router = useRouter();
 const route = useRoute();
-const { userId: loggedInUserId, userType: viewerType, getAuthFetchOptions } = useAuth();
+const { userId: loggedInUserId, userType: viewerType, getAuthFetchOptions, handleAuthError } = useAuth();
 
 const user = ref(null);
 const loading = ref(true);
@@ -42,6 +42,11 @@ onMounted(async () => {
       credentials: 'include'
     });
 
+    if (response.status === 401 || response.status === 403) {
+      handleAuthError();
+      return;
+    }
+
     if (!response.ok) {
       throw new Error('Erreur lors de la récupération du profil');
     }
@@ -49,7 +54,7 @@ onMounted(async () => {
     user.value = await response.json();
   } catch (err) {
     error.value = err.message;
-    console.error('Erreur:', err);
+    handleAuthError();
   } finally {
     loading.value = false;
   }

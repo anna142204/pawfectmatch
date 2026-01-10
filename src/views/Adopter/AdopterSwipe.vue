@@ -6,7 +6,7 @@ import Menu from '@/components/Menu.vue';
 import SwipeCard from '@/components/SwipeCard.vue';
 
 const router = useRouter();
-const { userId, getAuthFetchOptions, requireAuth } = useAuth();
+const { userId, getAuthFetchOptions, requireAuth, handleAuthError } = useAuth();
 
 const animals = ref([]);
 const currentIndex = ref(0);
@@ -38,6 +38,10 @@ const fetchAnimals = async () => {
       '/api/animals?availability=true',
       getAuthFetchOptions({ headers: { 'Content-Type': 'application/json' } })
     );
+    if (animalsResponse.status === 401 || animalsResponse.status === 403) {
+      handleAuthError();
+      return;
+    }
     if (!animalsResponse.ok) throw new Error('Erreur chargement animaux');
     const animalsData = await animalsResponse.json();
 

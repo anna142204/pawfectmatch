@@ -9,7 +9,7 @@ import BackButton from "../../components/BackButton.vue";
 
 const router = useRouter();
 const route = useRoute();
-const { userId: loggedInUserId, userType: viewerType, getAuthFetchOptions } = useAuth();
+const { userId: loggedInUserId, userType: viewerType, getAuthFetchOptions, handleAuthError } = useAuth();
 
 const user = ref(null);
 const loading = ref(true);
@@ -28,9 +28,7 @@ const isSelfView = computed(() => {
 
 const fetchStats = async () => {
   try {
-    const response = await fetch(`/api/matches?adopterId=${profileAdopterId.value}`, {
-      credentials: 'include'
-    });
+    const response = await fetch(`/api/matches?adopterId=${profileAdopterId.value}`, getAuthFetchOptions());
 
     if (response.ok) {
       const data = await response.json();
@@ -81,14 +79,17 @@ onMounted(async () => {
       router.push('/login');
       return;
     }
-    const response = await fetch(`/api/adopters/${profileAdopterId.value}`, {
-      credentials: 'include'
-    });
+    const response = await fetch(`/api/adopters/${profileAdopterId.value}`, getAuthFetchOptions());
+    if (response.status === 401 || response.status === 403) {
+      handleAuthError();
+      return;
+    }
     if (!response.ok) throw new Error('Erreur profil');
     user.value = await response.json();
     await fetchStats();
   } catch (err) {
     error.value = err.message;
+    handleAuthError();
   } finally {
     loading.value = false;
   }

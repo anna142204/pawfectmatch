@@ -14,7 +14,7 @@ import ConfirmModal from '@/components/ConfirmModal.vue';
 import { SPECIES_OPTIONS, ENV_OPTIONS, SIZE_OPTIONS, AGE_OPTIONS, WEIGHT_OPTIONS, SEX_OPTIONS, TRAINING_OPTIONS, PERSONALITY_OPTIONS } from '@/constants/animalOptions';
 
 const router = useRouter();
-const { userId, getAuthFetchOptions, requireAuth } = useAuth();
+const { userId, getAuthFetchOptions, requireAuth, handleAuthError } = useAuth();
 const { success, error } = useToast();
 const loading = ref(true);
 const isSaving = ref(false);
@@ -41,7 +41,11 @@ const form = reactive({
 onMounted(async () => {
     if (!requireAuth() || !userId.value) return;
     try {
-        const res = await fetch(`/api/adopters/${userId.value}`, { credentials: 'include' });
+        const res = await fetch(`/api/adopters/${userId.value}`, getAuthFetchOptions());
+        if (res.status === 401 || res.status === 403) {
+            handleAuthError();
+            return;
+        }
         if (!res.ok) throw new Error('Erreur chargement profil');
         const data = await res.json();
         Object.assign(form, {
