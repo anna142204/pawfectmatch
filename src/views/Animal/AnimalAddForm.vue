@@ -3,7 +3,7 @@ import { ref, reactive, onMounted, watch, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuth } from '@/composables/useAuth';
 import { useToast } from '@/composables/useToast';
-import { Edit2, Trash2 } from 'lucide-vue-next'; 
+import { Edit2, Trash2, MapPin } from 'lucide-vue-next'; 
 
 import ProgressSteps from '@/components/ProgressSteps.vue';
 import Button from '@/components/Button.vue';
@@ -31,6 +31,7 @@ const isUploading = ref(false);
 const isEditMode = ref(false);
 const editingId = ref(null);
 const STORAGE_KEY = 'animal_form_draft';
+const locating = ref(false);
 
 const confirmModalConfig = ref({ title: '', message: '', action: null });
 
@@ -150,6 +151,45 @@ const toggleTag = (category, value) => {
 };
 const isTagSelected = (cat, val) => form.characteristics[cat]?.includes(val);
 
+// Géolocaliser et remplir l'adresse depuis la position actuelle
+const locateOwner = () => {
+    if (!navigator.geolocation) {
+        alert("La géolocalisation n'est pas supportée par votre navigateur.");
+        return;
+    }
+
+    locating.value = true;
+
+    navigator.geolocation.getCurrentPosition(
+        async (position) => {
+            try {
+                const { latitude, longitude } = position.coords;
+                const response = await fetch(
+                    `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+                );
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const addr = data.address || {};
+                    if (addr.postcode) {
+                        form.zip = addr.postcode;
+                    }
+                    form.city = addr.city || addr.town || addr.village || addr.municipality || '';
+                }
+            } catch (e) {
+                console.error("Erreur geocoding inverse:", e);
+            } finally {
+                locating.value = false;
+            }
+        },
+        (error) => {
+            console.error("Erreur géolocalisation:", error);
+            alert("Impossible de récupérer votre position. Vérifiez vos autorisations.");
+            locating.value = false;
+        }
+    );
+};
+
 const nextStep = () => {
     if (validateStep(currentStep.value)) {
         currentStep.value++;
@@ -169,6 +209,17 @@ const validateStep = (step) => {
     if (step === 1) {
         if (totalImagesCount.value === 0) {
             error('Ajoutez au moins une photo'); return false;
+        }
+    }
+    if (step === 2) {
+        const missing = [];
+        if (!form.characteristics.environment || form.characteristics.environment.length === 0) missing.push('Environnement');
+        if (!form.characteristics.dressage || form.characteristics.dressage.length === 0) missing.push('Dressage');
+        if (!form.characteristics.personality || form.characteristics.personality.length === 0) missing.push('Personnalité');
+
+        if (missing.length) {
+            error(`Veuillez sélectionner au moins une option pour: ${missing.join(', ')}`);
+            return false;
         }
     }
     if (step === 3 && !form.description.trim()) {
@@ -316,11 +367,11 @@ const handleModalConfirm = () => {
 
             <div v-show="currentStep === 0" class="step-content">
                 <div class="form-group">
-                    <label class="form-label text-body-lg text-neutral-black">Nom de l'animal</label>
+                    <label class="form-label text-neutral-black">Nom de l'animal*</label>
                     <Input v-model="form.name" placeholder="Ex: Rex" required />
                 </div>
                 <div class="form-group">
-                    <label class="form-label text-body-lg text-neutral-black">Espèce</label>
+                    <label class="form-label text-neutral-black">Espèce*</label>
                     <Dropdown v-model="form.species" :options="SPECIES_OPTIONS" placeholder="Choisir" />
                 </div>
                 <div class="form-group" v-if="currentBreedOptions.length > 0">
@@ -333,42 +384,48 @@ const handleModalConfirm = () => {
                     />
                 </div>
                 <div class="form-group" v-else>
-                    <label class="form-label text-body-lg text-neutral-black">Race / Type</label>
+                    <label class="form-label text-neutral-black">Race / Type*</label>
                     <Input v-model="form.race" placeholder="Ex: Croisé..." />
                 </div>
                 <div class="form-row">
-                    <div class="form-group half"><label class="form-label text-body-lg text-neutral-black">Âge</label>
+                    <div class="form-group half"><label class="form-label text-neutral-black">Âge*</label>
                         <Dropdown v-model="form.age" :options="AGE_OPTIONS" placeholder="Choisir" />
                     </div>
-                    <div class="form-group half"><label class="form-label text-body-lg text-neutral-black">Sexe</label>
+                    <div class="form-group half"><label class="form-label text-neutral-black">Sexe*</label>
                         <Dropdown v-model="form.sex" :options="SEX_OPTIONS" placeholder="Choisir" />
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group half"><label
-                            class="form-label text-body-lg text-neutral-black">Taille</label>
+                            class="form-label text-neutral-black">Taille*</label>
                         <Dropdown v-model="form.size" :options="SIZE_OPTIONS" placeholder="Choisir" />
                     </div>
-                    <div class="form-group half"><label class="form-label text-body-lg text-neutral-black">Poids</label>
+                    <div class="form-group half"><label class="form-label text-neutral-black">Poids*</label>
                         <Dropdown v-model="form.weight" :options="WEIGHT_OPTIONS" placeholder="Choisir" />
                     </div>
                 </div>
+                
                 <div class="form-row">
                     <div class="form-group half"><label
-                            class="form-label text-body-lg text-neutral-black">Ville</label><Input v-model="form.city"
+                            class="form-label text-neutral-black">Ville*</label><Input v-model="form.city"
                             placeholder="Lausanne" required /></div>
-                    <div class="form-group half"><label
-                            class="form-label text-body-lg text-neutral-black">NPA</label><Input v-model="form.zip"
+                        <div class="form-group half"><label
+                            class="form-label text-neutral-black">NPA (code postal)*</label><Input v-model="form.zip"
                             placeholder="1000" required /></div>
                 </div>
-                <div class="form-group"><label class="form-label text-body-lg text-neutral-black">Prix
-                        (CHF)</label><Input v-model="form.price" type="number" placeholder="500" required /></div>
+                <div class="form-row">
+                        <button type="button" @click="locateOwner" class="geo-btn" :disabled="locating">
+                            <MapPin size="16" />
+                            {{ locating ? 'Localisation...' : 'Utiliser ma position actuelle' }}
+                        </button>
+                </div>
+                <div class="form-group"><label class="form-label text-neutral-black">Prix(CHF)*</label><Input v-model="form.price" type="number" placeholder="500" required /></div>
             </div>
 
             <div v-show="currentStep === 1" class="step-content">
 
                 <div class="description">
-                    <h2 class="section-title text-h3 text-primary-700">Ajoutez des photos</h2>
+                    <h2 class="section-title text-h3 text-primary-700">Ajoutez des photos*</h2>
                     <p class="description-text text-body-base text-neutral-900">
                         Ajoutez des photos de l'animal afin que le futur propriétaire tombe sous son charme
                     </p>
@@ -406,7 +463,7 @@ const handleModalConfirm = () => {
                     </p>
                 </div>
                 <div class="affinity-section">
-                    <h3 class="section-title text-h4 text-neutral-black">Environnement</h3>
+                    <h3 class="section-title text-h4 text-neutral-black">Environnement*</h3>
                     <div class="tags-container">
                         <TagButton v-for="opt in ENV_OPTIONS" :key="opt.value" :label="opt.label" :icon="opt.icon"
                             :selected="isTagSelected('environment', opt.value)"
@@ -414,7 +471,7 @@ const handleModalConfirm = () => {
                     </div>
                 </div>
                 <div class="affinity-section">
-                    <h3 class="section-title text-h4 text-neutral-black">Dressage</h3>
+                    <h3 class="section-title text-h4 text-neutral-black">Dressage*</h3>
                     <div class="tags-container">
                         <TagButton v-for="opt in TRAINING_OPTIONS" :key="opt.value" :label="opt.label"
                             :selected="isTagSelected('dressage', opt.value)"
@@ -422,7 +479,7 @@ const handleModalConfirm = () => {
                     </div>
                 </div>
                 <div class="affinity-section">
-                    <h3 class="section-title text-h4 text-neutral-black">Personnalité</h3>
+                    <h3 class="section-title text-h4 text-neutral-black">Personnalité*</h3>
                     <div class="tags-container">
                         <TagButton v-for="opt in PERSONALITY_OPTIONS" :key="opt.value" :label="opt.label"
                             :selected="isTagSelected('personality', opt.value)"
@@ -433,7 +490,7 @@ const handleModalConfirm = () => {
 
             <div v-show="currentStep === 3" class="step-content h-full">
                 <div class="form-group h-full flex flex-col">
-                    <label class="form-label text-body-lg text-neutral-black">Description</label>
+                    <label class="form-label text-neutral-black">Description*</label>
                     <textarea v-model="form.description" class="textarea-field"
                         placeholder="Décrivez l'animal..."></textarea>
                 </div>
@@ -605,7 +662,11 @@ const handleModalConfirm = () => {
 }
 
 .form-label {
-    font-weight: 600;
+  display: block;
+  font-family: var(--font-family);
+  font-size: var(--body-sm-size);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-neutral-700);
 }
 
 .form-row {
@@ -860,5 +921,31 @@ const handleModalConfirm = () => {
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+.geo-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background-color: var(--color-primary-50);
+    border: 1px solid #e5e7eb;
+    color: #4b5563;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: -5px;
+    transition: all 0.2s;
+}
+
+.geo-btn:hover {
+    background-color: #e5e7eb;
+    color: #1f2937;
+}
+
+.geo-btn:disabled {
+    opacity: 0.7;
+    cursor: wait;
 }
 </style>

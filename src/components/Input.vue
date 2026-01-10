@@ -12,6 +12,10 @@ const props = defineProps({
     default: 'text',
     validator: (value) => ['text', 'email', 'password', 'tel', 'number', 'url'].includes(value)
   },
+  label: {
+    type: String,
+    default: ''
+  },
   placeholder: {
     type: String,
     default: ''
@@ -65,6 +69,9 @@ const handleBlur = (event) => {
 
 <template>
   <div class="input-container">
+    <!-- Optional label -->
+    <div v-if="label" class="input-label">{{ label }}</div>
+
     <div :class="['input-wrapper', { 'input-wrapper--error': error, 'input-wrapper--disabled': disabled }]">
       <!-- Icon Lucide -->
       <component 
@@ -104,6 +111,15 @@ const handleBlur = (event) => {
 <style scoped>
 .input-container {
   width: 100%;
+}
+
+.input-label {
+  display: block;
+  font-family: var(--font-family);
+  font-size: var(--body-sm-size);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-neutral-700);
+  margin-bottom: var(--spacing-2);
 }
 
 .input-wrapper {

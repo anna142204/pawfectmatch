@@ -485,6 +485,7 @@ const seed = async () => {
                 images: data.images,
                 description: data.desc,
                 address: owner.address,
+                location: owner.location,
                 price: Math.floor(Math.random() * 200) + 50,
                 ownerId: owner._id,
                 availability: true,

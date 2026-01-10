@@ -170,6 +170,73 @@ const handleLogout = () => {
                 </div>
             </section>
 
+            <!-- Details Section -->
+            <section v-if="stats.details" class="details-section">
+                <!-- Animals by Species -->
+                <div class="detail-card">
+                    <h3 class="detail-title text-h4 text-neutral-black">Animaux par espèce</h3>
+                    <div v-if="!stats.details.animals?.bySpecies?.length" class="empty-detail">
+                        <p class="text-body-sm text-neutral-500">Aucune donnée</p>
+                    </div>
+                    <div v-else class="detail-table">
+                        <div class="table-header">
+                            <div class="col">Espèce</div>
+                            <div class="col">Nombre</div>
+                            <div class="col">Prix moyen</div>
+                        </div>
+                        <div v-for="item in stats.details.animals.bySpecies" :key="item.species" class="table-row">
+                            <div class="col">{{ item.species }}</div>
+                            <div class="col">{{ item.count }}</div>
+                            <div class="col">{{ item.avgPrice }} CHF</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Animals by Size -->
+                <div class="detail-card">
+                    <h3 class="detail-title text-h4 text-neutral-black">Animaux par taille</h3>
+                    <div v-if="!stats.details.animals?.bySize?.length" class="empty-detail">
+                        <p class="text-body-sm text-neutral-500">Aucune donnée</p>
+                    </div>
+                    <div v-else class="size-grid">
+                        <div v-for="item in stats.details.animals.bySize" :key="item.size" class="size-badge">
+                            <span class="size-name">{{ item.size }}</span>
+                            <span class="size-count">{{ item.count }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Availability -->
+                <div class="detail-card">
+                    <h3 class="detail-title text-h4 text-neutral-black">Disponibilité des animaux</h3>
+                    <div v-if="!stats.details.animals?.availability?.length" class="empty-detail">
+                        <p class="text-body-sm text-neutral-500">Aucune donnée</p>
+                    </div>
+                    <div v-else class="availability-grid">
+                        <div v-for="item in stats.details.animals.availability" :key="item.available" class="availability-item">
+                            <div :class="['availability-status', { available: item.available }]">
+                                {{ item.available ? 'Disponibles' : 'Non disponibles' }}
+                            </div>
+                            <div class="availability-count">{{ item.count }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Matches by Status -->
+                <div class="detail-card">
+                    <h3 class="detail-title text-h4 text-neutral-black">Matches par statut</h3>
+                    <div v-if="!stats.details.matches?.byStatus?.length" class="empty-detail">
+                        <p class="text-body-sm text-neutral-500">Aucune donnée</p>
+                    </div>
+                    <div v-else class="status-grid">
+                        <div v-for="item in stats.details.matches.byStatus" :key="item.status" class="status-item">
+                            <span class="status-label">{{ item.status }}</span>
+                            <span class="status-badge">{{ item.count }}</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- Tabs -->
             <section class="tabs-section">
                 <div class="tabs">
@@ -578,5 +645,160 @@ const handleLogout = () => {
 .logout-btn {
     margin: var(--spacing-6) auto 0;
     display: block;
+}
+
+/* Details Section */
+.details-section {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--spacing-4);
+}
+
+.detail-card {
+    background: var(--color-neutral-white);
+    border-radius: var(--radius-base);
+    padding: var(--spacing-4);
+    box-shadow: var(--shadow-sm);
+}
+
+.detail-title {
+    margin: 0 0 var(--spacing-3);
+    font-weight: 600;
+}
+
+.empty-detail {
+    text-align: center;
+    padding: var(--spacing-4);
+    color: var(--color-neutral-500);
+}
+
+/* Table Style */
+.detail-table {
+    overflow-x: auto;
+}
+
+.table-header {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-2);
+    padding: var(--spacing-3);
+    background: var(--color-neutral-100);
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    font-size: var(--body-sm-size);
+    color: var(--color-neutral-700);
+}
+
+.table-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-2);
+    padding: var(--spacing-3);
+    border-bottom: 1px solid var(--color-neutral-200);
+    font-size: var(--body-sm-size);
+    align-items: center;
+}
+
+.table-row:last-child {
+    border-bottom: none;
+}
+
+.table-row .col {
+    word-break: break-word;
+}
+
+/* Size Grid */
+.size-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: var(--spacing-3);
+}
+
+.size-badge {
+    background: var(--color-primary-100);
+    border: 1px solid var(--color-primary-300);
+    border-radius: var(--radius-base);
+    padding: var(--spacing-3);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-2);
+}
+
+.size-name {
+    font-weight: 600;
+    color: var(--color-primary-700);
+    text-transform: capitalize;
+}
+
+.size-count {
+    font-size: var(--body-h3-size);
+    font-weight: bold;
+    color: var(--color-primary-600);
+}
+
+/* Availability */
+.availability-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--spacing-3);
+}
+
+.availability-item {
+    background: var(--color-neutral-100);
+    border-radius: var(--radius-base);
+    padding: var(--spacing-4);
+    text-align: center;
+}
+
+.availability-status {
+    font-weight: 600;
+    padding: var(--spacing-2);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--spacing-2);
+    color: var(--color-secondary-700);
+    background: var(--color-secondary-100);
+}
+
+.availability-status.available {
+    color: var(--color-success-700);
+    background: var(--color-success-100);
+}
+
+.availability-count {
+    font-size: var(--heading-h2-size);
+    font-weight: bold;
+    color: var(--color-primary-600);
+}
+
+/* Status Grid */
+.status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: var(--spacing-3);
+}
+
+.status-item {
+    background: linear-gradient(135deg, var(--color-primary-50), var(--color-primary-100));
+    border-left: 4px solid var(--color-primary-600);
+    border-radius: var(--radius-base);
+    padding: var(--spacing-3);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-2);
+}
+
+.status-label {
+    font-size: var(--body-sm-size);
+    color: var(--color-neutral-700);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+}
+
+.status-badge {
+    font-size: var(--heading-h2-size);
+    font-weight: bold;
+    color: var(--color-primary-700);
 }
 </style>

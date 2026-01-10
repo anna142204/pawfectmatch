@@ -58,6 +58,24 @@ const animalSchema = new Schema({
             maxlength: 12,
         },
     },
+    location: {
+        type: {
+            type: String,
+            enum: ['Point'],
+            default: 'Point',
+        },
+        coordinates: {
+            type: [Number],
+            required: false,
+            validate: {
+                validator: function(v) {
+                    return !v || (Array.isArray(v) && v.length === 2 && v[0] >= -180 && v[0] <= 180 && v[1] >= -90 && v[1] <= 90);
+                },
+                message: 'Les coordonnées doivent être [longitude, latitude] et valides',
+            },
+            default: [8.2275, 46.8182]
+        },
+    },
     images: {
     type: [String],
     required: true,
@@ -133,5 +151,8 @@ const animalSchema = new Schema({
 }, {
     timestamps: true,
 });
+
+// Index géospatial pour optimiser les requêtes $geoNear
+animalSchema.index({ 'location': '2dsphere' });
 
 export default mongoose.model('Animal', animalSchema);

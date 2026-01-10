@@ -119,9 +119,11 @@ onUnmounted(() => document.removeEventListener('click', handleClickOutside));
 }
 
 .form-label {
-  font-weight: 600;
-  font-size: 16px;
-  color: var(--color-neutral-black);
+  display: block;
+  font-family: var(--font-family);
+  font-size: var(--body-sm-size);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-neutral-700);
 }
 
 .chevron-icon {

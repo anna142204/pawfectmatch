@@ -68,7 +68,7 @@ const locateUser = () => {
           const addr = data.address;
 
           if (addr.postcode) {
-             zip.value = addr.postcode;
+            zip.value = addr.postcode;
           }
           city.value = addr.city || addr.town || addr.village || addr.municipality || '';
         }
@@ -152,7 +152,7 @@ const handleRegister = async () => {
       if (!uploadRes.ok) throw new Error("Erreur lors de l'upload de l'image");
 
       const uploadData = await uploadRes.json();
-      
+
       if (uploadData.data && uploadData.data.url) {
         imageUrl = uploadData.data.url;
       } else if (uploadData.url) {
@@ -252,13 +252,13 @@ const handleRegister = async () => {
               <Input v-model="password" type="password" placeholder="Mot de passe *" icon="password" required />
             </div>
             <div class="input-group">
-              <Input v-model="confirmPassword" type="password" placeholder="Confirmer le mot de passe *" icon="password" required />
+              <Input v-model="confirmPassword" type="password" placeholder="Confirmer le mot de passe *" icon="password"
+                required />
             </div>
           </template>
 
           <template v-if="step === 2">
-            <div class="form-group input-group" >
-              <label class="field-label">Adresse</label>
+            <div class="form-group input-group">
 
               <button type="button" @click="locateUser" class="geo-btn" :disabled="locating">
                 <MapPin size="16" />
@@ -266,37 +266,44 @@ const handleRegister = async () => {
               </button>
 
               <div class="row">
-                <Input v-model="zip" label="NPA" placeholder="1000" required class="input-group" />
-                <Input v-model="city" label="Ville" placeholder="Lausanne" required class="input-group" />
+                <Input v-model="zip" label="NPA (code postal)*" placeholder="1000" required class="input-group" />
+                <Input v-model="city" label="Ville*" placeholder="Lausanne" required class="input-group" />
               </div>
             </div>
 
             <template v-if="userType === 'adopter'">
               <div class="input-group">
-                <Input v-model="age" type="number" placeholder="Âge * (min. 18 ans)" required min="18" />
+                <Input v-model="age" type="number" label="Âge* (min. 18 ans)" placeholder="Âge* (min. 18 ans)" required
+                  min="18" />
               </div>
             </template>
 
             <template v-if="userType === 'owner'">
               <div class="input-group">
-                <Input v-model="societyName" type="text" placeholder="Nom de la société (optionnel)" />
+                <Input v-model="societyName" type="text" label="Nom de la société (optionnel)"
+                  placeholder="Nom de la société (optionnel)" />
               </div>
               <div class="input-group">
-                <Input v-model="phoneNumber" type="tel" placeholder="Numéro de téléphone (optionnel)" />
+                <Input v-model="phoneNumber" type="tel" label="Numéro de téléphone (optionnel)"
+                  placeholder="Numéro de téléphone (optionnel)" />
               </div>
             </template>
 
             <div class="input-group">
-              <textarea v-model="about" placeholder="À propos de vous (optionnel)" class="textarea-input" rows="4"></textarea>
+              <p class="field-label">À propos de vous (optionnel)</p>
+              <textarea v-model="about" label="À propos de vous (optionnel)" placeholder="À propos de vous (optionnel)"
+                class="textarea-input" rows="4"></textarea>
             </div>
           </template>
 
           <div v-if="error" class="error-message">{{ error }}</div>
 
           <div class="form-actions">
-            <Button v-if="step > 1" type="button" variant="secondary" size="base" @click="handlePreviousStep" class="btn-back">Retour</Button>
+            <Button v-if="step > 1" type="button" variant="secondary" size="base" @click="handlePreviousStep"
+              class="btn-back">Retour</Button>
             <Button v-if="step < 2" type="submit" variant="primary" size="base" class="btn-next">Suivant</Button>
-            <Button v-else type="button" variant="primary" size="base" :disabled="loading" @click="handleRegister" class="btn-next">
+            <Button v-else type="button" variant="primary" size="base" :disabled="loading" @click="handleRegister"
+              class="btn-next">
               <span v-if="loading" class="loader"></span>
               <span v-else>S'inscrire</span>
             </Button>
@@ -450,6 +457,15 @@ const handleRegister = async () => {
   transition: all 0.2s ease;
 }
 
+.field-label {
+  display: block;
+  font-family: var(--font-family);
+  font-size: var(--body-sm-size);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-neutral-700);
+  margin-bottom: var(--spacing-2);
+}
+
 .textarea-input {
   width: 100%;
   padding: var(--spacing-3);
@@ -583,49 +599,57 @@ const handleRegister = async () => {
   .register-container {
     padding-top: var(--spacing-6);
   }
+
   .register-header {
     margin-bottom: var(--spacing-3);
   }
+
   .register-title {
     font-size: var(--heading-h2-size);
   }
+
   .register-form-wrapper {
     padding: var(--spacing-6);
   }
+
   .steps-indicator {
     margin-bottom: var(--spacing-3);
   }
+
   .step-dot {
     width: 28px;
     height: 28px;
     font-size: var(--body-xs-size);
   }
+
   .step-line {
     width: 24px;
   }
+
   .input-group {
     margin-bottom: var(--spacing-2);
   }
+
   .user-type-selector {
     margin-bottom: var(--spacing-3);
   }
 }
 
 .geo-btn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
-  background-color: #f3f4f6;
+  background-color: var(--color-primary-50);
   border: 1px solid #e5e7eb;
   color: #4b5563;
-  padding: 8px 12px;
+  padding: 10px 12px;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  margin-bottom: 12px;
+  margin-top: -5px;
+  margin-bottom: 20px;
   transition: all 0.2s;
-  width: fit-content;
 }
 
 .geo-btn:hover {
