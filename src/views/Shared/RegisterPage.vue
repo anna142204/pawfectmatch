@@ -8,7 +8,7 @@ import { MapPin } from 'lucide-vue-next';
 import { useAuth } from '@/composables/useAuth';
 
 const router = useRouter();
-const { setAuthData } = useAuth();
+const { setAuthData, getAuthFetchOptions } = useAuth();
 
 const step = ref(1);
 const userType = ref('adopter');
@@ -181,12 +181,13 @@ const handleRegister = async () => {
       body.societyName = societyName.value;
     }
 
-    const response = await fetch(registerEndpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify(body),
-    });
+    const response = await fetch(
+      registerEndpoint,
+      getAuthFetchOptions({
+        method: 'POST',
+        body: JSON.stringify(body)
+      })
+    );
 
     const data = await response.json();
 

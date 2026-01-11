@@ -38,9 +38,10 @@ onMounted(async () => {
       return;
     }
 
-    const response = await fetch(`/api/owners/${profileOwnerId.value}`, {
-      credentials: 'include'
-    });
+    const response = await fetch(
+      `/api/owners/${profileOwnerId.value}`,
+      getAuthFetchOptions()
+    );
 
     if (response.status === 401 || response.status === 403) {
       handleAuthError();

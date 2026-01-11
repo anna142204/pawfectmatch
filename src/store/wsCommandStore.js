@@ -1,6 +1,7 @@
 import { ref } from 'vue'
 import { useWebSocket } from '@/composables/useWebSocket'
 import { fetchJson } from '@/utils/fetchJson'
+import { useAuth } from '@/composables/useAuth'
 
 export const matchNotification = ref(null)
 export const unreadNotifications = ref(0)
@@ -10,6 +11,7 @@ let autoClearTimer = null
 export async function initializeWebSocketListeners() {
   try {
     const { initializeWebSocket } = useWebSocket()
+    const { userType } = useAuth()
     
     const wsClient = await initializeWebSocket()
 
@@ -25,8 +27,7 @@ export async function initializeWebSocketListeners() {
       listenerRegistered = true
     }
     
-    const userType = localStorage.getItem('user_type')
-    if (userType === 'adopter') {
+    if (userType.value === 'adopter') {
       await fetchPendingNotifications()
     }
     
@@ -37,16 +38,10 @@ export async function initializeWebSocketListeners() {
 
 async function fetchPendingNotifications() {
   try {
-    const token = localStorage.getItem('token')
-    const headers = {
-      'Content-Type': 'application/json',
-      ...(token && { Authorization: `Bearer ${token}` })
-    }
-    
     const { request } = fetchJson({ 
       url: '/api/matches/pending-notifications', 
       method: 'GET',
-      headers
+      headers: { 'Content-Type': 'application/json' }
     })
     const response = await request
     
@@ -56,9 +51,7 @@ async function fetchPendingNotifications() {
       })
     }
   } catch (error) {
-    if (error?.status === 403) {
-      localStorage.removeItem('user_type')
-    } else if (error?.status !== 401) {
+    if (error?.status !== 401 && error?.status !== 403) {
       console.warn(error?.status)
     }
   }

@@ -3,8 +3,9 @@ import app from "../app.mjs";
 import mongoose from "mongoose";
 import { cleanUpDatabase } from "./utils.js";
 
-// Helper function to create and authenticate an owner
+// Helper function to create and authenticate an owner using cookie-based session
 async function createAuthenticatedOwner() {
+  const agent = supertest.agent(app)
   const ownerPayload = {
     firstName: "Test",
     lastName: "Owner",
@@ -16,14 +17,14 @@ async function createAuthenticatedOwner() {
     image: "https://i.pravatar.cc/150?u=testowner"
   };
 
-  const res = await supertest(app)
+  const res = await agent
     .post("/api/auth/register/owner")
     .send(ownerPayload)
     .expect(201);
 
   return {
     ownerId: res.body.user._id,
-    token: res.body.token
+    agent
   };
 }
 
@@ -53,13 +54,12 @@ const animalPayload = {
 beforeEach(cleanUpDatabase);
 describe("POST /api/animals", function () {
   test("should create a new animal", async function () {
-    const { ownerId, token } = await createAuthenticatedOwner();
+    const { ownerId, agent } = await createAuthenticatedOwner();
     
     const payload = { ...animalPayload, ownerId };
     
-    const res = await supertest(app)
+    const res = await agent
       .post("/api/animals")
-      .set("Authorization", `Bearer ${token}`)
       .send(payload)
       .expect(201)
       .expect("Content-Type", /json/);
@@ -157,13 +157,12 @@ describe("POST /api/animals", function () {
 beforeEach(cleanUpDatabase);
 describe("GET /api/animals", function () {
   test("should retrieve the list of animals", async function () {
-    const { ownerId, token } = await createAuthenticatedOwner();
+    const { ownerId, agent } = await createAuthenticatedOwner();
     const payload = { ...animalPayload, ownerId };
     
     // create an animal using the same payload
-    await supertest(app)
+    await agent
       .post("/api/animals")
-      .set("Authorization", `Bearer ${token}`)
       .send(payload)
       .expect(201);
 
@@ -240,7 +239,7 @@ beforeEach(async () => await cleanUpDatabase());
 describe("GET /api/animals/:id", function () {
   test("should retrieve an animal by id and populate owner", async function () {
     // 1. Register an owner and get auth token
-    const { ownerId, token } = await createAuthenticatedOwner();
+    const { ownerId, agent } = await createAuthenticatedOwner();
 
     // 2. Create an animal that references the owner
     const animalPayloadWithOwner = {
@@ -248,9 +247,8 @@ describe("GET /api/animals/:id", function () {
       ownerId,
     };
 
-    const createRes = await supertest(app)
+    const createRes = await agent
       .post("/api/animals")
-      .set("Authorization", `Bearer ${token}`)
       .send(animalPayloadWithOwner)
       .expect(201)
       .expect("Content-Type", /json/);
@@ -306,13 +304,12 @@ describe("GET /api/animals/:id", function () {
 beforeEach(async () => await cleanUpDatabase());
 describe("DELETE /api/animals/:id", function () {
   test("should delete an animal by id", async function () {
-    const { ownerId, token } = await createAuthenticatedOwner();
+    const { ownerId, agent } = await createAuthenticatedOwner();
     const payload = { ...animalPayload, ownerId };
     
     // 1. Create an animal
-    const createRes = await supertest(app)
+    const createRes = await agent
       .post("/api/animals")
-      .set("Authorization", `Bearer ${token}`)
       .send(payload)
       .expect(201);
 
@@ -330,9 +327,8 @@ describe("DELETE /api/animals/:id", function () {
     expect(foundAnimal).toBeDefined();
 
     // 3. Delete the animal
-    const deleteRes = await supertest(app)
+    const deleteRes = await agent
       .delete(`/api/animals/${animalId}`)
-      .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .expect("Content-Type", /json/);
 
@@ -350,12 +346,11 @@ describe("DELETE /api/animals/:id", function () {
   });
 
   test("should return 404 when deleting non-existent animal", async function () {
-    const { token } = await createAuthenticatedOwner();
+    const { agent } = await createAuthenticatedOwner();
     const fakeId = "64a1b2c3d4e5f67890123456";
 
-    const res = await supertest(app)
+    const res = await agent
       .delete(`/api/animals/${fakeId}`)
-      .set("Authorization", `Bearer ${token}`)
       .expect(404)
       .expect("Content-Type", /json/);
 
@@ -367,13 +362,12 @@ describe("DELETE /api/animals/:id", function () {
 beforeEach(async () => await cleanUpDatabase());
 describe("PUT /api/animals/:id", function () {
   test("should update an animal by id", async function () {
-    const { ownerId, token } = await createAuthenticatedOwner();
+    const { ownerId, agent } = await createAuthenticatedOwner();
     const payload = { ...animalPayload, ownerId };
     
     // 1. Create an animal
-    const createRes = await supertest(app)
+    const createRes = await agent
       .post("/api/animals")
-      .set("Authorization", `Bearer ${token}`)
       .send(payload)
       .expect(201);
 
@@ -394,9 +388,8 @@ describe("PUT /api/animals/:id", function () {
     };
 
     // 3. Perform update
-    const res = await supertest(app)
+    const res = await agent
       .put(`/api/animals/${animalId}`)
-      .set("Authorization", `Bearer ${token}`)
       .send(updatePayload)
       .expect(200)
       .expect("Content-Type", /json/);
@@ -430,12 +423,11 @@ describe("PUT /api/animals/:id", function () {
   });
 
   test("should return 404 when updating non-existent animal", async function () {
-    const { token } = await createAuthenticatedOwner();
+    const { agent } = await createAuthenticatedOwner();
     const fakeId = "64a1b2c3d4e5f67890123456";
 
-    const res = await supertest(app)
+    const res = await agent
       .put(`/api/animals/${fakeId}`)
-      .set("Authorization", `Bearer ${token}`)
       .send({ name: "Nope" })
       .expect(404)
       .expect("Content-Type", /json/);

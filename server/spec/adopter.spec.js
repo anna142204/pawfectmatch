@@ -26,7 +26,7 @@ const adopterPayload = {
 beforeEach(async () => await cleanUpDatabase());
 
 describe("POST /api/auth/register/adopter", function () {
-  test("should register a new adopter and return token + user", async function () {
+  test("should register a new adopter and return user", async function () {
     const res = await supertest(app)
       .post("/api/auth/register/adopter")
       .send(adopterPayload)
@@ -36,7 +36,6 @@ describe("POST /api/auth/register/adopter", function () {
     // top-level response
     expect(res.body).toBeObject();
     expect(res.body.message).toEqual("Inscription réussie");
-    expect(res.body.token).toBeString();
 
     const user = res.body.user;
     expect(user).toBeObject();
@@ -192,16 +191,15 @@ describe("GET /api/adopters", function () {
 beforeEach(async () => await cleanUpDatabase());
 describe("DELETE /api/adopters/:id", function () {
   test("should delete an adopter by id", async function () {
+    const agent = supertest.agent(app)
     // 1. Register an adopter
-    const createRes = await supertest(app)
+    const createRes = await agent
       .post("/api/auth/register/adopter")
       .send(adopterPayload)
       .expect(201);
 
     const adopterId = createRes.body.user._id;
-    const token = createRes.body.token;
     expect(adopterId).toBeString();
-    expect(token).toBeString();
 
     // 2. Verify adopter exists (GET before delete)
     const getRes = await supertest(app)
@@ -214,9 +212,8 @@ describe("DELETE /api/adopters/:id", function () {
     expect(foundAdopter).toBeDefined();
 
     // 3. Delete the adopter
-    const deleteRes = await supertest(app)
+    const deleteRes = await agent
       .delete(`/api/adopters/${adopterId}`)
-      .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .expect("Content-Type", /json/);
 
@@ -234,18 +231,17 @@ describe("DELETE /api/adopters/:id", function () {
   });
 
   test("should return 403 when deleting another adopter's account", async function () {
-    // Create an adopter to get auth token
-    const authRes = await supertest(app)
+    const agent = supertest.agent(app)
+    // Create an adopter to get authenticated session
+    const authRes = await agent
       .post("/api/auth/register/adopter")
       .send(adopterPayload)
       .expect(201);
-    const token = authRes.body.token;
 
     const fakeId = "64a1b2c3d4e5f67890123456";
 
-    const res = await supertest(app)
+    const res = await agent
       .delete(`/api/adopters/${fakeId}`)
-      .set("Authorization", `Bearer ${token}`)
       .expect(403)
       .expect("Content-Type", /json/);
 
@@ -258,16 +254,15 @@ describe("DELETE /api/adopters/:id", function () {
 beforeEach(async () => await cleanUpDatabase());
 describe("PUT /api/adopters/:id", function () {
   test("should update adopter fields and ignore password", async function () {
+    const agent = supertest.agent(app)
     // 1. Register an adopter
-    const createRes = await supertest(app)
+    const createRes = await agent
       .post("/api/auth/register/adopter")
       .send(adopterPayload)
       .expect(201);
 
     const adopterId = createRes.body.user._id;
-    const token = createRes.body.token;
     expect(adopterId).toBeString();
-    expect(token).toBeString();
 
     // 2. Update fields (including a password which must be ignored)
     const updatePayload = {
@@ -282,9 +277,8 @@ describe("PUT /api/adopters/:id", function () {
       password: "newPasswordShouldBeIgnored"
     };
 
-    const res = await supertest(app)
+    const res = await agent
       .put(`/api/adopters/${adopterId}`)
-      .set("Authorization", `Bearer ${token}`)
       .send(updatePayload)
       .expect(200)
       .expect("Content-Type", /json/);
@@ -319,18 +313,17 @@ describe("PUT /api/adopters/:id", function () {
   });
 
   test("should return 403 when updating another adopter's account", async function () {
-    // Create an adopter to get auth token
-    const authRes = await supertest(app)
+    const agent = supertest.agent(app)
+    // Create an adopter to get authenticated session
+    const authRes = await agent
       .post("/api/auth/register/adopter")
       .send(adopterPayload)
       .expect(201);
-    const token = authRes.body.token;
 
     const fakeId = "64a1b2c3d4e5f67890123456";
 
-    const res = await supertest(app)
+    const res = await agent
       .put(`/api/adopters/${fakeId}`)
-      .set("Authorization", `Bearer ${token}`)
       .send({ firstName: "Nope" })
       .expect(403)
       .expect("Content-Type", /json/);

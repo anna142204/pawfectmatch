@@ -123,9 +123,10 @@ const fetchAnimal = async () => {
   error.value = null;
   try {
     const id = route.params.id;
-    const response = await fetch(`/api/animals/${id}`, {
-      credentials: 'include',
-    });
+    const response = await fetch(
+      `/api/animals/${id}`,
+      getAuthFetchOptions()
+    );
     if (!response.ok) throw new Error('Erreur lors du chargement de l\'animal');
     const data = await response.json();
     animal.value = data.animal || data;

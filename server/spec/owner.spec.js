@@ -22,7 +22,7 @@ const ownerPayload ={
 beforeEach(async () => await cleanUpDatabase());  
 
 describe("POST /api/auth/register/owner", function () {
-  test("should register a new owner and return token + user", async function () {
+  test("should register a new owner and return user", async function () {
     const res = await supertest(app)
       .post("/api/auth/register/owner")
       .send(ownerPayload)
@@ -32,7 +32,6 @@ describe("POST /api/auth/register/owner", function () {
     // top-level response
     expect(res.body).toBeObject();
     expect(res.body.message).toEqual("Inscription réussie");
-    expect(res.body.token).toBeString();
 
     const user = res.body.user;
     expect(user).toBeObject();
@@ -161,16 +160,15 @@ describe("GET /api/owners", function () {
 beforeEach(async () => await cleanUpDatabase());
 describe("DELETE /api/owners/:id", function () {
   test("should delete an owner without associated animals", async function () {
+    const agent = supertest.agent(app)
     // 1. Register an owner
-    const createRes = await supertest(app)
+    const createRes = await agent
       .post("/api/auth/register/owner")
       .send(ownerPayload)
       .expect(201);
 
     const ownerId = createRes.body.user._id;
-    const token = createRes.body.token;
     expect(ownerId).toBeString();
-    expect(token).toBeString();
 
     // 2. Verify owner exists (GET before delete)
     const getRes = await supertest(app)
@@ -183,9 +181,8 @@ describe("DELETE /api/owners/:id", function () {
     expect(foundOwner).toBeDefined();
 
     // 3. Delete the owner
-    const deleteRes = await supertest(app)
+    const deleteRes = await agent
       .delete(`/api/owners/${ownerId}`)
-      .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .expect("Content-Type", /json/);
 
@@ -203,18 +200,17 @@ describe("DELETE /api/owners/:id", function () {
   });
 
   test("should return 403 when deleting another owner's account", async function () {
-    // Create an owner to get auth token
-    const authRes = await supertest(app)
+    const agent = supertest.agent(app)
+    // Create an owner to get an authenticated session (cookie)
+    const authRes = await agent
       .post("/api/auth/register/owner")
       .send(ownerPayload)
       .expect(201);
-    const token = authRes.body.token;
 
     const fakeId = "64a1b2c3d4e5f67890123456";
 
-    const res = await supertest(app)
+    const res = await agent
       .delete(`/api/owners/${fakeId}`)
-      .set("Authorization", `Bearer ${token}`)
       .expect(403)
       .expect("Content-Type", /json/);
 
@@ -223,14 +219,14 @@ describe("DELETE /api/owners/:id", function () {
   });
 
   test("should return 400 when deleting owner with associated animals", async function () {
+    const agent = supertest.agent(app)
     // 1. Register an owner
-    const createRes = await supertest(app)
+    const createRes = await agent
       .post("/api/auth/register/owner")
       .send(ownerPayload)
       .expect(201);
 
     const ownerId = createRes.body.user._id;
-    const token = createRes.body.token;
 
     // 2. Create an animal for this owner
     const animalPayload = {
@@ -254,16 +250,14 @@ describe("DELETE /api/owners/:id", function () {
       },
     };
 
-    await supertest(app)
+    await agent
       .post("/api/animals")
-      .set("Authorization", `Bearer ${token}`)
       .send(animalPayload)
       .expect(201);
 
     // 3. Try to delete owner with associated animal
-    const deleteRes = await supertest(app)
+    const deleteRes = await agent
       .delete(`/api/owners/${ownerId}`)
-      .set("Authorization", `Bearer ${token}`)
       .expect(400)
       .expect("Content-Type", /json/);
 
@@ -287,16 +281,15 @@ describe("DELETE /api/owners/:id", function () {
 beforeEach(async () => await cleanUpDatabase());
 describe("GET /api/owners/:id", function () {
   test("should retrieve an owner by id with their animals", async function () {
+    const agent = supertest.agent(app)
     // 1. Register an owner
-    const ownerRes = await supertest(app)
+    const ownerRes = await agent
       .post("/api/auth/register/owner")
       .send(ownerPayload)
       .expect(201);
 
     const ownerId = ownerRes.body.user._id;
-    const token = ownerRes.body.token;
     expect(ownerId).toBeString();
-    expect(token).toBeString();
 
     // 2. Create animals for this owner
     const baseAnimal = {
@@ -322,8 +315,8 @@ describe("GET /api/owners/:id", function () {
     const animal1 = { ...baseAnimal, name: "Buddy" };
     const animal2 = { ...baseAnimal, name: "Max" };
 
-    await supertest(app).post("/api/animals").set("Authorization", `Bearer ${token}`).send(animal1).expect(201);
-    await supertest(app).post("/api/animals").set("Authorization", `Bearer ${token}`).send(animal2).expect(201);
+    await agent.post("/api/animals").send(animal1).expect(201);
+    await agent.post("/api/animals").send(animal2).expect(201);
 
     // 3. Fetch owner by id
     const res = await supertest(app)
@@ -377,14 +370,14 @@ describe("GET /api/owners/:id", function () {
 beforeEach(async () => await cleanUpDatabase());
 describe("PUT /api/owners/:id", function () {
   test("should update an owner and return the updated document", async function () {
+    const agent = supertest.agent(app)
     // 1. Register an owner
-    const createRes = await supertest(app)
+    const createRes = await agent
       .post("/api/auth/register/owner")
       .send(ownerPayload)
       .expect(201);
 
     const ownerId = createRes.body.user._id;
-    const token = createRes.body.token;
 
     // 2. Prepare updates (password should be ignored)
     const updates = {
@@ -397,9 +390,8 @@ describe("PUT /api/owners/:id", function () {
     };
 
     // 3. Update owner
-    const res = await supertest(app)
+    const res = await agent
       .put(`/api/owners/${ownerId}`)
-      .set("Authorization", `Bearer ${token}`)
       .send(updates)
       .expect(200)
       .expect("Content-Type", /json/);
@@ -428,18 +420,17 @@ describe("PUT /api/owners/:id", function () {
   });
 
   test("should return 403 when updating another owner's account", async function () {
-    // Create an owner to get auth token
-    const authRes = await supertest(app)
+    const agent = supertest.agent(app)
+    // Create an owner to get authenticated session
+    const authRes = await agent
       .post("/api/auth/register/owner")
       .send(ownerPayload)
       .expect(201);
-    const token = authRes.body.token;
 
     const fakeId = "64a1b2c3d4e5f67890123456";
 
-    const res = await supertest(app)
+    const res = await agent
       .put(`/api/owners/${fakeId}`)
-      .set("Authorization", `Bearer ${token}`)
       .send({ firstName: "Nobody" })
       .expect(403)
       .expect("Content-Type", /json/);

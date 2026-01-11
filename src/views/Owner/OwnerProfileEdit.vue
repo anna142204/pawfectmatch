@@ -37,7 +37,7 @@ const form = reactive({
 onMounted(async () => {
     if (!requireAuth() || !userId.value) return;
     try {
-        const res = await fetch(`/api/owners/${userId.value}`, { credentials: 'include' });
+        const res = await fetch(`/api/owners/${userId.value}`, getAuthFetchOptions());
         if (res.status === 401 || res.status === 403) {
             handleAuthError();
             return;

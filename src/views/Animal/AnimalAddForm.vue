@@ -83,7 +83,7 @@ const loadDraft = () => {
 
 const loadAnimalData = async (id) => {
     try {
-        const res = await fetch(`/api/animals/${id}`, { credentials: 'include' });
+        const res = await fetch(`/api/animals/${id}`, getAuthFetchOptions());
         if (!res.ok) throw new Error('Impossible de charger l\'animal');
         const data = await res.json();
 

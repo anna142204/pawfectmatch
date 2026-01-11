@@ -63,23 +63,23 @@ const animalPayload = {
 beforeEach(async () => await cleanUpDatabase());
 describe("POST /api/matches", function () {
   test("should create a new match between adopter and animal", async function () {
+    const ownerAgent = supertest.agent(app)
     // 1. Register owner
-    const ownerRes = await supertest(app)
+    const ownerRes = await ownerAgent
       .post("/api/auth/register/owner")
       .send(ownerPayload)
       .expect(201);
 
     const ownerId = ownerRes.body.user._id;
-    const ownerToken = ownerRes.body.token;
 
+    const adopterAgent = supertest.agent(app)
     // 2. Register adopter
-    const adopterRes = await supertest(app)
+    const adopterRes = await adopterAgent
       .post("/api/auth/register/adopter")
       .send(adopterPayload)
       .expect(201);
 
     const adopterId = adopterRes.body.user._id;
-    const adopterToken = adopterRes.body.token;
 
     // 3. Create animal with ownerId
     const animalPayloadWithOwner = {
@@ -87,9 +87,8 @@ describe("POST /api/matches", function () {
       ownerId,
     };
 
-    const animalRes = await supertest(app)
+    const animalRes = await ownerAgent
       .post("/api/animals")
-      .set("Authorization", `Bearer ${ownerToken}`)
       .send(animalPayloadWithOwner)
       .expect(201);
 
@@ -100,9 +99,8 @@ describe("POST /api/matches", function () {
       animalId,
     };
 
-    const res = await supertest(app)
+    const res = await adopterAgent
       .post("/api/matches")
-      .set("Authorization", `Bearer ${adopterToken}`)
       .send(matchPayload)
       .expect(201)
       .expect("Content-Type", /json/);
@@ -167,23 +165,23 @@ describe("POST /api/matches", function () {
 
 describe("GET /api/matches", function () {
   test("should retrieve the list of matches", async function () {
+    const ownerAgent = supertest.agent(app)
     // 1. Register owner
-    const ownerRes = await supertest(app)
+    const ownerRes = await ownerAgent
       .post("/api/auth/register/owner")
       .send(ownerPayload)
       .expect(201);
 
     const ownerId = ownerRes.body.user._id;
-    const ownerToken = ownerRes.body.token;
 
+    const adopterAgent = supertest.agent(app)
     // 2. Register adopter
-    const adopterRes = await supertest(app)
+    const adopterRes = await adopterAgent
       .post("/api/auth/register/adopter")
       .send(adopterPayload)
       .expect(201);
 
     const adopterId = adopterRes.body.user._id;
-    const adopterToken = adopterRes.body.token;
 
     // 3. Create animal with ownerId
     const animalPayloadWithOwner = {
@@ -191,9 +189,8 @@ describe("GET /api/matches", function () {
       ownerId,
     };
 
-    const animalRes = await supertest(app)
+    const animalRes = await ownerAgent
       .post("/api/animals")
-      .set("Authorization", `Bearer ${ownerToken}`)
       .send(animalPayloadWithOwner)
       .expect(201);
 
@@ -204,9 +201,8 @@ describe("GET /api/matches", function () {
       animalId,
     };
 
-    await supertest(app)
+    await adopterAgent
       .post("/api/matches")
-      .set("Authorization", `Bearer ${adopterToken}`)
       .send(matchPayload)
       .expect(201);
 
@@ -290,23 +286,23 @@ describe("GET /api/matches", function () {
 
 describe("DELETE /api/matches/:id", function () {
   test("should delete a match by id", async function () {
+    const ownerAgent = supertest.agent(app)
     // 1. Register owner
-    const ownerRes = await supertest(app)
+    const ownerRes = await ownerAgent
       .post("/api/auth/register/owner")
       .send(ownerPayload)
       .expect(201);
 
     const ownerId = ownerRes.body.user._id;
-    const ownerToken = ownerRes.body.token;
 
+    const adopterAgent = supertest.agent(app)
     // 2. Register adopter
-    const adopterRes = await supertest(app)
+    const adopterRes = await adopterAgent
       .post("/api/auth/register/adopter")
       .send(adopterPayload)
       .expect(201);
 
     const adopterId = adopterRes.body.user._id;
-    const adopterToken = adopterRes.body.token;
 
     // 3. Create animal with ownerId
     const animalPayloadWithOwner = {
@@ -314,9 +310,8 @@ describe("DELETE /api/matches/:id", function () {
       ownerId,
     };
 
-    const animalRes = await supertest(app)
+    const animalRes = await ownerAgent
       .post("/api/animals")
-      .set("Authorization", `Bearer ${ownerToken}`)
       .send(animalPayloadWithOwner)
       .expect(201);
 
@@ -327,9 +322,8 @@ describe("DELETE /api/matches/:id", function () {
       animalId,
     };
 
-    const createMatchRes = await supertest(app)
+    const createMatchRes = await adopterAgent
       .post("/api/matches")
-      .set("Authorization", `Bearer ${adopterToken}`)
       .send(matchPayload)
       .expect(201);
 
@@ -347,9 +341,8 @@ describe("DELETE /api/matches/:id", function () {
     expect(foundMatch).toBeDefined();
 
     // 6. Delete the match
-    const deleteRes = await supertest(app)
+    const deleteRes = await adopterAgent
       .delete(`/api/matches/${matchId}`)
-      .set("Authorization", `Bearer ${adopterToken}`)
       .expect(200)
       .expect("Content-Type", /json/);
 
@@ -367,18 +360,17 @@ describe("DELETE /api/matches/:id", function () {
   });
 
   test("should return 404 when deleting non-existent match", async function () {
-    // Create an adopter to get auth token
-    const authRes = await supertest(app)
+    // Create an adopter to get authenticated session
+    const adopterAgent = supertest.agent(app)
+    const authRes = await adopterAgent
       .post("/api/auth/register/adopter")
       .send(adopterPayload)
       .expect(201);
-    const token = authRes.body.token;
 
     const fakeId = "64a1b2c3d4e5f67890123456";
 
-    const res = await supertest(app)
+    const res = await adopterAgent
       .delete(`/api/matches/${fakeId}`)
-      .set("Authorization", `Bearer ${token}`)
       .expect(404)
       .expect("Content-Type", /json/);
 
