@@ -35,25 +35,30 @@ paths:
                 firstName:
                   type: string
                   maxLength: 100
-                  example: Marie
+                  examples:
+                    - Marie
                 lastName:
                   type: string
                   maxLength: 100
-                  example: Martin
+                  examples:
+                    - Martin
                 email:
                   type: string
                   format: email
                   maxLength: 254
-                  example: marie.martin@example.com
+                  examples:
+                    - marie.martin@example.com
                 password:
                   type: string
                   minLength: 6
                   maxLength: 128
-                  example: securePassword123
+                  examples:
+                    - securePassword123
                 age:
                   type: integer
                   minimum: 18
-                  example: 28
+                  examples:
+                    - 28
                 address:
                   type: object
                   required:
@@ -63,15 +68,18 @@ paths:
                     zip:
                       type: string
                       maxLength: 12
-                      example: "1000"
+                      examples:
+                        - "1000"
                     city:
                       type: string
                       maxLength: 100
-                      example: "Lausanne"
+                      examples:
+                        - "Lausanne"
                 about:
                   type: string
                   maxLength: 150
-                  example: Passionné par les animaux
+                  examples:
+                    - Passionné par les animaux
                 preferences:
                   type: object
                   properties:
@@ -81,20 +89,23 @@ paths:
                         type: string
                         enum: [appartement, voiture, enfant, chien, chat, autre animaux]
                         maxLength: 30
-                      example: [appartement, enfant]
+                      examples:
+                        - [appartement, enfant]
                     species:
                       type: array
                       items:
                         type: string
                         maxLength: 50
-                      example: [chat, chien]
+                      examples:
+                        - [chat, chien]
                     sizePreference:
                       type: array
                       items:
                         type: string
                         enum: [petit, moyen, grand]
                         maxLength: 10
-                      example: [petit, moyen]
+                      examples:
+                        - [petit, moyen]
       responses:
         "201":
           description: Adopter registered successfully
@@ -105,7 +116,8 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: Adopter registered successfully
+                    examples:
+                      - Adopter registered successfully
                   token:
                     type: string
                   user:
@@ -119,7 +131,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: Tous les champs requis doivent être remplis
+                    examples:
+                      - Tous les champs requis doivent être remplis
         "409":
           description: Email already registered
           content:
@@ -129,7 +142,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: Cet email est déjà enregistré
+                    examples:
+                      - Cet email est déjà enregistré
         "500":
           description: Registration error
           content:
@@ -139,7 +153,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: Échec de l'inscription
+                    examples:
+                      - Échec de l'inscription
 
   /api/auth/register/owner:
     post:
@@ -162,25 +177,30 @@ paths:
                 firstName:
                   type: string
                   maxLength: 100
-                  example: John
+                  examples:
+                    - John
                 lastName:
                   type: string
                   maxLength: 100
-                  example: Doe
+                  examples:
+                    - Doe
                 email:
                   type: string
                   format: email
                   maxLength: 254
-                  example: john.doe@example.com
+                  examples:
+                    - john.doe@example.com
                 password:
                   type: string
                   minLength: 6
                   maxLength: 128
-                  example: securePassword123
+                  examples:
+                    - securePassword123
                 phoneNumber:
                   type: string
                   maxLength: 30
-                  example: "+41 79 123 45 67"
+                  examples:
+                    - "+41 79 123 45 67"
                 societyName:
                   type: string
                   maxLength: 150
@@ -209,7 +229,8 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: Owner registered successfully
+                    examples:
+                      - Owner registered successfully
                   token:
                     type: string
                   user:
@@ -223,7 +244,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: Tous les champs requis doivent être remplis
+                    examples:
+                      - Tous les champs requis doivent être remplis
         "409":
           description: Email already registered
           content:
@@ -233,7 +255,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: Cet email est déjà enregistré
+                    examples:
+                      - Cet email est déjà enregistré
         "500":
           description: Registration error
           content:
@@ -243,7 +266,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: Échec de l'inscription
+                    examples:
+                      - Échec de l'inscription
 
   /api/auth/login:
     post:
@@ -264,12 +288,14 @@ paths:
                   type: string
                   format: email
                   maxLength: 254
-                  example: marie.martin@example.com
+                  examples:
+                    - marie.martin@example.com
                 password:
                   type: string
                   minLength: 6
                   maxLength: 128
-                  example: securePassword123
+                  examples:
+                    - securePassword123
       responses:
         "200":
           description: Login successful
@@ -286,7 +312,8 @@ paths:
                   type:
                     type: string
                     enum: [adopter, owner, admin]
-                    example: adopter
+                    examples:
+                      - adopter
         "400":
           description: Missing required fields
           content:
@@ -296,7 +323,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: Email et mot de passe requis
+                    examples:
+                      - Email et mot de passe requis
         "401":
           description: Invalid credentials
           content:
@@ -306,7 +334,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: Email ou mot de passe invalide
+                    examples:
+                      - Email ou mot de passe invalide
         "500":
           description: Login error
           content:
@@ -316,7 +345,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: Échec de la connexion
+                    examples:
+                      - Échec de la connexion
 
   /api/auth/logout:
     post:
@@ -379,7 +409,8 @@ paths:
                     description: Cloudinary public ID of the image
                   message:
                     type: string
-                    example: Image uploadée avec succès
+                    examples:
+                      - Image uploadée avec succès
         "400":
           description: Invalid image
           content:
@@ -389,7 +420,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: Aucun fichier fourni
+                    examples:
+                      - Aucun fichier fourni
         "500":
           description: Upload error
           content:
@@ -399,7 +431,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: Erreur lors de l'upload de l'image
+                    examples:
+                      - Erreur lors de l'upload de l'image
 
     delete:
       summary: Delete an image
@@ -427,7 +460,8 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: Image supprimée avec succès
+                    examples:
+                      - Image supprimée avec succès
         "400":
           description: Missing publicId
           content:
@@ -437,7 +471,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: publicId requis
+                    examples:
+                      - publicId requis
         "500":
           description: Delete error
           content:
@@ -447,7 +482,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: Erreur lors de la suppression de l'image
+                    examples:
+                      - Erreur lors de la suppression de l'image
 
   /api/upload/images:
     post:
@@ -490,7 +526,8 @@ paths:
                           type: string
                   message:
                     type: string
-                    example: 3 image(s) uploadée(s) avec succès
+                    examples:
+                      - 3 image(s) uploadée(s) avec succès
         "400":
           description: Invalid images
           content:
@@ -500,7 +537,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: Aucun fichier fourni
+                    examples:
+                      - Aucun fichier fourni
         "500":
           description: Upload error
           content:
@@ -510,7 +548,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: Erreur lors de l'upload des images
+                    examples:
+                      - Erreur lors de l'upload des images
 
   # Animal Endpoints
   /api/animals:
@@ -540,19 +579,23 @@ paths:
                   type: string
                   maxLength: 50
                   enum: [chat, chien, lapin, oiseau, rongeur, autre]
-                  example: chien
+                  examples:
+                    - chien
                 race:
                   type: string
                   maxLength: 80
-                  example: Labrador
+                  examples:
+                    - Labrador
                 name:
                   type: string
                   maxLength: 80
-                  example: Buddy
+                  examples:
+                    - Buddy
                 age:
                   type: string
                   enum: ['0-1', '1-3', '3-7', '7+']
-                  example: "3-7"
+                  examples:
+                    - "3-7"
                 sex:
                   type: string
                   maxLength: 10
@@ -561,12 +604,14 @@ paths:
                   type: string
                   maxLength: 10
                   enum: [petit, moyen, grand]
-                  example: grand
+                  examples:
+                    - grand
                 weight:
                   type: string
                   maxLength: 10
                   enum: ["0-5", "5-10", "10-20", "20-30", "30+"]
-                  example: "20-30"
+                  examples:
+                    - "20-30"
                 address:
                   type: object
                   required:
@@ -586,7 +631,8 @@ paths:
                 price:
                   type: number
                   minimum: 0
-                  example: 150
+                  examples:
+                    - 150
                 ownerId:
                   type: string
                   description: ID of the owner (references Owner model)
@@ -634,7 +680,8 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Animal créé avec succès"
+                    examples:
+                      - "Animal créé avec succès"
                   animal:
                     $ref: "#/components/schemas/Animal"
         "400":
@@ -646,7 +693,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: "Tous les champs requis doivent être remplis"
+                    examples:
+                      - "Tous les champs requis doivent être remplis"
         "500":
           description: Server error creating animal
           content:
@@ -656,7 +704,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: "Échec de la création de l'animal"
+                    examples:
+                      - "Échec de la création de l'animal"
                   details:
                     type: string
 
@@ -781,7 +830,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: "Failed to fetch animals"
+                    examples:
+                      - "Failed to fetch animals"
 
   /api/animals/{id}:
     get:
@@ -810,7 +860,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: "Animal not found"
+                    examples:
+                      - "Animal not found"
         "500":
           description: Server error fetching animal
           content:
@@ -820,7 +871,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: "Failed to fetch animal"
+                    examples:
+                      - "Failed to fetch animal"
 
     put:
       summary: Update an animal by ID
@@ -919,7 +971,8 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Animal updated successfully"
+                    examples:
+                      - "Animal updated successfully"
                   animal:
                     $ref: "#/components/schemas/Animal"
         "400":
@@ -940,7 +993,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: "Animal not found"
+                    examples:
+                      - "Animal not found"
         "500":
           description: Server error updating animal
           content:
@@ -950,7 +1004,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: "Failed to update animal"
+                    examples:
+                      - "Failed to update animal"
 
     delete:
       summary: Delete an animal by ID
@@ -972,7 +1027,8 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Animal deleted successfully"
+                    examples:
+                      - "Animal deleted successfully"
         "404":
           description: Animal not found
           content:
@@ -982,7 +1038,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: "Animal not found"
+                    examples:
+                      - "Animal not found"
         "500":
           description: Server error deleting animal
           content:
@@ -992,7 +1049,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: "Failed to delete animal"
+                    examples:
+                      - "Failed to delete animal"
 
   # Adopter Endpoints
   /api/adopters:
@@ -1006,44 +1064,51 @@ paths:
           schema:
             type: string
             maxLength: 100
-          example: Alice
+          examples:
+            - Alice
         - name: lastName
           in: query
           schema:
             type: string
             maxLength: 100
-          example: Martin
+          examples:
+            - Martin
         - name: email
           in: query
           schema:
             type: string
             format: email
             maxLength: 254
-          example: alice@example.com
+          examples:
+            - alice@example.com
         - name: city
           in: query
           schema:
             type: string
             maxLength: 100
-          example: Lausanne
+          examples:
+            - Lausanne
         - name: zip
           in: query
           schema:
             type: string
             maxLength: 12
-          example: "1000"
+          examples:
+            - "1000"
         - name: minAge
           in: query
           schema:
             type: integer
             minimum: 18
-          example: 18
+          examples:
+            - 18
         - name: maxAge
           in: query
           schema:
             type: integer
             minimum: 18
-          example: 65
+          examples:
+            - 65
         - name: environment
           in: query
           style: form
@@ -1054,7 +1119,8 @@ paths:
               type: string
               enum: [appartement, voiture, enfant, chien, chat, "autre animaux"]
               maxLength: 30
-          example: [appartement, enfant]
+          examples:
+            - [appartement, enfant]
         - name: species
           in: query
           style: form
@@ -1064,7 +1130,8 @@ paths:
             items:
               type: string
               maxLength: 50
-          example: [chat, chien]
+          examples:
+            - [chat, chien]
         - name: sizePreference
           in: query
           style: form
@@ -1075,7 +1142,8 @@ paths:
               type: string
               enum: [petit, moyen, grand]
               maxLength: 10
-          example: [moyen, grand]
+          examples:
+            - [moyen, grand]
         - name: page
           in: query
           schema:
@@ -1111,7 +1179,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: Failed to fetch adopters
+                    examples:
+                      - Failed to fetch adopters
 
   /api/adopters/{id}:
     get:
@@ -1140,7 +1209,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: Adopter not found
+                    examples:
+                      - Adopter not found
         "500":
           description: Get adopter error
           content:
@@ -1150,7 +1220,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: Failed to fetch adopter
+                    examples:
+                      - Failed to fetch adopter
 
     put:
       summary: Update an adopter by ID
@@ -1172,35 +1243,42 @@ paths:
                 firstName:
                   type: string
                   maxLength: 100
-                  example: Alice
+                  examples:
+                    - Alice
                 lastName:
                   type: string
                   maxLength: 100
-                  example: Martin
+                  examples:
+                    - Martin
                 email:
                   type: string
                   format: email
                   maxLength: 254
-                  example: alice@example.com
+                  examples:
+                    - alice@example.com
                 age:
                   type: integer
                   minimum: 18
-                  example: 28
+                  examples:
+                    - 28
                 address:
                   type: object
                   properties:
                     zip:
                       type: string
                       maxLength: 12
-                      example: "1000"
+                      examples:
+                        - "1000"
                     city:
                       type: string
                       maxLength: 100
-                      example: Lausanne
+                      examples:
+                        - Lausanne
                 about:
                   type: string
                   maxLength: 150
-                  example: "Aime les animaux et vit en appartement"
+                  examples:
+                    - "Aime les animaux et vit en appartement"
                 preferences:
                   type: object
                   properties:
@@ -1210,20 +1288,23 @@ paths:
                         type: string
                         enum: [appartement, voiture, enfant, chien, chat, "autre animaux"]
                         maxLength: 30
-                      example: [appartement, enfant]
+                      examples:
+                        - [appartement, enfant]
                     species:
                       type: array
                       items:
                         type: string
                         maxLength: 50
-                      example: [chat, chien]
+                      examples:
+                        - [chat, chien]
                     sizePreference:
                       type: array
                       items:
                         type: string
                         enum: [petit, moyen, grand]
                         maxLength: 10
-                      example: [moyen]
+                      examples:
+                        - [moyen]
       responses:
         "200":
           description: Adopter updated successfully
@@ -1234,7 +1315,8 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: Adopter updated successfully
+                    examples:
+                      - Adopter updated successfully
                   adopter:
                     $ref: "#/components/schemas/Adopter"
         "400":
@@ -1255,7 +1337,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: Adopter not found
+                    examples:
+                      - Adopter not found
         "500":
           description: Update adopter error
           content:
@@ -1265,7 +1348,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: Failed to update adopter
+                    examples:
+                      - Failed to update adopter
 
     delete:
       summary: Delete an adopter by ID
@@ -1287,7 +1371,8 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: Adopter deleted successfully
+                    examples:
+                      - Adopter deleted successfully
         "404":
           description: Adopter not found
           content:
@@ -1297,7 +1382,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: Adopter not found
+                    examples:
+                      - Adopter not found
         "500":
           description: Delete adopter error
           content:
@@ -1307,7 +1393,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: Failed to delete adopter
+                    examples:
+                      - Failed to delete adopter
 
   # Owner Endpoints
   /api/owners:
@@ -1380,7 +1467,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: "Failed to fetch owners"
+                    examples:
+                      - "Failed to fetch owners"
 
   /api/owners/{id}:
     get:
@@ -1416,7 +1504,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: "Owner not found"
+                    examples:
+                      - "Owner not found"
         "500":
           description: Server error fetching owner
           content:
@@ -1426,7 +1515,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: "Failed to fetch owner"
+                    examples:
+                      - "Failed to fetch owner"
 
     put:
       summary: Update an owner by ID
@@ -1484,7 +1574,8 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Owner updated successfully"
+                    examples:
+                      - "Owner updated successfully"
                   owner:
                     $ref: "#/components/schemas/Owner"
         "400":
@@ -1505,7 +1596,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: "Owner not found"
+                    examples:
+                      - "Owner not found"
         "500":
           description: Server error updating owner
           content:
@@ -1515,7 +1607,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: "Failed to update owner"
+                    examples:
+                      - "Failed to update owner"
 
     delete:
       summary: Delete an owner by ID (only if no associated animals)
@@ -1537,7 +1630,8 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Owner deleted successfully"
+                    examples:
+                      - "Owner deleted successfully"
         "400":
           description: Cannot delete owner with associated animals
           content:
@@ -1547,7 +1641,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: "Cannot delete owner with associated animals"
+                    examples:
+                      - "Cannot delete owner with associated animals"
                   animalsCount:
                     type: integer
         "404":
@@ -1559,7 +1654,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: "Owner not found"
+                    examples:
+                      - "Owner not found"
         "500":
           description: Server error deleting owner
           content:
@@ -1569,7 +1665,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: "Failed to delete owner"
+                    examples:
+                      - "Failed to delete owner"
 
   # Match Endpoints
   /api/matches:
@@ -1608,7 +1705,8 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Match created successfully"
+                    examples:
+                      - "Match created successfully"
                   match:
                     $ref: "#/components/schemas/Match"
         "400":
@@ -1620,7 +1718,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: "adopterId and animalId are required"
+                    examples:
+                      - "adopterId and animalId are required"
         "404":
           description: Adopter or animal not found
           content:
@@ -1630,7 +1729,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: "Adopter not found"
+                    examples:
+                      - "Adopter not found"
         "409":
           description: Match already exists
           content:
@@ -1640,7 +1740,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: "Match already exists"
+                    examples:
+                      - "Match already exists"
         "500":
           description: Create match error
           content:
@@ -1650,7 +1751,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: "Failed to create match"
+                    examples:
+                      - "Failed to create match"
 
     get:
       summary: Get list of all matches with pagination
@@ -1702,7 +1804,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: "Failed to fetch matches"
+                    examples:
+                      - "Failed to fetch matches"
 
   /api/matches/{id}:
     get:
@@ -1731,7 +1834,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: "Match not found"
+                    examples:
+                      - "Match not found"
         "500":
           description: Get match error
           content:
@@ -1741,7 +1845,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: "Failed to fetch match"
+                    examples:
+                      - "Failed to fetch match"
 
     put:
       summary: Update a match by ID
@@ -1772,7 +1877,8 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Match updated successfully"
+                    examples:
+                      - "Match updated successfully"
                   match:
                     $ref: "#/components/schemas/Match"
         "404":
@@ -1784,7 +1890,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: "Match not found"
+                    examples:
+                      - "Match not found"
         "500":
           description: Update match error
           content:
@@ -1794,7 +1901,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: "Failed to update match"
+                    examples:
+                      - "Failed to update match"
 
     delete:
       summary: Delete a match by ID
@@ -1816,7 +1924,8 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Match deleted successfully"
+                    examples:
+                      - "Match deleted successfully"
         "404":
           description: Match not found
           content:
@@ -1826,7 +1935,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: "Match not found"
+                    examples:
+                      - "Match not found"
         "500":
           description: Delete match error
           content:
@@ -1836,7 +1946,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: "Failed to delete match"
+                    examples:
+                      - "Failed to delete match"
 
   /api/matches/{id}/messages:
     post:
@@ -1880,7 +1991,8 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Message added successfully"
+                    examples:
+                      - "Message added successfully"
                   match:
                     $ref: "#/components/schemas/Match"
         "400":
@@ -1892,7 +2004,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: "sender, senderModel, and message are required"
+                    examples:
+                      - "sender, senderModel, and message are required"
         "404":
           description: Match not found
           content:
@@ -1902,7 +2015,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: "Match not found"
+                    examples:
+                      - "Match not found"
         "500":
           description: Add message error
           content:
@@ -1912,7 +2026,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: "Failed to add message"
+                    examples:
+                      - "Failed to add message"
 
   /api/matches/{id}/discussion:
     get:
@@ -1966,7 +2081,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: "Match not found"
+                    examples:
+                      - "Match not found"
         "500":
           description: Get discussion error
           content:
@@ -1976,7 +2092,8 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: "Failed to fetch discussion"
+                    examples:
+                      - "Failed to fetch discussion"
 
   # Admin Routes
   /api/admin/stats:
