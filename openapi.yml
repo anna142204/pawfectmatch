@@ -525,6 +525,7 @@ paths:
                     examples:
                       - Erreur lors de l'upload des images
 
+  /api/images:
     delete:
       summary: Delete an image
       tags:
@@ -532,14 +533,6 @@ paths:
       security:
         - CookieAuth: []
         - BearerAuth: []
-      parameters:
-        - name: type
-          in: path
-          required: true
-          schema:
-            type: string
-            enum: [adopter, owner, animal]
-          description: Type of entity
       requestBody:
         required: true
         content:
