@@ -10,7 +10,7 @@ import { initializeWebSocketListeners } from '@/store/wsCommandStore';
 
 const route = useRoute();
 const router = useRouter();
-const { userId, getAuthHeaders, getAuthFetchOptions, handleAuthError } = useAuth();
+const { userId, userType, getAuthFetchOptions, handleAuthError } = useAuth();
 
 const showMapView = ref(route.query.view !== 'list');
 const recentMatches = ref([]);
@@ -75,11 +75,8 @@ const fetchRecentMatches = async () => {
 onMounted(async () => {
   await checkPreferences();
   
-  // Attendre que userId soit disponible avant d'initialiser WebSocket
-  const userType = localStorage.getItem('user_type');
-  const token = localStorage.getItem('token');
-  
-  if (userType === 'adopter' && token) {
+  // Initialiser WebSocket si on est un adopteur authentifié
+  if (userType.value === 'adopter') {
     console.log('[AdopterHomePage] Initializing WebSocket listeners...');
     try {
       await initializeWebSocketListeners();
@@ -361,26 +358,6 @@ onMounted(async () => {
 
 .card:hover .card-bg {
   transform: scale(1.08);
-}
-
-
-.card-overlay-cat {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to top, var(--color-secondary-600), rgba(0,0,0,0) 80%);
-  z-index: 1;
-}
-.card-overlay-dog {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to top, var(--color-primary-700), rgba(0,0,0,0) 80%);
-  z-index: 1;
-}
-.card-overlay-rodent {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to top, var(--color-secondary-400), rgba(0,0,0,0) 80%);
-  z-index: 1;
 }
 
 .card-content {

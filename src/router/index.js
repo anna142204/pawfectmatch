@@ -1,10 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { useWebSocket } from '@/composables/useWebSocket'
 import { useAuth } from '@/composables/useAuth'
 
 // Public
 import LoginPage from '../views/Shared/LoginPage.vue'
 import RegisterPage from '../views/Shared/RegisterPage.vue'
+import LogoutPage from '../views/Shared/LogoutPage.vue'
 
 // Adopter
 import AdopterHomePage from '../views/Adopter/AdopterHomePage.vue'
@@ -48,25 +48,7 @@ const routes = [
   {
     path: '/logout',
     name: 'Logout',
-    beforeEnter: async (to, from, next) => {
-      try {
-        // Disconnect WebSocket before logout
-        const { disconnect } = useWebSocket()
-        disconnect()
-        console.log('WebSocket disconnected on logout')
-        
-        // Appeler l'API de logout
-        const { getAuthFetchOptions } = useAuth()
-        await fetch('/api/auth/logout', getAuthFetchOptions({ method: 'POST' }));
-      } catch (error) {
-        console.error('Erreur lors de la déconnexion:', error);
-      } finally {
-        localStorage.removeItem('user_type');
-        localStorage.removeItem('user_id');
-        localStorage.removeItem('token');
-        next('/login');
-      }
-    }
+    component: LogoutPage
   },
   {
     path: '/adopter',
@@ -209,14 +191,16 @@ const router = createRouter({
 })
 
 // Navigation guard pour vérifier l'authentification
-router.beforeEach((to, from, next) => {
-  const userType = localStorage.getItem('user_type')
+router.beforeEach(async (to, from, next) => {
+  const { isAuthenticated, userType, checkAuth, isAuthChecked } = useAuth()
 
-  if (to.meta.requiresAuth && !userType) {
-    // Rediriger vers login si authentification requise
+  if (!isAuthChecked.value) {
+    await checkAuth()
+  }
+
+  if (to.meta.requiresAuth && !isAuthenticated.value) {
     next('/login')
-  } else if (to.meta.userType && to.meta.userType !== userType) {
-    // Rediriger si le type d'utilisateur ne correspond pas
+  } else if (to.meta.userType && to.meta.userType !== userType.value) {
     next('/')
   } else {
     next()

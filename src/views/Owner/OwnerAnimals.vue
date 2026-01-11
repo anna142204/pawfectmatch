@@ -11,6 +11,7 @@ import dogImg from '@/assets/images/dog.webp';
 import catImg from '@/assets/images/cat.webp';
 import birdImg from '@/assets/images/bird.webp';
 import rodentImg from '@/assets/images/rodent.webp';
+import rabbitImg from '@/assets/images/rabbit.webp';
 import otherImg from '@/assets/images/other.webp';
 
 const router = useRouter();
@@ -24,7 +25,7 @@ const selectedCategory = ref(null);
 const categories = [
   { id: 'chien', label: 'Chiens', image: dogImg },
   { id: 'chat', label: 'Chats', image: catImg },
-  { id: 'lapin', label: 'Lapins', image: rodentImg },
+  { id: 'lapin', label: 'Lapins', image: rabbitImg },
   { id: 'rongeur', label: 'Rongeurs', image: rodentImg },
   { id: 'oiseau', label: 'Oiseaux', image: birdImg },
   { id: 'autre', label: 'Autres', image: otherImg }
