@@ -363,26 +363,6 @@ onMounted(async () => {
   transform: scale(1.08);
 }
 
-
-.card-overlay-cat {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to top, var(--color-secondary-600), rgba(0,0,0,0) 80%);
-  z-index: 1;
-}
-.card-overlay-dog {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to top, var(--color-primary-700), rgba(0,0,0,0) 80%);
-  z-index: 1;
-}
-.card-overlay-rodent {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to top, var(--color-secondary-400), rgba(0,0,0,0) 80%);
-  z-index: 1;
-}
-
 .card-content {
   position: relative;
   z-index: 2;
