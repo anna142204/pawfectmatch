@@ -408,15 +408,62 @@ paths:
                   error:
                     type: string
 
+  /api/auth/me:
+    get:
+      summary: Get current authenticated user info
+      tags:
+        - Authentication
+      security:
+        - CookieAuth: []
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Current user information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    type: object
+                    description: User object (Adopter, Owner, or Admin)
+                  type:
+                    type: string
+                    enum: [adopter, owner, admin]
+                    examples:
+                      - adopter
+                  id:
+                    type: string
+                    description: User ID
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    examples:
+                      - Non authentifié
+
   # Image Upload Routes
-  /api/upload/image:
+  /api/images/{type}:
     post:
-      summary: Upload a single image
+      summary: Upload images for an entity (adopter, owner, animal)
       tags:
         - Images
       security:
         - CookieAuth: []
         - BearerAuth: []
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [adopter, owner, animal]
+          description: Type of entity to upload images for
       requestBody:
         required: true
         content:
@@ -427,30 +474,36 @@ paths:
                 - image
               properties:
                 image:
-                  type: string
-                  format: binary
-                  description: Image file to upload
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  maxItems: 10
+                  description: Images to upload (max 10 files)
       responses:
         "200":
-          description: Image uploaded successfully
+          description: Images uploaded successfully
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  url:
-                    type: string
-                    format: url
-                    description: URL of the uploaded image
-                  publicId:
-                    type: string
-                    description: Cloudinary public ID of the image
+                  images:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        url:
+                          type: string
+                          format: url
+                        publicId:
+                          type: string
                   message:
                     type: string
                     examples:
-                      - Image uploadée avec succès
+                      - Image(s) uploadée(s) avec succès
         "400":
-          description: Invalid image
+          description: Invalid images or missing files
           content:
             application/json:
               schema:
@@ -470,7 +523,7 @@ paths:
                   error:
                     type: string
                     examples:
-                      - Erreur lors de l'upload de l'image
+                      - Erreur lors de l'upload des images
 
     delete:
       summary: Delete an image
@@ -479,6 +532,14 @@ paths:
       security:
         - CookieAuth: []
         - BearerAuth: []
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [adopter, owner, animal]
+          description: Type of entity
       requestBody:
         required: true
         content:
@@ -525,75 +586,6 @@ paths:
                     type: string
                     examples:
                       - Erreur lors de la suppression de l'image
-
-  /api/upload/images:
-    post:
-      summary: Upload multiple images (max 10)
-      tags:
-        - Images
-      security:
-        - CookieAuth: []
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              required:
-                - images
-              properties:
-                images:
-                  type: array
-                  items:
-                    type: string
-                    format: binary
-                  maxItems: 10
-                  description: Images to upload (max 10 files)
-      responses:
-        "200":
-          description: Images uploaded successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  images:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        url:
-                          type: string
-                          format: url
-                        publicId:
-                          type: string
-                  message:
-                    type: string
-                    examples:
-                      - 3 image(s) uploadée(s) avec succès
-        "400":
-          description: Invalid images
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    examples:
-                      - Aucun fichier fourni
-        "500":
-          description: Upload error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    examples:
-                      - Erreur lors de l'upload des images
 
   # Animal Endpoints
   /api/animals:
@@ -1873,6 +1865,45 @@ paths:
                     examples:
                       - "Failed to fetch matches"
 
+  /api/matches/pending-notifications:
+    get:
+      summary: Get pending match notifications for adopter
+      tags:
+        - Matches
+      security:
+        - CookieAuth: []
+        - BearerAuth: []
+      responses:
+        "200":
+          description: List of pending notifications
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  notifications:
+                    type: array
+                    items:
+                      type: object
+        "401":
+          description: Not authenticated or not an adopter
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "500":
+          description: Get notifications error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+
   /api/matches/{id}:
     get:
       summary: Get match by ID
@@ -2020,6 +2051,54 @@ paths:
                     type: string
                     examples:
                       - "Failed to delete match"
+
+  /api/matches/{id}/adopt:
+    patch:
+      summary: Finalize adoption of an animal
+      tags:
+        - Matches
+      security:
+        - CookieAuth: []
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Match ID
+      responses:
+        "200":
+          description: Adoption finalized successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    examples:
+                      - "Adoption finalized successfully"
+                  match:
+                    $ref: "#/components/schemas/Match"
+        "404":
+          description: Match not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "500":
+          description: Finalize adoption error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
 
   /api/matches/{id}/messages:
     post:
