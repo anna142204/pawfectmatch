@@ -52,9 +52,8 @@ const handleLogin = async () => {
     const data = await response.json();
     
     setAuthData({
-      token: data.token,
-      userId: data.user?._id,
-      userType: data.type
+      user: data.user,
+      type: data.type
     });
     
     // Redirection selon le type d'utilisateur

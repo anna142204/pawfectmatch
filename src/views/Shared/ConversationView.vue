@@ -21,7 +21,7 @@ const props = defineProps({
 
 const route = useRoute();
 const router = useRouter();
-const { userId, getAuthHeaders, getAuthFetchOptions, handleAuthError } = useAuth();
+const { userId, getAuthFetchOptions, handleAuthError } = useAuth();
 
 const messageInput = ref('');
 const messages = ref([]);
@@ -104,9 +104,7 @@ const loadConversation = async () => {
     try {
         isLoading.value = true;
 
-        const response = await fetch(`/api/matches/${conversationId.value}`, {
-            headers: getAuthHeaders()
-        });
+        const response = await fetch(`/api/matches/${conversationId.value}`, getAuthFetchOptions());
 
         if (!response.ok) {
             throw new Error('Failed to load conversation');
@@ -193,7 +191,7 @@ const sendMessage = async () => {
 
         const response = await fetch(`/api/matches/${conversationId.value}/messages`, {
             method: 'POST',
-            headers: getAuthHeaders(),
+            ...getAuthFetchOptions(),
             body: JSON.stringify(httpPayload)
         });
 

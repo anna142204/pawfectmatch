@@ -17,12 +17,12 @@ export async function registerAdopter(req, res) {
   try {
     const { firstName, lastName, email, password, address, age, about, preferences, image } = req.body;
 
-    // Validate required fields only
+    // Valide les champs requis
     if (!firstName || !lastName || !email || !password || !address || !age) {
       return res.status(400).json({ error: 'Tous les champs requis doivent être remplis' });
     }
 
-    // Check if email already exists
+    // Vérifie si l'email existe déjà
     const existingAdopter = await Adopter.findOne({ email });
     if (existingAdopter) {
       return res.status(409).json({ error: 'Cet email est déjà enregistré' });
@@ -30,7 +30,7 @@ export async function registerAdopter(req, res) {
 
 const location = await getGeoJSON(address.zip, address.city);
 
-    // Create new adopter (about and preferences are optional)
+    // Crée un nouvel adopteur (about et preferences sont optionnels)
     const adopter = new Adopter({
       firstName,
       lastName,
@@ -46,7 +46,7 @@ const location = await getGeoJSON(address.zip, address.city);
 
     await adopter.save();
 
-    // Generate JWT token
+    // Génère le token JWT
     const token = jwt.sign(
       { sub: adopter._id, email: adopter.email, type: 'adopter' },
       JWT_SECRET,
@@ -56,10 +56,19 @@ const location = await getGeoJSON(address.zip, address.city);
       }
     );
 
+    // Stocke le JWT dans un cookie httpOnly
+    const maxAge = parseExpirationTime(JWT_EXPIRES_IN);
+    res.cookie('auth_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge
+    });
+
     res.status(201).json({ 
       message: 'Inscription réussie',
-      token,
-      user: adopter
+      user: adopter,
+      type: 'adopter'
     });
 
   } catch (error) {
@@ -77,12 +86,12 @@ export async function registerOwner(req, res) {
   try {
     const { firstName, lastName, email, password, address, phoneNumber, about, image } = req.body;
 
-    // Validate required fields
+    // Valide les champs requis
     if (!firstName || !lastName || !email || !password || !address) {
       return res.status(400).json({ error: 'Tous les champs requis doivent être remplis' });
     }
 
-    // Check if email already exists
+    // Vérifie si l'email existe déjà
     const existingOwner = await Owner.findOne({ email });
     if (existingOwner) {
       return res.status(409).json({ error: 'Cet email est déjà enregistré' });
@@ -103,7 +112,7 @@ const location = await getGeoJSON(address.zip, address.city);
     });
     await owner.save();
 
-    // Generate JWT token
+    // Génère le token JWT
     const token = jwt.sign(
       { sub: owner._id, email: owner.email, type: 'owner' },
       JWT_SECRET,
@@ -113,10 +122,19 @@ const location = await getGeoJSON(address.zip, address.city);
       }
     );
 
+    // Stocke le JWT dans un cookie httpOnly
+    const maxAge = parseExpirationTime(JWT_EXPIRES_IN);
+    res.cookie('auth_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge
+    });
+
     res.status(201).json({ 
       message: 'Inscription réussie',
-      token,
-      user: owner
+      user: owner,
+      type: 'owner'
     });
   } catch (error) {
     res.status(500).json({ error: 'Échec de l\'inscription' });
@@ -141,7 +159,7 @@ export async function login(req, res) {
       return res.status(400).json({ error: 'Type d\'utilisateur invalide' });
     }
 
-    // Search in the specified collection
+    // Recherche l'utilisateur selon le type
     let user;
     let userType = type;
     
@@ -163,14 +181,14 @@ export async function login(req, res) {
       return res.status(401).json({ error: 'Email ou mot de passe invalide' });
     }
 
-    // Verify password
+    // Vérifie le mot de passe
     const isPasswordValid = await user.comparePassword(password);
     
     if (!isPasswordValid) {
       return res.status(401).json({ error: 'Email ou mot de passe invalide' });
     }
 
-    // Generate JWT token
+    // Génère le token JWT
     const token = jwt.sign(
       { sub: user._id, email: user.email, type: userType },
       JWT_SECRET,
@@ -180,19 +198,18 @@ export async function login(req, res) {
       }
     );
 
-    // Store JWT in httpOnly cookie
+    // Stocke le JWT dans un cookie httpOnly
     const maxAge = parseExpirationTime(JWT_EXPIRES_IN);
     res.cookie('auth_token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // true seulement en production
+      secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
       maxAge
     });
 
     res.json({ 
       user,
-      type: userType,
-      token
+      type: userType
     });
   } catch (error) {
     res.status(500).json({ error: 'Échec de la connexion' });
@@ -219,4 +236,40 @@ function parseExpirationTime(expiresIn) {
   };
 
   return num * (units[unit] || units.m);
+}
+
+/**
+ * Récupère l'utilisateur courant basé sur le cookie JWT
+ * @param {Object} req - Requête Express
+ * @param {Object} res - Réponse Express
+ * @returns {Object} Informations utilisateur
+ */
+export async function getMe(req, res) {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ error: 'Non authentifié' });
+    }
+ // Récupère les infos utilisateur selon le type
+    let user;
+    
+    if (req.user.type === 'adopter') {
+      user = await Adopter.findById(req.user.sub);
+    } else if (req.user.type === 'owner') {
+      user = await Owner.findById(req.user.sub);
+    } else if (req.user.type === 'admin') {
+      user = await Admin.findById(req.user.sub);
+    }
+
+    if (!user) {
+      return res.status(401).json({ error: 'Utilisateur non trouvé' });
+    }
+
+    res.json({ 
+      user, 
+      type: req.user.type, 
+      id: req.user.sub 
+    });
+  } catch (error) {
+    res.status(401).json({ error: 'Non authentifié' });
+  }
 }
