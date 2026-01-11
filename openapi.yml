@@ -108,10 +108,10 @@ paths:
                         - [petit, moyen]
       responses:
         "201":
-          description: Adopter registered successfully (JWT sent as httpOnly cookie `auth_token`)
+          description: Adopter registered successfully
           headers:
             Set-Cookie:
-              description: httpOnly JWT cookie `auth_token` used for subsequent requests
+              description: httpOnly JWT cookie
               schema:
                 type: string
               examples:
@@ -231,10 +231,10 @@ paths:
                   maxLength: 150
       responses:
         "201":
-          description: Owner registered successfully (JWT sent as httpOnly cookie `auth_token`)
+          description: Owner registered successfully
           headers:
             Set-Cookie:
-              description: httpOnly JWT cookie `auth_token` used for subsequent requests
+              description: httpOnly JWT cookie
               schema:
                 type: string
               examples:
@@ -325,10 +325,10 @@ paths:
                     - adopter
       responses:
         "200":
-          description: Login successful (JWT sent as httpOnly cookie `auth_token`)
+          description: Login successful
           headers:
             Set-Cookie:
-              description: httpOnly JWT cookie `auth_token` used for subsequent requests
+              description: httpOnly JWT cookie
               schema:
                 type: string
               examples:
@@ -410,7 +410,7 @@ paths:
 
   /api/auth/me:
     get:
-      summary: Get current authenticated user info
+      summary: Get current authenticated user
       tags:
         - Authentication
       security:
@@ -432,9 +432,6 @@ paths:
                     enum: [adopter, owner, admin]
                     examples:
                       - adopter
-                  id:
-                    type: string
-                    description: User ID
         "401":
           description: Not authenticated
           content:
@@ -445,12 +442,23 @@ paths:
                   error:
                     type: string
                     examples:
-                      - Non authentifié
+                      - Authentification requise
+        "500":
+          description: Error fetching user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    examples:
+                      - Erreur lors de la récupération de l'utilisateur
 
   # Image Upload Routes
   /api/images/{type}:
     post:
-      summary: Upload images for an entity (adopter, owner, animal)
+      summary: Upload images (for owner, adopter, or animal)
       tags:
         - Images
       security:
@@ -462,8 +470,8 @@ paths:
           required: true
           schema:
             type: string
-            enum: [adopter, owner, animal]
-          description: Type of entity to upload images for
+            enum: [owner, adopter, animal]
+          description: Type of entity uploading images
       requestBody:
         required: true
         content:
@@ -479,7 +487,7 @@ paths:
                     type: string
                     format: binary
                   maxItems: 10
-                  description: Images to upload (max 10 files)
+                  description: Image files to upload (single or multiple, max 10)
       responses:
         "200":
           description: Images uploaded successfully
@@ -488,22 +496,35 @@ paths:
               schema:
                 type: object
                 properties:
-                  images:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        url:
-                          type: string
-                          format: url
-                        publicId:
-                          type: string
+                  data:
+                    oneOf:
+                      - type: object
+                        description: Single image response
+                        properties:
+                          url:
+                            type: string
+                            format: url
+                          publicId:
+                            type: string
+                      - type: object
+                        description: Multiple images response
+                        properties:
+                          images:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                url:
+                                  type: string
+                                  format: url
+                                publicId:
+                                  type: string
                   message:
                     type: string
                     examples:
-                      - Image(s) uploadée(s) avec succès
+                      - Upload réussi
         "400":
-          description: Invalid images or missing files
+          description: Invalid image or type
           content:
             application/json:
               schema:
@@ -512,7 +533,7 @@ paths:
                   error:
                     type: string
                     examples:
-                      - Aucun fichier fourni
+                      - "Aucun fichier fourni"
         "500":
           description: Upload error
           content:
@@ -522,8 +543,6 @@ paths:
                 properties:
                   error:
                     type: string
-                    examples:
-                      - Erreur lors de l'upload des images
 
   /api/images:
     delete:
@@ -558,7 +577,7 @@ paths:
                     examples:
                       - Image supprimée avec succès
         "400":
-          description: Missing publicId
+          description: Missing publicId or deletion failed
           content:
             application/json:
               schema:
@@ -567,7 +586,7 @@ paths:
                   error:
                     type: string
                     examples:
-                      - publicId requis
+                      - publicId est requis
         "500":
           description: Delete error
           content:
@@ -656,10 +675,13 @@ paths:
                     zip:
                       type: string
                       maxLength: 12
-                image:
-                  type: string
-                  format: url
-                  maxLength: 500
+                images:
+                  type: array
+                  items:
+                    type: string
+                    format: url
+                  minItems: 1
+                  description: Array of image URLs (at least one required)
                 price:
                   type: number
                   minimum: 0
@@ -960,10 +982,12 @@ paths:
                     zip:
                       type: string
                       maxLength: 12
-                image:
-                  type: string
-                  format: url
-                  maxLength: 500
+                images:
+                  type: array
+                  items:
+                    type: string
+                    format: url
+                  description: Array of image URLs
                 price:
                   type: number
                   minimum: 0
@@ -1734,18 +1758,11 @@ paths:
             schema:
               type: object
               required:
-                - adopterId
                 - animalId
               properties:
-                adopterId:
-                  type: string
-                  description: ID of the adopter
                 animalId:
                   type: string
                   description: ID of the animal
-                isActive:
-                  type: boolean
-                  default: true
       responses:
         "201":
           description: Match created successfully
@@ -1757,7 +1774,7 @@ paths:
                   message:
                     type: string
                     examples:
-                      - "Match created successfully"
+                      - "Match créé avec succès"
                   match:
                     $ref: "#/components/schemas/Match"
         "400":
@@ -1770,7 +1787,7 @@ paths:
                   error:
                     type: string
                     examples:
-                      - "adopterId and animalId are required"
+                      - "L'identifiant de l'animal est requis"
         "404":
           description: Adopter or animal not found
           content:
@@ -1781,7 +1798,7 @@ paths:
                   error:
                     type: string
                     examples:
-                      - "Adopter not found"
+                      - "Adopteur introuvable"
         "409":
           description: Match already exists
           content:
@@ -1792,7 +1809,7 @@ paths:
                   error:
                     type: string
                     examples:
-                      - "Match already exists"
+                      - "Ce match existe déjà"
         "500":
           description: Create match error
           content:
@@ -1803,7 +1820,7 @@ paths:
                   error:
                     type: string
                     examples:
-                      - "Failed to create match"
+                      - "Échec de la création du match"
 
     get:
       summary: Get list of all matches with pagination
@@ -1856,7 +1873,7 @@ paths:
                   error:
                     type: string
                     examples:
-                      - "Failed to fetch matches"
+                      - "Échec de la récupération des matchs"
 
   /api/matches/pending-notifications:
     get:
@@ -1872,14 +1889,32 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  notifications:
-                    type: array
-                    items:
-                      type: object
+                type: array
+                items:
+                  type: object
+                  properties:
+                    matchId:
+                      type: string
+                    animalId:
+                      type: string
+                    animalImage:
+                      type: string
+                    animalName:
+                      type: string
+                    animalSpecies:
+                      type: string
+                    animalRace:
+                      type: string
+                    adopterImage:
+                      type: string
+                    adopterName:
+                      type: string
+                    ownerName:
+                      type: string
+                    conversationLink:
+                      type: string
         "401":
-          description: Not authenticated or not an adopter
+          description: Not authenticated
           content:
             application/json:
               schema:
@@ -1887,8 +1922,21 @@ paths:
                 properties:
                   error:
                     type: string
+                    examples:
+                      - Non authentifié
+        "403":
+          description: Only adopters can retrieve pending notifications
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    examples:
+                      - Seuls les adopteurs peuvent récupérer les notifications
         "500":
-          description: Get notifications error
+          description: Error fetching notifications
           content:
             application/json:
               schema:
@@ -1896,6 +1944,8 @@ paths:
                 properties:
                   error:
                     type: string
+                    examples:
+                      - Échec de la récupération des notifications en attente
 
   /api/matches/{id}:
     get:
@@ -1925,7 +1975,7 @@ paths:
                   error:
                     type: string
                     examples:
-                      - "Match not found"
+                      - "Match introuvable"
         "500":
           description: Get match error
           content:
@@ -1936,7 +1986,7 @@ paths:
                   error:
                     type: string
                     examples:
-                      - "Failed to fetch match"
+                      - "Échec de la récupération du match"
 
     put:
       summary: Update a match by ID
@@ -1960,6 +2010,9 @@ paths:
               properties:
                 isActive:
                   type: boolean
+                status:
+                  type: string
+                  enum: [validé, refusé, adopté]
       responses:
         "200":
           description: Match updated successfully
@@ -1971,7 +2024,7 @@ paths:
                   message:
                     type: string
                     examples:
-                      - "Match updated successfully"
+                      - "Match mis à jour avec succès"
                   match:
                     $ref: "#/components/schemas/Match"
         "404":
@@ -1984,7 +2037,7 @@ paths:
                   error:
                     type: string
                     examples:
-                      - "Match not found"
+                      - "Match introuvable"
         "500":
           description: Update match error
           content:
@@ -1995,7 +2048,7 @@ paths:
                   error:
                     type: string
                     examples:
-                      - "Failed to update match"
+                      - "Échec de la mise à jour du match"
 
     delete:
       summary: Delete a match by ID
@@ -2021,7 +2074,7 @@ paths:
                   message:
                     type: string
                     examples:
-                      - "Match deleted successfully"
+                      - "Match supprimé avec succès"
         "404":
           description: Match not found
           content:
@@ -2032,7 +2085,7 @@ paths:
                   error:
                     type: string
                     examples:
-                      - "Match not found"
+                      - "Match introuvable"
         "500":
           description: Delete match error
           content:
@@ -2043,55 +2096,7 @@ paths:
                   error:
                     type: string
                     examples:
-                      - "Failed to delete match"
-
-  /api/matches/{id}/adopt:
-    patch:
-      summary: Finalize adoption of an animal
-      tags:
-        - Matches
-      security:
-        - CookieAuth: []
-        - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-          description: Match ID
-      responses:
-        "200":
-          description: Adoption finalized successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    examples:
-                      - "Adoption finalized successfully"
-                  match:
-                    $ref: "#/components/schemas/Match"
-        "404":
-          description: Match not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-        "500":
-          description: Finalize adoption error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
+                      - "Échec de la suppression du match"
 
   /api/matches/{id}/messages:
     post:
@@ -2139,7 +2144,7 @@ paths:
                   message:
                     type: string
                     examples:
-                      - "Message added successfully"
+                      - "Message ajouté avec succès"
                   match:
                     $ref: "#/components/schemas/Match"
         "400":
@@ -2152,7 +2157,7 @@ paths:
                   error:
                     type: string
                     examples:
-                      - "sender, senderModel, and message are required"
+                      - "L'expéditeur, le modèle d'expéditeur et le message sont requis"
         "404":
           description: Match not found
           content:
@@ -2163,7 +2168,7 @@ paths:
                   error:
                     type: string
                     examples:
-                      - "Match not found"
+                      - "Match introuvable"
         "500":
           description: Add message error
           content:
@@ -2174,7 +2179,7 @@ paths:
                   error:
                     type: string
                     examples:
-                      - "Failed to add message"
+                      - "Échec de l'ajout du message"
 
   /api/matches/{id}/discussion:
     get:
@@ -2232,7 +2237,7 @@ paths:
                   error:
                     type: string
                     examples:
-                      - "Match not found"
+                      - "Match introuvable"
         "500":
           description: Get discussion error
           content:
@@ -2243,7 +2248,69 @@ paths:
                   error:
                     type: string
                     examples:
-                      - "Failed to fetch discussion"
+                      - "Échec de la récupération de la discussion"
+
+  /api/matches/{id}/adopt:
+    patch:
+      summary: Finalize adoption (mark match as adopted)
+      tags:
+        - Matches
+      security:
+        - CookieAuth: []
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Adoption finalized successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    examples:
+                      - Adoption finalisée avec succès
+                  match:
+                    $ref: "#/components/schemas/Match"
+        "400":
+          description: Match must be validated before adoption
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    examples:
+                      - Le match doit être validé avant l'adoption
+        "404":
+          description: Match not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    examples:
+                      - Match introuvable
+        "500":
+          description: Error finalizing adoption
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    examples:
+                      - Échec de la finalisation de l'adoption
 
   # Admin Routes
   /api/admin/stats:
@@ -2300,6 +2367,20 @@ components:
             city:
               type: string
               maxLength: 100
+        location:
+          type: object
+          description: GeoJSON Point pour la localisation de l'adopteur
+          properties:
+            type:
+              type: string
+              enum: [Point]
+            coordinates:
+              type: array
+              items:
+                type: number
+              description: "[longitude, latitude]"
+              minItems: 2
+              maxItems: 2
         about:
           type: string
           maxLength: 150
@@ -2323,6 +2404,11 @@ components:
                 type: string
                 enum: [petit, moyen, grand]
                 maxLength: 10
+        image:
+          type: string
+          format: url
+          maxLength: 500
+          description: URL de l'image de profil de l'adopteur
         createdAt:
           type: string
           format: date-time
@@ -2354,8 +2440,34 @@ components:
               type: string
             city:
               type: string
+        location:
+          type: object
+          description: GeoJSON Point pour la localisation du propriétaire
+          properties:
+            type:
+              type: string
+              enum: [Point]
+            coordinates:
+              type: array
+              items:
+                type: number
+              description: "[longitude, latitude]"
+              minItems: 2
+              maxItems: 2
+        societyName:
+          type: string
+          maxLength: 150
+          description: Nom de la société (si propriétaire professionnel)
         about:
           type: string
+        animalCount:
+          type: number
+          description: Nombre d'animaux associés à ce propriétaire (calculé par l'agrégation)
+        image:
+          type: string
+          format: url
+          maxLength: 500
+          description: URL de l'image de profil du propriétaire
         createdAt:
           type: string
           format: date-time
@@ -2394,9 +2506,30 @@ components:
               type: string
             zip:
               type: string
-        image:
-          type: string
-          format: url
+        location:
+          type: object
+          description: GeoJSON Point pour la localisation de l'animal
+          properties:
+            type:
+              type: string
+              enum: [Point]
+            coordinates:
+              type: array
+              items:
+                type: number
+              description: "[longitude, latitude]"
+              minItems: 2
+              maxItems: 2
+        distance:
+          type: number
+          description: Distance en km par rapport à l'utilisateur connecté (si géolocalisé)
+          nullable: true
+        images:
+          type: array
+          items:
+            type: string
+            format: url
+          description: Array of image URLs
         price:
           type: number
         ownerId:
@@ -2508,15 +2641,16 @@ components:
           type: number
 
   securitySchemes:
-    BearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
     CookieAuth:
       type: apiKey
       in: cookie
       name: auth_token
-      description: JWT auth token set as httpOnly cookie by login/register
+      description: JWT authentication token delivered as httpOnly cookie
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token in Authorization header
 
 tags:
   - name: Authentication
