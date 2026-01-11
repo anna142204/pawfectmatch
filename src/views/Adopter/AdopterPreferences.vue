@@ -9,6 +9,7 @@ import dogImg from '@/assets/images/dog.webp'
 import catImg from '@/assets/images/cat.webp'
 import birdImg from '@/assets/images/bird.webp'
 import rodentImg from '@/assets/images/rodent.webp'
+import rabbitImg from '@/assets/images/rabbit.webp'
 import otherImg from '@/assets/images/other.webp'
 
 const router = useRouter()
@@ -34,7 +35,7 @@ const form = ref({
 const animalOptions = [
   { label: 'Chiens', value: 'chien', image: dogImg },
   { label: 'Chats', value: 'chat', image: catImg },
-  { label: 'Lapins', value: 'lapin', image: rodentImg },
+  { label: 'Lapins', value: 'lapin', image: rabbitImg },
   { label: 'Rongeurs', value: 'rongeur', image: rodentImg },
   { label: 'Oiseaux', value: 'oiseau', image: birdImg },
   { label: 'Autres', value: 'autre', image: otherImg },
