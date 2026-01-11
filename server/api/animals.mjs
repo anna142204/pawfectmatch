@@ -7,7 +7,6 @@ import { getGeoJSON } from '../utils/geocoder.mjs';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
-// Helper to extract auth token from cookies or Authorization header
 function extractAuthToken(req) {
   const cookies = parseCookies(req.headers.cookie || '');
   const header = req.headers.authorization || '';
@@ -15,7 +14,6 @@ function extractAuthToken(req) {
   return cookies?.auth_token || headerToken || null;
 }
 
-// Normalize list query params to arrays, supporting comma-separated values
 function parseListParam(val) {
   if (!val) return null;
   if (Array.isArray(val)) return val;
@@ -50,7 +48,6 @@ export async function getAnimals(req, res) {
           }
         }
       } catch (err) {
-        // silently skip auth errors; route remains public
       }
     }
 
@@ -90,7 +87,6 @@ export async function getAnimals(req, res) {
     if (dressList) match['characteristics.dressage'] = { $in: dressList };
     if (persList) match['characteristics.personality'] = { $in: persList };
 
-    // Étape 1: $geoNear (DOIT être la première étape si utilisé)
     if (adopterLocation) {
       pipeline.push({
         $geoNear: {
@@ -101,7 +97,7 @@ export async function getAnimals(req, res) {
           distanceField: 'distance',
           distanceMultiplier: 0.001, // Convertir mètres en km
           spherical: true,
-          query: match, // Intégrer les filtres dans $geoNear
+          query: match,
           key: 'location'
         }
       });
@@ -121,7 +117,7 @@ export async function getAnimals(req, res) {
       }
     }
 
-    // Étape 2: Exclure les animaux déjà matchés par cet adopteur
+    // Exclure les animaux déjà matchés par cet adopteur
     if (adopter) {
       pipeline.push({
         $lookup: {
@@ -147,7 +143,7 @@ export async function getAnimals(req, res) {
       pipeline.push({ $match: { matchedCount: { $eq: 0 } } });
     }
 
-    // Étape 3: Lookup owner (pour obtenir les infos du propriétaire)
+    // Lookup owner (pour obtenir les infos du propriétaire)
     pipeline.push({
       $lookup: {
         from: 'owners',
@@ -164,7 +160,7 @@ export async function getAnimals(req, res) {
       }
     });
 
-    // Étape 3: Project pour structurer les données
+    // Project pour structurer les données
     pipeline.push({
       $project: {
         _id: 1,
@@ -205,7 +201,7 @@ export async function getAnimals(req, res) {
       }
     });
 
-    // Étape 5: Trier par score de compatibilité si connecté
+    // Trier par score de compatibilité si connecté
     if (adopter && adopter.preferences) {
       pipeline.push({
         $addFields: {
@@ -256,13 +252,13 @@ export async function getAnimals(req, res) {
       });
     }
 
-    // Étape 6: Compter le total
+    // Compter le total
     const totalPipeline = [...pipeline];
     totalPipeline.push({ $count: 'total' });
     const totalResult = await Animal.aggregate(totalPipeline);
     const total = totalResult.length > 0 ? totalResult[0].total : 0;
 
-    // Étape 7: Pagination
+    // Pagination
     const skip = (parseInt(page) - 1) * parseInt(limit);
     pipeline.push(
       { $skip: skip },
@@ -324,7 +320,6 @@ export async function createAnimal(req, res) {
       characteristics
     } = req.body;
 
-    // Validate required fields
     if (!species || !name || age === undefined || !sex || !address || !images || images.length === 0 || price === undefined || !ownerId || !description || !characteristics) {
       return res.status(400).json({ error: 'Tous les champs requis doivent être remplis' });
     }

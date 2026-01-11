@@ -245,7 +245,9 @@ pawfectmatch/
 ├── server/              # Backend Express
 │   ├── api/            # Routes API
 │   ├── config/         # Configuration (Cloudinary, etc.)
+│   ├── middleware/     # Middlewares (auth, ownership, etc.)
 │   ├── models/         # Modèles Mongoose
+│   ├── routes/         # Routes Express regroupées
 │   ├── spec/           # Tests unitaires
 │   ├── store/          # Store WebSocket
 │   ├── utils/          # Utilitaires (geocoder, cookies)
@@ -298,7 +300,7 @@ pawfectmatch/
 
 | Ressource | Description | Points de terminaison |
 |-----------|-------------|----------------------|
-| **Auth** | Inscription / connexion / déconnexion | `POST /api/auth/register/adopter`, `POST /api/auth/register/owner`, `POST /api/auth/login`, `POST /api/auth/logout` |
+| **Auth** | Inscription / connexion / déconnexion | `POST /api/auth/register/adopter`, `POST /api/auth/register/owner`, `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me` |
 | **Adopter** | Gestion des adoptants | `GET /api/adopters`, `GET /api/adopters/:id`, `PUT /api/adopters/:id`, `DELETE /api/adopters/:id` |
 | **Owner** | Gestion des propriétaires | `GET /api/owners`, `GET /api/owners/:id`, `PUT /api/owners/:id`, `DELETE /api/owners/:id` |
 | **Animal** | Gestion des animaux | `GET /api/animals`, `GET /api/animals/:id`, `POST /api/animals`, `PUT /api/animals/:id`, `DELETE /api/animals/:id` |
@@ -312,6 +314,7 @@ La documentation API complète est disponible en format OpenAPI dans [`openapi.y
 
 **Visualisation interactive :**
 1. **Swagger UI** - Copiez le contenu d'`openapi.yml` sur [editor.swagger.io](https://editor.swagger.io/)
+Ou allez directement sur [https://pawfectmatch-ix6g.onrender.com/api-docs/](https://pawfectmatch-ix6g.onrender.com/api-docs/)
 2. **ReDoc** - Utilisez [Redocly](https://redocly.github.io/redoc/)
 
 ### Fonctionnalités API

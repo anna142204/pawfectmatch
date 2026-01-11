@@ -17,19 +17,18 @@ const isLiked = ref(false);
 const imageErrors = ref({});
 const handleImageError = (id) => { imageErrors.value[id] = true; };
 
-// Lightbox logic
 const isLightboxOpen = ref(false);
 const lightboxImageIndex = ref(0);
 
 const openLightbox = (index) => {
   lightboxImageIndex.value = index;
   isLightboxOpen.value = true;
-  document.body.style.overflow = 'hidden'; // Prevent scrolling
+  document.body.style.overflow = 'hidden';
 };
 
 const closeLightbox = () => {
   isLightboxOpen.value = false;
-  document.body.style.overflow = ''; // Restore scrolling
+  document.body.style.overflow = '';
 };
 
 const goToNextLightboxImage = () => {
@@ -44,7 +43,6 @@ const goToPreviousLightboxImage = () => {
   }
 };
 
-// Image carousel logic
 const currentImageIndex = ref(0);
 const touchStartX = ref(0);
 const touchEndX = ref(0);
@@ -100,18 +98,25 @@ const handleTouchEnd = () => {
 };
 
 const toggleLike = async () => {
-  if (!isLiked.value && animal.value) {
-    // Créer un match
-    try {
-      await fetch('/api/matches', getAuthFetchOptions({
-        method: 'POST',
-        body: JSON.stringify({ animalId: animal.value._id }),
-      }));
-    } catch (e) {
-      console.error('Erreur lors de la création du match:', e);
+  if (isLiked.value || !animal.value) return;
+  try {
+    const res = await fetch('/api/matches', getAuthFetchOptions({
+      method: 'POST',
+      body: JSON.stringify({ animalId: animal.value._id }),
+    }));
+
+    if (res.status === 401 || res.status === 403) {
+      try { handleAuthError(); } catch {}
+      return;
     }
+
+    if (!res.ok) throw new Error('Erreur lors de la création du match');
+
+    isLiked.value = true;
+  } catch (e) {
+    console.error('Erreur lors de la création du match:', e);
+    error.value = e.message || 'Erreur lors de la création du match';
   }
-  isLiked.value = !isLiked.value;
 };
 
 const goBackToSwipe = () => {
@@ -355,7 +360,14 @@ const formatPrice = (price) => {
         </section>
 
         <div class="fav-btn-row">
-          <button class="fav-btn" :class="{ liked: isLiked }" @click="toggleLike" aria-label="Favori">
+          <button
+            class="fav-btn"
+            :class="{ liked: isLiked }"
+            @click="toggleLike"
+            :disabled="isLiked"
+            :aria-label="isLiked ? 'Match déjà créé' : 'Créer un match'"
+            :title="isLiked ? 'Match déjà créé' : 'Créer un match'"
+          >
             <Heart size="30" stroke-width="2" :fill="isLiked ? 'white' : 'none'" />
           </button>
         </div>
@@ -445,7 +457,6 @@ const formatPrice = (price) => {
   overflow: hidden;
 }
 
-/* Image Carousel Styles */
 .image-carousel {
   position: relative;
   width: 100%;
@@ -519,7 +530,6 @@ const formatPrice = (price) => {
   opacity: 0.95;
 }
 
-/* Lightbox Styles */
 .lightbox-overlay {
   position: fixed;
   top: 0;
@@ -938,5 +948,14 @@ const formatPrice = (price) => {
 
 .fav-btn svg {
   color: #fff;
+}
+
+.fav-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.fav-btn:disabled:hover {
+  transform: none;
 }
 </style>

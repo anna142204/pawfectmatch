@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuth } from '@/composables/useAuth';
 import { ChevronRight, CheckCheck } from 'lucide-vue-next';
@@ -189,6 +189,25 @@ const getAdopterLabel = (conversation) => {
 const getAnimalLabel = (conversation) => {
   return conversation.animalId?.name || 'Animal';
 };
+
+const sortedConversations = computed(() => {
+  return [...conversations.value].sort((a, b) => {
+    // Récupérer le timestamp du dernier message ou la date de mise à jour
+    const getLastTimestamp = (conversation) => {
+      if (conversation.discussion && conversation.discussion.length > 0) {
+        const lastMessage = conversation.discussion[conversation.discussion.length - 1];
+        return new Date(lastMessage.timestamp).getTime();
+      }
+      return new Date(conversation.updatedAt || conversation.createdAt).getTime();
+    };
+
+    const timeA = getLastTimestamp(a);
+    const timeB = getLastTimestamp(b);
+    
+    // Tri décroissant: plus récent en premier
+    return timeB - timeA;
+  });
+});
 </script>
 
 <template>
@@ -258,7 +277,7 @@ const getAnimalLabel = (conversation) => {
         </div>
         
         <div 
-          v-for="conversation in conversations" 
+          v-for="conversation in sortedConversations" 
           :key="conversation._id"
           class="conversation-item"
           @click="openConversation(conversation._id)"
