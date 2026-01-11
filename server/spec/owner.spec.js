@@ -31,7 +31,7 @@ describe("POST /api/auth/register/owner", function () {
 
     // top-level response
     expect(res.body).toBeObject();
-    expect(res.body.message).toEqual("Owner registered successfully");
+    expect(res.body.message).toEqual("Inscription réussie");
     expect(res.body.token).toBeString();
 
     const user = res.body.user;
@@ -47,6 +47,12 @@ describe("POST /api/auth/register/owner", function () {
     expect(user.address).toBeObject();
     expect(user.address.zip).toEqual(ownerPayload.address.zip);
     expect(user.address.city).toEqual(ownerPayload.address.city);
+
+    // location
+    expect(user.location).toBeObject();
+    expect(user.location.type).toEqual("Point");
+    expect(user.location.coordinates).toBeArray();
+    expect(user.location.coordinates).toHaveLength(2);
 
     expect(user.image).toEqual(ownerPayload.image);
 
@@ -67,6 +73,7 @@ describe("POST /api/auth/register/owner", function () {
       "lastName",
       "email",
       "address",
+      "location",
       "phoneNumber",
       "about",
       "image",
@@ -115,17 +122,23 @@ describe("GET /api/owners", function () {
     expect(first.address.city).toEqual(ownerPayload.address.city);
     expect(first.address.zip).toEqual(ownerPayload.address.zip);
 
+    expect(first.location).toBeObject();
+    expect(first.location.type).toEqual("Point");
+    expect(first.location.coordinates).toBeArray();
+
     expect(first.image).toEqual(ownerPayload.image);
+
+    // animalCount added by aggregation
+    expect(first.animalCount).toBeNumber();
 
     // optional fields — assert only if present in the payload
     if (ownerPayload.societyName) expect(first.societyName).toEqual(ownerPayload.societyName);
     if (ownerPayload.phoneNumber) expect(first.phoneNumber).toEqual(ownerPayload.phoneNumber);
     if (ownerPayload.about) expect(first.about).toEqual(ownerPayload.about);
 
-    // mongoose metadata
+    // mongoose metadata (no __v in aggregation result)
     expect(first.createdAt).toBeString();
     expect(first.updatedAt).toBeString();
-    expect(first.__v).toBeNumber();
 
     // keys present
     expect(first).toContainAllKeys([
@@ -134,12 +147,13 @@ describe("GET /api/owners", function () {
       "lastName",
       "email",
       "address",
+      "location",
       "phoneNumber",
       "about",
       "image",
+      "animalCount",
       "createdAt",
       "updatedAt",
-      "__v",
     ]);
   });
 });
@@ -154,7 +168,9 @@ describe("DELETE /api/owners/:id", function () {
       .expect(201);
 
     const ownerId = createRes.body.user._id;
+    const token = createRes.body.token;
     expect(ownerId).toBeString();
+    expect(token).toBeString();
 
     // 2. Verify owner exists (GET before delete)
     const getRes = await supertest(app)
@@ -169,6 +185,7 @@ describe("DELETE /api/owners/:id", function () {
     // 3. Delete the owner
     const deleteRes = await supertest(app)
       .delete(`/api/owners/${ownerId}`)
+      .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .expect("Content-Type", /json/);
 
@@ -185,16 +202,24 @@ describe("DELETE /api/owners/:id", function () {
     expect(getAfterDeleteRes.body.owners.length).toEqual(0);
   });
 
-  test("should return 404 when deleting non-existent owner", async function () {
+  test("should return 403 when deleting another owner's account", async function () {
+    // Create an owner to get auth token
+    const authRes = await supertest(app)
+      .post("/api/auth/register/owner")
+      .send(ownerPayload)
+      .expect(201);
+    const token = authRes.body.token;
+
     const fakeId = "64a1b2c3d4e5f67890123456";
 
     const res = await supertest(app)
       .delete(`/api/owners/${fakeId}`)
-      .expect(404)
+      .set("Authorization", `Bearer ${token}`)
+      .expect(403)
       .expect("Content-Type", /json/);
 
     expect(res.body).toBeObject();
-    expect(res.body.error).toEqual("Owner not found");
+    expect(res.body.error).toEqual("Accès interdit : vous ne pouvez accéder qu'à vos propres données");
   });
 
   test("should return 400 when deleting owner with associated animals", async function () {
@@ -205,6 +230,7 @@ describe("DELETE /api/owners/:id", function () {
       .expect(201);
 
     const ownerId = createRes.body.user._id;
+    const token = createRes.body.token;
 
     // 2. Create an animal for this owner
     const animalPayload = {
@@ -216,7 +242,7 @@ describe("DELETE /api/owners/:id", function () {
       size: "grand",
       weight: "20-30",
       address: { city: "Lausanne", zip: "1004" },
-      image: "https://example.com/images/buddy.jpg",
+      images: ["https://example.com/images/buddy.jpg"],
       price: 150,
       ownerId,
       availability: true,
@@ -230,12 +256,14 @@ describe("DELETE /api/owners/:id", function () {
 
     await supertest(app)
       .post("/api/animals")
+      .set("Authorization", `Bearer ${token}`)
       .send(animalPayload)
       .expect(201);
 
     // 3. Try to delete owner with associated animal
     const deleteRes = await supertest(app)
       .delete(`/api/owners/${ownerId}`)
+      .set("Authorization", `Bearer ${token}`)
       .expect(400)
       .expect("Content-Type", /json/);
 
@@ -266,7 +294,9 @@ describe("GET /api/owners/:id", function () {
       .expect(201);
 
     const ownerId = ownerRes.body.user._id;
+    const token = ownerRes.body.token;
     expect(ownerId).toBeString();
+    expect(token).toBeString();
 
     // 2. Create animals for this owner
     const baseAnimal = {
@@ -277,7 +307,7 @@ describe("GET /api/owners/:id", function () {
       size: "grand",
       weight: "20-30",
       address: { city: "Lausanne", zip: "1004" },
-      image: "https://example.com/images/buddy.jpg",
+      images: ["https://example.com/images/buddy.jpg"],
       price: 150,
       ownerId,
       availability: true,
@@ -292,8 +322,8 @@ describe("GET /api/owners/:id", function () {
     const animal1 = { ...baseAnimal, name: "Buddy" };
     const animal2 = { ...baseAnimal, name: "Max" };
 
-    await supertest(app).post("/api/animals").send(animal1).expect(201);
-    await supertest(app).post("/api/animals").send(animal2).expect(201);
+    await supertest(app).post("/api/animals").set("Authorization", `Bearer ${token}`).send(animal1).expect(201);
+    await supertest(app).post("/api/animals").set("Authorization", `Bearer ${token}`).send(animal2).expect(201);
 
     // 3. Fetch owner by id
     const res = await supertest(app)
@@ -354,6 +384,7 @@ describe("PUT /api/owners/:id", function () {
       .expect(201);
 
     const ownerId = createRes.body.user._id;
+    const token = createRes.body.token;
 
     // 2. Prepare updates (password should be ignored)
     const updates = {
@@ -368,6 +399,7 @@ describe("PUT /api/owners/:id", function () {
     // 3. Update owner
     const res = await supertest(app)
       .put(`/api/owners/${ownerId}`)
+      .set("Authorization", `Bearer ${token}`)
       .send(updates)
       .expect(200)
       .expect("Content-Type", /json/);
@@ -395,17 +427,25 @@ describe("PUT /api/owners/:id", function () {
     expect(updated.__v).toBeNumber();
   });
 
-  test("should return 404 when updating a non-existent owner", async function () {
+  test("should return 403 when updating another owner's account", async function () {
+    // Create an owner to get auth token
+    const authRes = await supertest(app)
+      .post("/api/auth/register/owner")
+      .send(ownerPayload)
+      .expect(201);
+    const token = authRes.body.token;
+
     const fakeId = "64a1b2c3d4e5f67890123456";
 
     const res = await supertest(app)
       .put(`/api/owners/${fakeId}`)
+      .set("Authorization", `Bearer ${token}`)
       .send({ firstName: "Nobody" })
-      .expect(404)
+      .expect(403)
       .expect("Content-Type", /json/);
 
     expect(res.body).toBeObject();
-    expect(res.body.error).toEqual("Owner not found");
+    expect(res.body.error).toEqual("Accès interdit : vous ne pouvez accéder qu'à vos propres données");
   });
 });
 

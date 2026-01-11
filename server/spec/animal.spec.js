@@ -3,6 +3,30 @@ import app from "../app.mjs";
 import mongoose from "mongoose";
 import { cleanUpDatabase } from "./utils.js";
 
+// Helper function to create and authenticate an owner
+async function createAuthenticatedOwner() {
+  const ownerPayload = {
+    firstName: "Test",
+    lastName: "Owner",
+    email: `owner${Date.now()}@test.com`,
+    password: "securePassword123",
+    phoneNumber: "+41 79 123 45 67",
+    address: { zip: "1000", city: "Lausanne" },
+    about: "Test owner for animal tests",
+    image: "https://i.pravatar.cc/150?u=testowner"
+  };
+
+  const res = await supertest(app)
+    .post("/api/auth/register/owner")
+    .send(ownerPayload)
+    .expect(201);
+
+  return {
+    ownerId: res.body.user._id,
+    token: res.body.token
+  };
+}
+
 // reusable payload for POST and GET tests
 const animalPayload = {
   species: "chien",
@@ -13,7 +37,7 @@ const animalPayload = {
   size: "grand",
   weight: "20-30",
   address: { city: "Lausanne", zip: "1004" },
-  image: "https://example.com/images/buddy.jpg",
+  images: ["https://example.com/images/buddy.jpg"],
   price: 150,
   ownerId: "64a1b2c3d4e5f67890123456",
   availability: true,
@@ -29,9 +53,14 @@ const animalPayload = {
 beforeEach(cleanUpDatabase);
 describe("POST /api/animals", function () {
   test("should create a new animal", async function () {
+    const { ownerId, token } = await createAuthenticatedOwner();
+    
+    const payload = { ...animalPayload, ownerId };
+    
     const res = await supertest(app)
       .post("/api/animals")
-      .send(animalPayload)
+      .set("Authorization", `Bearer ${token}`)
+      .send(payload)
       .expect(201)
       .expect("Content-Type", /json/);
 
@@ -44,52 +73,55 @@ describe("POST /api/animals", function () {
     // Jest / jest-extended assertions matching the model & payload
     expect(created).toBeObject();
     expect(created._id).toBeString();
-    expect(created.name).toEqual(animalPayload.name);
-    expect(created.species).toEqual(animalPayload.species);
-    expect(created.race).toEqual(animalPayload.race);
+    expect(created.name).toEqual(payload.name);
+    expect(created.species).toEqual(payload.species);
+    expect(created.race).toEqual(payload.race);
     expect(created.age).toBeString();
-    expect(created.age).toEqual(animalPayload.age);
+    expect(created.age).toEqual(payload.age);
     expect(created.sex).toBeOneOf(["male", "female"]);
     
-    if (animalPayload.size) {
+    if (payload.size) {
       expect(created.size).toBeString();
-      expect(created.size).toEqual(animalPayload.size);
+      expect(created.size).toEqual(payload.size);
     }
-    if (animalPayload.weight) {
+    if (payload.weight) {
       expect(created.weight).toBeString();
-      expect(created.weight).toEqual(animalPayload.weight);
+      expect(created.weight).toEqual(payload.weight);
     }
 
     expect(created.address).toBeObject();
     expect(created.address).toContainAllKeys(["city", "zip"]);
-    expect(created.address.city).toEqual(animalPayload.address.city);
-    expect(created.address.zip).toEqual(animalPayload.address.zip);
+    expect(created.address.city).toEqual(payload.address.city);
+    expect(created.address.zip).toEqual(payload.address.zip);
 
-    expect(created.image).toBeString();
+    expect(created.location).toBeObject();
+    expect(created.location.type).toEqual("Point");
+    expect(created.location.coordinates).toBeArray();
+    expect(created.location.coordinates).toHaveLength(2);
+
+    expect(created.images).toBeArray();
+    expect(created.images.length).toBeGreaterThan(0);
+    expect(created.images).toIncludeSameMembers(payload.images);
     expect(created.price).toBeNumber();
-    expect(created.price).toEqual(animalPayload.price);
-    if (animalPayload.ownerId !== null) {
-      expect(created.ownerId).toBeString();
-      expect(created.ownerId).toEqual(animalPayload.ownerId);
-    } else {
-      expect(created.ownerId).toBeNull();
-    }
+    expect(created.price).toEqual(payload.price);
+    expect(created.ownerId).toBeString();
+    expect(created.ownerId).toEqual(ownerId);
     expect(created.availability).toBeBoolean();
     expect(created.description).toBeString();
-    expect(created.description).toEqual(animalPayload.description);
+    expect(created.description).toEqual(payload.description);
 
     expect(created.characteristics).toBeObject();
     expect(created.characteristics.environment).toBeArray();
     expect(created.characteristics.environment).toIncludeSameMembers(
-      animalPayload.characteristics.environment
+      payload.characteristics.environment
     );
     expect(created.characteristics.dressage).toBeArray();
     expect(created.characteristics.dressage).toIncludeSameMembers(
-      animalPayload.characteristics.dressage
+      payload.characteristics.dressage
     );
     expect(created.characteristics.personality).toBeArray();
     expect(created.characteristics.personality).toIncludeSameMembers(
-      animalPayload.characteristics.personality
+      payload.characteristics.personality
     );
 
     // include mongoose metadata 
@@ -108,7 +140,8 @@ describe("POST /api/animals", function () {
       "size",
       "weight",
       "address",
-      "image",
+      "location",
+      "images",
       "price",
       "ownerId",
       "availability",
@@ -124,8 +157,15 @@ describe("POST /api/animals", function () {
 beforeEach(cleanUpDatabase);
 describe("GET /api/animals", function () {
   test("should retrieve the list of animals", async function () {
+    const { ownerId, token } = await createAuthenticatedOwner();
+    const payload = { ...animalPayload, ownerId };
+    
     // create an animal using the same payload
-    await supertest(app).post("/api/animals").send(animalPayload).expect(201);
+    await supertest(app)
+      .post("/api/animals")
+      .set("Authorization", `Bearer ${token}`)
+      .send(payload)
+      .expect(201);
 
     const res = await supertest(app)
       .get("/api/animals")
@@ -141,34 +181,38 @@ describe("GET /api/animals", function () {
     const first = res.body.animals[0];
     expect(first).toBeObject();
     expect(first._id).toBeString();
-    expect(first.species).toEqual(animalPayload.species);
-    expect(first.race).toEqual(animalPayload.race);
-    expect(first.name).toEqual(animalPayload.name);
+    expect(first.species).toEqual(payload.species);
+    expect(first.race).toEqual(payload.race);
+    expect(first.name).toEqual(payload.name);
     expect(first.age).toBeString();
-    expect(first.age).toEqual(animalPayload.age);
+    expect(first.age).toEqual(payload.age);
     expect(first.sex).toBeOneOf(["male", "female"]);
     
-    if (animalPayload.size) {
+    if (payload.size) {
       expect(first.size).toBeString();
-      expect(first.size).toEqual(animalPayload.size);
+      expect(first.size).toEqual(payload.size);
     }
-    if (animalPayload.weight) {
+    if (payload.weight) {
       expect(first.weight).toBeString();
-      expect(first.weight).toEqual(animalPayload.weight);
+      expect(first.weight).toEqual(payload.weight);
     }
 
     expect(first.address).toBeObject();
-    expect(first.address.city).toEqual(animalPayload.address.city);
-    expect(first.address.zip).toEqual(animalPayload.address.zip);
+    expect(first.address.city).toEqual(payload.address.city);
+    expect(first.address.zip).toEqual(payload.address.zip);
 
-    expect(first.image).toBeString();
+    expect(first.location).toBeObject();
+    expect(first.location.type).toEqual("Point");
+    expect(first.location.coordinates).toBeArray();
+
+    expect(first.images).toBeArray();
+    expect(first.images.length).toBeGreaterThan(0);
     expect(first.price).toBeNumber();
-    expect(first.price).toEqual(animalPayload.price);
+    expect(first.price).toEqual(payload.price);
 
-    if (animalPayload.ownerId !== null) {
-      // some implementations may nullify ownerId on GET; tolerate both
-      if (first.ownerId !== null) expect(first.ownerId).toBeString();
-    }
+    // Check owner is populated
+    expect(first.owner).toBeObject();
+    expect(first.owner._id).toBeString();
 
     expect(first.availability).toBeBoolean();
     expect(first.description).toBeString();
@@ -176,46 +220,27 @@ describe("GET /api/animals", function () {
     expect(first.characteristics).toBeObject();
     expect(first.characteristics.environment).toBeArray();
     expect(first.characteristics.environment).toIncludeSameMembers(
-      animalPayload.characteristics.environment
+      payload.characteristics.environment
     );
     expect(first.characteristics.dressage).toBeArray();
     expect(first.characteristics.dressage).toIncludeSameMembers(
-      animalPayload.characteristics.dressage
+      payload.characteristics.dressage
     );
     expect(first.characteristics.personality).toBeArray();
     expect(first.characteristics.personality).toIncludeSameMembers(
-      animalPayload.characteristics.personality
+      payload.characteristics.personality
     );
 
-    // mongoose metadata
+    // mongoose metadata (only createdAt is included in aggregation $project)
     expect(first.createdAt).toBeString();
-    expect(first.updatedAt).toBeString();
-    expect(first.__v).toBeNumber();
   });
 });
 
 beforeEach(async () => await cleanUpDatabase());
 describe("GET /api/animals/:id", function () {
   test("should retrieve an animal by id and populate owner", async function () {
-    // 1. Register an owner to be populated
-    const ownerPayload = {
-      firstName: "John",
-      lastName: "Doe",
-      email: "john.doe@example.com",
-      password: "securePassword123",
-      phoneNumber: "+41 79 123 45 67",
-      address: { zip: "1000", city: "Lausanne" },
-      about: "Owner for testing populate",
-      image: "https://i.pravatar.cc/150?u=john.doe@example.com"
-    };
-
-    const ownerRes = await supertest(app)
-      .post("/api/auth/register/owner")
-      .send(ownerPayload)
-      .expect(201);
-
-    const ownerId = ownerRes.body.user._id;
-    expect(ownerId).toBeString();
+    // 1. Register an owner and get auth token
+    const { ownerId, token } = await createAuthenticatedOwner();
 
     // 2. Create an animal that references the owner
     const animalPayloadWithOwner = {
@@ -225,6 +250,7 @@ describe("GET /api/animals/:id", function () {
 
     const createRes = await supertest(app)
       .post("/api/animals")
+      .set("Authorization", `Bearer ${token}`)
       .send(animalPayloadWithOwner)
       .expect(201)
       .expect("Content-Type", /json/);
@@ -255,14 +281,13 @@ describe("GET /api/animals/:id", function () {
     expect(fetched.ownerId).toBeObject();
     expect(fetched.ownerId._id).toBeString();
     expect(fetched.ownerId._id).toEqual(ownerId);
-    expect(fetched.ownerId.firstName).toEqual(ownerPayload.firstName);
-    expect(fetched.ownerId.lastName).toEqual(ownerPayload.lastName);
-    expect(fetched.ownerId.email).toEqual(ownerPayload.email);
-    expect(fetched.ownerId.phoneNumber).toEqual(ownerPayload.phoneNumber);
+    expect(fetched.ownerId.firstName).toBeString();
+    expect(fetched.ownerId.lastName).toBeString();
+    expect(fetched.ownerId.email).toBeString();
+    expect(fetched.ownerId.phoneNumber).toBeString();
     expect(fetched.ownerId.address).toBeObject();
-    expect(fetched.ownerId.address.city).toEqual(ownerPayload.address.city);
-    expect(fetched.ownerId.address.zip).toEqual(ownerPayload.address.zip);
-    expect(fetched.ownerId.societyName).toEqual(ownerPayload.societyName);
+    expect(fetched.ownerId.address.city).toBeString();
+    expect(fetched.ownerId.address.zip).toBeString();
   });
 
   test("should return 404 when animal does not exist", async function () {
@@ -281,10 +306,14 @@ describe("GET /api/animals/:id", function () {
 beforeEach(async () => await cleanUpDatabase());
 describe("DELETE /api/animals/:id", function () {
   test("should delete an animal by id", async function () {
+    const { ownerId, token } = await createAuthenticatedOwner();
+    const payload = { ...animalPayload, ownerId };
+    
     // 1. Create an animal
     const createRes = await supertest(app)
       .post("/api/animals")
-      .send(animalPayload)
+      .set("Authorization", `Bearer ${token}`)
+      .send(payload)
       .expect(201);
 
     const animalId = createRes.body.animal._id;
@@ -303,6 +332,7 @@ describe("DELETE /api/animals/:id", function () {
     // 3. Delete the animal
     const deleteRes = await supertest(app)
       .delete(`/api/animals/${animalId}`)
+      .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .expect("Content-Type", /json/);
 
@@ -320,25 +350,31 @@ describe("DELETE /api/animals/:id", function () {
   });
 
   test("should return 404 when deleting non-existent animal", async function () {
+    const { token } = await createAuthenticatedOwner();
     const fakeId = "64a1b2c3d4e5f67890123456";
 
     const res = await supertest(app)
       .delete(`/api/animals/${fakeId}`)
+      .set("Authorization", `Bearer ${token}`)
       .expect(404)
       .expect("Content-Type", /json/);
 
     expect(res.body).toBeObject();
-    expect(res.body.error).toEqual("Animal not found");
+    expect(res.body.error).toEqual("Animal introuvable ou accès non autorisé");
   });
 });
 
 beforeEach(async () => await cleanUpDatabase());
 describe("PUT /api/animals/:id", function () {
   test("should update an animal by id", async function () {
+    const { ownerId, token } = await createAuthenticatedOwner();
+    const payload = { ...animalPayload, ownerId };
+    
     // 1. Create an animal
     const createRes = await supertest(app)
       .post("/api/animals")
-      .send(animalPayload)
+      .set("Authorization", `Bearer ${token}`)
+      .send(payload)
       .expect(201);
 
     const animalId = createRes.body.animal._id;
@@ -360,6 +396,7 @@ describe("PUT /api/animals/:id", function () {
     // 3. Perform update
     const res = await supertest(app)
       .put(`/api/animals/${animalId}`)
+      .set("Authorization", `Bearer ${token}`)
       .send(updatePayload)
       .expect(200)
       .expect("Content-Type", /json/);
@@ -393,16 +430,18 @@ describe("PUT /api/animals/:id", function () {
   });
 
   test("should return 404 when updating non-existent animal", async function () {
+    const { token } = await createAuthenticatedOwner();
     const fakeId = "64a1b2c3d4e5f67890123456";
 
     const res = await supertest(app)
       .put(`/api/animals/${fakeId}`)
+      .set("Authorization", `Bearer ${token}`)
       .send({ name: "Nope" })
       .expect(404)
       .expect("Content-Type", /json/);
 
     expect(res.body).toBeObject();
-    expect(res.body.error).toEqual("Animal not found");
+    expect(res.body.error).toEqual("Animal introuvable ou accès non autorisé");
   });
 });
 

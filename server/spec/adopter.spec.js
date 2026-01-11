@@ -18,7 +18,7 @@ const adopterPayload = {
   preferences: {
     environment: ["appartement", "enfant"],
     species: ["chat", "chien"],
-    sizePreference: ["petit", "moyen"],
+    size: ["petit", "moyen"],
   },
   image: "https://i.pravatar.cc/150?u=marie.martin@example.com"
 };
@@ -35,7 +35,7 @@ describe("POST /api/auth/register/adopter", function () {
 
     // top-level response
     expect(res.body).toBeObject();
-    expect(res.body.message).toEqual("Adopter registered successfully");
+    expect(res.body.message).toEqual("Inscription réussie");
     expect(res.body.token).toBeString();
 
     const user = res.body.user;
@@ -54,6 +54,12 @@ describe("POST /api/auth/register/adopter", function () {
     expect(user.address.zip).toEqual(adopterPayload.address.zip);
     expect(user.address.city).toEqual(adopterPayload.address.city);
 
+    // location
+    expect(user.location).toBeObject();
+    expect(user.location.type).toEqual("Point");
+    expect(user.location.coordinates).toBeArray();
+    expect(user.location.coordinates).toHaveLength(2);
+
     // about
     if (adopterPayload.about) expect(user.about).toEqual(adopterPayload.about);
 
@@ -67,9 +73,9 @@ describe("POST /api/auth/register/adopter", function () {
     expect(user.preferences.species).toIncludeSameMembers(
       adopterPayload.preferences.species
     );
-    expect(user.preferences.sizePreference).toBeArray();
-    expect(user.preferences.sizePreference).toIncludeSameMembers(
-      adopterPayload.preferences.sizePreference
+    expect(user.preferences.size).toBeArray();
+    expect(user.preferences.size).toIncludeSameMembers(
+      adopterPayload.preferences.size
     );
 
     // mongoose metadata
@@ -85,6 +91,7 @@ describe("POST /api/auth/register/adopter", function () {
       "email",
       "age",
       "address",
+      "location",
       "about",
       "preferences",
       "image",
@@ -136,6 +143,10 @@ describe("GET /api/adopters", function () {
     expect(first.address.city).toEqual(adopterPayload.address.city);
     expect(first.address.zip).toEqual(adopterPayload.address.zip);
 
+    expect(first.location).toBeObject();
+    expect(first.location.type).toEqual("Point");
+    expect(first.location.coordinates).toBeArray();
+
     if (adopterPayload.about) expect(first.about).toEqual(adopterPayload.about);
 
     // preferences
@@ -148,9 +159,9 @@ describe("GET /api/adopters", function () {
     expect(first.preferences.species).toIncludeSameMembers(
       adopterPayload.preferences.species
     );
-    expect(first.preferences.sizePreference).toBeArray();
-    expect(first.preferences.sizePreference).toIncludeSameMembers(
-      adopterPayload.preferences.sizePreference
+    expect(first.preferences.size).toBeArray();
+    expect(first.preferences.size).toIncludeSameMembers(
+      adopterPayload.preferences.size
     );
 
     // mongoose metadata
@@ -166,6 +177,7 @@ describe("GET /api/adopters", function () {
       "email",
       "age",
       "address",
+      "location",
       "about",
       "preferences",
       "image",
@@ -187,7 +199,9 @@ describe("DELETE /api/adopters/:id", function () {
       .expect(201);
 
     const adopterId = createRes.body.user._id;
+    const token = createRes.body.token;
     expect(adopterId).toBeString();
+    expect(token).toBeString();
 
     // 2. Verify adopter exists (GET before delete)
     const getRes = await supertest(app)
@@ -202,12 +216,13 @@ describe("DELETE /api/adopters/:id", function () {
     // 3. Delete the adopter
     const deleteRes = await supertest(app)
       .delete(`/api/adopters/${adopterId}`)
+      .set("Authorization", `Bearer ${token}`)
       .expect(200)
       .expect("Content-Type", /json/);
 
     // Assertions
     expect(deleteRes.body).toBeObject();
-    expect(deleteRes.body.message).toEqual("Adopter deleted successfully");
+    expect(deleteRes.body.message).toEqual("Adopteur supprimé avec succès");
 
     // 4. Verify adopter no longer exists (GET after delete)
     const getAfterDeleteRes = await supertest(app)
@@ -218,16 +233,24 @@ describe("DELETE /api/adopters/:id", function () {
     expect(getAfterDeleteRes.body.adopters.length).toEqual(0);
   });
 
-  test("should return 404 when deleting non-existent adopter", async function () {
+  test("should return 403 when deleting another adopter's account", async function () {
+    // Create an adopter to get auth token
+    const authRes = await supertest(app)
+      .post("/api/auth/register/adopter")
+      .send(adopterPayload)
+      .expect(201);
+    const token = authRes.body.token;
+
     const fakeId = "64a1b2c3d4e5f67890123456";
 
     const res = await supertest(app)
       .delete(`/api/adopters/${fakeId}`)
-      .expect(404)
+      .set("Authorization", `Bearer ${token}`)
+      .expect(403)
       .expect("Content-Type", /json/);
 
     expect(res.body).toBeObject();
-    expect(res.body.error).toEqual("Adopter not found");
+    expect(res.body.error).toEqual("Accès interdit : vous ne pouvez accéder qu'à vos propres données");
   });
 });
 
@@ -242,7 +265,9 @@ describe("PUT /api/adopters/:id", function () {
       .expect(201);
 
     const adopterId = createRes.body.user._id;
+    const token = createRes.body.token;
     expect(adopterId).toBeString();
+    expect(token).toBeString();
 
     // 2. Update fields (including a password which must be ignored)
     const updatePayload = {
@@ -252,20 +277,21 @@ describe("PUT /api/adopters/:id", function () {
       preferences: {
         environment: ["appartement"],
         species: ["chat"],
-        sizePreference: ["petit"]
+        size: ["petit"]
       },
       password: "newPasswordShouldBeIgnored"
     };
 
     const res = await supertest(app)
       .put(`/api/adopters/${adopterId}`)
+      .set("Authorization", `Bearer ${token}`)
       .send(updatePayload)
       .expect(200)
       .expect("Content-Type", /json/);
 
     // Assertions
     expect(res.body).toBeObject();
-    expect(res.body.message).toEqual("Adopter updated successfully");
+    expect(res.body.message).toEqual("Adopteur mis à jour avec succès");
 
     const adopter = res.body.adopter;
     expect(adopter).toBeObject();
@@ -281,8 +307,8 @@ describe("PUT /api/adopters/:id", function () {
     expect(adopter.preferences.environment).toIncludeSameMembers(updatePayload.preferences.environment);
     expect(adopter.preferences.species).toBeArray();
     expect(adopter.preferences.species).toIncludeSameMembers(updatePayload.preferences.species);
-    expect(adopter.preferences.sizePreference).toBeArray();
-    expect(adopter.preferences.sizePreference).toIncludeSameMembers(updatePayload.preferences.sizePreference);
+    expect(adopter.preferences.size).toBeArray();
+    expect(adopter.preferences.size).toIncludeSameMembers(updatePayload.preferences.size);
 
     // password must not be returned/updated via this route
     expect(adopter.password).toBeUndefined();
@@ -292,17 +318,25 @@ describe("PUT /api/adopters/:id", function () {
     expect(adopter.__v).toBeNumber();
   });
 
-  test("should return 404 when updating non-existent adopter", async function () {
+  test("should return 403 when updating another adopter's account", async function () {
+    // Create an adopter to get auth token
+    const authRes = await supertest(app)
+      .post("/api/auth/register/adopter")
+      .send(adopterPayload)
+      .expect(201);
+    const token = authRes.body.token;
+
     const fakeId = "64a1b2c3d4e5f67890123456";
 
     const res = await supertest(app)
       .put(`/api/adopters/${fakeId}`)
+      .set("Authorization", `Bearer ${token}`)
       .send({ firstName: "Nope" })
-      .expect(404)
+      .expect(403)
       .expect("Content-Type", /json/);
 
     expect(res.body).toBeObject();
-    expect(res.body.error).toEqual("Adopter not found");
+    expect(res.body.error).toEqual("Accès interdit : vous ne pouvez accéder qu'à vos propres données");
   });
 });
 
@@ -353,9 +387,9 @@ describe("GET /api/adopters/:id", function () {
     expect(fetched.preferences.species).toIncludeSameMembers(
       adopterPayload.preferences.species
     );
-    expect(fetched.preferences.sizePreference).toBeArray();
-    expect(fetched.preferences.sizePreference).toIncludeSameMembers(
-      adopterPayload.preferences.sizePreference
+    expect(fetched.preferences.size).toBeArray();
+    expect(fetched.preferences.size).toIncludeSameMembers(
+      adopterPayload.preferences.size
     );
 
     // mongoose metadata
@@ -371,6 +405,7 @@ describe("GET /api/adopters/:id", function () {
       "email",
       "age",
       "address",
+      "location",
       "about",
       "preferences",
       "image",
@@ -389,7 +424,7 @@ describe("GET /api/adopters/:id", function () {
       .expect("Content-Type", /json/);
 
     expect(res.body).toBeObject();
-    expect(res.body.error).toEqual("Adopter not found");
+    expect(res.body.error).toEqual("Adopteur introuvable");
   });
 });
 

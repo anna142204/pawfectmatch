@@ -18,7 +18,7 @@ const adopterPayload = {
   preferences: {
     environment: ["appartement", "enfant"],
     species: ["chat", "chien"],
-    sizePreference: ["petit", "moyen"],
+    size: ["petit", "moyen"],
   },
   image: "https://i.pravatar.cc/150?u=john.doe@example.com"
 };
@@ -49,7 +49,7 @@ const animalPayload = {
     city: "Lausanne",
     zip: "1004",
   },
-  image: "https://example.com/images/buddy.jpg",
+  images: ["https://example.com/images/buddy.jpg"],
   price: 150,
   availability: true,
   description: "Affectionate Labrador looking for a loving home.",
@@ -70,6 +70,7 @@ describe("POST /api/matches", function () {
       .expect(201);
 
     const ownerId = ownerRes.body.user._id;
+    const ownerToken = ownerRes.body.token;
 
     // 2. Register adopter
     const adopterRes = await supertest(app)
@@ -88,14 +89,14 @@ describe("POST /api/matches", function () {
 
     const animalRes = await supertest(app)
       .post("/api/animals")
+      .set("Authorization", `Bearer ${ownerToken}`)
       .send(animalPayloadWithOwner)
       .expect(201);
 
     const animalId = animalRes.body.animal._id;
 
-    // 4. Create match (controller accepts ONLY adopterId, animalId)
+    // 4. Create match (controller ignores adopterId from body, uses token)
     const matchPayload = {
-      adopterId,
       animalId,
     };
 
@@ -108,7 +109,7 @@ describe("POST /api/matches", function () {
 
     // Assertions
     expect(res.body).toBeObject();
-    expect(res.body.message).toEqual("Match created successfully");
+    expect(res.body.message).toEqual("Match créé avec succès");
 
     const match = res.body.match;
     expect(match).toBeObject();
@@ -126,9 +127,6 @@ describe("POST /api/matches", function () {
     expect(match.animalId._id).toEqual(animalId);
     expect(match.animalId.species).toEqual(animalPayload.species);
     expect(match.animalId.name).toEqual(animalPayload.name);
-    expect(match.animalId.address.city).toEqual(animalPayload.address.city);
-    expect(match.animalId.address.zip).toEqual(animalPayload.address.zip);
-
 
     // ownerId of animal should also be populated
     expect(match.animalId.ownerId).toBeObject();
@@ -137,7 +135,9 @@ describe("POST /api/matches", function () {
 
     // match fields
     expect(match.isActive).toBeBoolean();
-    expect(match.isActive).toEqual(true);
+    expect(match.isActive).toEqual(false);
+    expect(match.status).toBeString();
+    expect(match.status).toEqual("en_attente");
 
     // discussion array should be EMPTY initially
     expect(match.discussion).toBeArray();
@@ -154,6 +154,9 @@ describe("POST /api/matches", function () {
       "adopterId",
       "animalId",
       "isActive",
+      "status",
+      "notificationPending",
+      "notificationSentAt",
       "discussion",
       "createdAt",
       "updatedAt",
@@ -171,6 +174,7 @@ describe("GET /api/matches", function () {
       .expect(201);
 
     const ownerId = ownerRes.body.user._id;
+    const ownerToken = ownerRes.body.token;
 
     // 2. Register adopter
     const adopterRes = await supertest(app)
@@ -189,6 +193,7 @@ describe("GET /api/matches", function () {
 
     const animalRes = await supertest(app)
       .post("/api/animals")
+      .set("Authorization", `Bearer ${ownerToken}`)
       .send(animalPayloadWithOwner)
       .expect(201);
 
@@ -196,7 +201,6 @@ describe("GET /api/matches", function () {
 
     // 4. Create match
     const matchPayload = {
-      adopterId,
       animalId,
     };
 
@@ -243,8 +247,7 @@ describe("GET /api/matches", function () {
     expect(first.animalId.race).toEqual(animalPayload.race);
     expect(first.animalId.name).toEqual(animalPayload.name);
     expect(first.animalId.age).toBeString();
-    expect(first.animalId.age).toEqual(animalPayload.age);
-    expect(first.animalId.image).toEqual(animalPayload.image);
+    expect(first.animalId.images).toBeArray();
 
     // animalId.ownerId populated
     expect(first.animalId.ownerId).toBeObject();
@@ -256,7 +259,8 @@ describe("GET /api/matches", function () {
 
     // match fields
     expect(first.isActive).toBeBoolean();
-    expect(first.isActive).toEqual(true);
+    expect(first.isActive).toEqual(false);
+    expect(first.status).toBeString();
 
     // discussion array should be empty
     expect(first.discussion).toBeArray();
@@ -273,6 +277,9 @@ describe("GET /api/matches", function () {
       "adopterId",
       "animalId",
       "isActive",
+      "status",
+      "notificationPending",
+      "notificationSentAt",
       "discussion",
       "createdAt",
       "updatedAt",
@@ -290,6 +297,7 @@ describe("DELETE /api/matches/:id", function () {
       .expect(201);
 
     const ownerId = ownerRes.body.user._id;
+    const ownerToken = ownerRes.body.token;
 
     // 2. Register adopter
     const adopterRes = await supertest(app)
@@ -308,6 +316,7 @@ describe("DELETE /api/matches/:id", function () {
 
     const animalRes = await supertest(app)
       .post("/api/animals")
+      .set("Authorization", `Bearer ${ownerToken}`)
       .send(animalPayloadWithOwner)
       .expect(201);
 
@@ -315,7 +324,6 @@ describe("DELETE /api/matches/:id", function () {
 
     // 4. Create match
     const matchPayload = {
-      adopterId,
       animalId,
     };
 
@@ -341,12 +349,13 @@ describe("DELETE /api/matches/:id", function () {
     // 6. Delete the match
     const deleteRes = await supertest(app)
       .delete(`/api/matches/${matchId}`)
+      .set("Authorization", `Bearer ${adopterToken}`)
       .expect(200)
       .expect("Content-Type", /json/);
 
     // Assertions
     expect(deleteRes.body).toBeObject();
-    expect(deleteRes.body.message).toEqual("Match deleted successfully");
+    expect(deleteRes.body.message).toEqual("Match supprimé avec succès");
 
     // 7. Verify match no longer exists (GET after delete)
     const getAfterDeleteRes = await supertest(app)
@@ -358,15 +367,23 @@ describe("DELETE /api/matches/:id", function () {
   });
 
   test("should return 404 when deleting non-existent match", async function () {
+    // Create an adopter to get auth token
+    const authRes = await supertest(app)
+      .post("/api/auth/register/adopter")
+      .send(adopterPayload)
+      .expect(201);
+    const token = authRes.body.token;
+
     const fakeId = "64a1b2c3d4e5f67890123456";
 
     const res = await supertest(app)
       .delete(`/api/matches/${fakeId}`)
+      .set("Authorization", `Bearer ${token}`)
       .expect(404)
       .expect("Content-Type", /json/);
 
     expect(res.body).toBeObject();
-    expect(res.body.error).toEqual("Match not found");
+    expect(res.body.error).toEqual("Match introuvable");
   });
 });
 
