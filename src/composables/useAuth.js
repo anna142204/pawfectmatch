@@ -1,55 +1,86 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 
+// État global
+const user = ref(null)
+const userType = ref(null)
+const isAuthChecked = ref(false)
+
 /**
- * Composable pour gérer l'authentification de manière centralisée
+ * Composable pour gérer l'authentification
  */
 export function useAuth() {
   const router = useRouter()
 
   // État réactif de l'authentification
-  const isAuthenticated = computed(() => {
-    return !!localStorage.getItem('token') && !!localStorage.getItem('user_id')
-  })
-
-  const userType = computed(() => localStorage.getItem('user_type'))
-  const userId = computed(() => localStorage.getItem('user_id'))
-  const token = computed(() => localStorage.getItem('token'))
+  const isAuthenticated = computed(() => !!user.value)
+  const userId = computed(() => user.value?.sub || user.value?._id)
 
   /**
-   * Récupère les headers d'authentification pour les requêtes API
-   * @param {Object} additionalHeaders - Headers additionnels à fusionner
-   * @returns {Object} Headers avec Authorization si authentifié
+   * Initialise l'auth au chargement de l'app
+   * Appelle /auth/me pour récupérer l'utilisateur courant via le cookie
    */
-  const getAuthHeaders = (additionalHeaders = {}) => {
-    const headers = {
-      'Content-Type': 'application/json',
-      ...additionalHeaders
-    }
+  const checkAuth = async () => {
+    if (isAuthChecked.value) return
     
-    const currentToken = localStorage.getItem('token')
-    if (currentToken) {
-      headers.Authorization = `Bearer ${currentToken}`
+    try {
+      const res = await fetch('/api/auth/me', {
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+      })
+      
+      if (res.ok) {
+        const data = await res.json()
+        user.value = data.user
+        userType.value = data.type
+      } else if (res.status === 401) {
+        user.value = null
+        userType.value = null
+      } else {
+        // Autres erreurs (500, etc)
+        console.warn(`Erreur au check auth: ${res.status} ${res.statusText}`)
+        user.value = null
+        userType.value = null
+      }
+    } catch (e) {
+      // Erreur de réseau ou autre
+      console.debug("Erreur lors de la vérification d'authentification (ignorée)", e.message)
+      user.value = null
+      userType.value = null
+    } finally {
+      isAuthChecked.value = true
     }
-    
-    return headers
   }
 
   /**
-   * Récupère les options de fetch avec authentification
+   * Récupère les options de fetch avec les paramètres nécessaires pour les cookies
+   * Le navigateur envoie automatiquement le cookie httpOnly grâce à credentials: 'include'
    * @param {Object} options - Options de fetch
-   * @returns {Object} Options avec headers et credentials
+   * @returns {Object} Options avec headers et credentials configurés
    */
   const getAuthFetchOptions = (options = {}) => {
     return {
       ...options,
-      headers: getAuthHeaders(options.headers),
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+      },
       credentials: 'include'
     }
   }
 
   /**
-   * Vérifie si l'utilisateur est authentifié, sinon redirige vers login
+   * Sauvegarde les données d'authentification après login/register
+   * @param {Object} authData - { user, type }
+   */
+  const setAuthData = (authData) => {
+    user.value = authData.user
+    userType.value = authData.type
+    isAuthChecked.value = true
+  }
+
+  /**
+   * Vérifie si l'utilisateur est authentifié
    * @returns {boolean} True si authentifié
    */
   const requireAuth = () => {
@@ -61,7 +92,7 @@ export function useAuth() {
   }
 
   /**
-   * Vérifie si l'utilisateur a le bon type, sinon redirige
+   * Vérifie si l'utilisateur a le bon type
    * @param {string} requiredType - Type d'utilisateur requis ('adopter', 'owner', 'admin')
    * @returns {boolean} True si le type correspond
    */
@@ -84,53 +115,37 @@ export function useAuth() {
     } catch (error) {
       console.error('Erreur lors de la déconnexion:', error)
     } finally {
-      clearAuthData()
+      user.value = null
+      userType.value = null
+      isAuthChecked.value = true
       router.push('/login')
     }
   }
 
   /**
-   * Efface les données d'authentification du localStorage
-   */
-  const clearAuthData = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('user_id')
-    localStorage.removeItem('user_type')
-  }
-
-  /**
-   * Sauvegarde les données d'authentification
-   * @param {Object} authData - Données d'authentification
-   */
-  const setAuthData = ({ token, userId, userType }) => {
-    if (token) localStorage.setItem('token', token)
-    if (userId) localStorage.setItem('user_id', userId)
-    if (userType) localStorage.setItem('user_type', userType)
-  }
-
-  /**
    * Gère une erreur d'authentification (401)
+   * Efface l'état et redirige vers login
    */
   const handleAuthError = () => {
-    clearAuthData()
+    user.value = null
+    userType.value = null
+    isAuthChecked.value = true
     router.push('/login')
   }
 
   return {
-    // État
     isAuthenticated,
     userType,
     userId,
-    token,
+    user,
+    isAuthChecked,
     
-    // Méthodes
-    getAuthHeaders,
+    checkAuth,
     getAuthFetchOptions,
     requireAuth,
     requireUserType,
     logout,
     setAuthData,
-    clearAuthData,
     handleAuthError
   }
 }

@@ -1,152 +1,154 @@
-import { ref, onMounted, onUnmounted } from 'vue';
-import { WSClient } from 'wsmini';
+import { ref } from 'vue'
+import { WSClient } from 'wsmini'
 
-let wsClient = null;
-const isConnected = ref(false);
-const connectionError = ref(null);
-let reconnectInterval = null;
+let wsClient = null
+const isConnected = ref(false)
+const connectionError = ref(null)
+let reconnectInterval = null
 
 export function useWebSocket() {
-  // Initialize WebSocket client
+  /**
+   * Initialise la connexion WebSocket
+   * Établit une connexion avec le serveur WebSocket
+   * @returns {Promise<WSClient>} Le client WebSocket connecté
+   * @throws {Error} Si la connexion échoue
+   */
   const initializeWebSocket = async () => {
     if (wsClient && isConnected.value) {
-      console.log('[WS] WebSocket already connected');
-      return wsClient;
+      console.log('[WS] WebSocket already connected')
+      return wsClient
     }
 
     try {
-      const wsProtocol = import.meta.env.VITE_WS_PROTOCOL || 'ws';
-      const wsHost = import.meta.env.VITE_WS_HOST || 'localhost';
-      const wsPort = import.meta.env.VITE_WS_PORT;
-      
-      const wsUrl = wsPort ? `${wsProtocol}://${wsHost}:${wsPort}` : `${wsProtocol}://${wsHost}`;
-      
-      wsClient = new WSClient(wsUrl);
-      
-      // Try to get token from localStorage, or rely on cookies with credentials: 'include'
-      const token = localStorage.getItem('token');
-      
-      // Connect - if no token, let the browser send cookies automatically
-      // The server's authCallback will extract it from cookies or the token parameter
-      await wsClient.connect(token || undefined).catch(err => {
-        console.error('[WS] WebSocket connection error:', err);
-        connectionError.value = 'WebSocket connection failed (offline mode enabled)';
-        // Don't throw - allow offline mode
-        throw err;
-      });
-      
-      isConnected.value = true;
-      connectionError.value = null;
-      console.log('[WS] ✓ WebSocket connected successfully');
-      
-      // Clear any existing reconnect attempts
-      if (reconnectInterval) {
-        clearInterval(reconnectInterval);
-        reconnectInterval = null;
-      }
-      
-      return wsClient;
-    } catch (err) {
-      console.error('[WS] ✗ WebSocket initialization error:', err);
-      // Don't throw - continue with offline mode
-      isConnected.value = false;
-      wsClient = null;
-      connectionError.value = 'WebSocket unavailable - working in offline mode';
-    }
-  };
+      const wsProtocol = import.meta.env.VITE_WS_PROTOCOL || 'ws'
+      const wsHost = import.meta.env.VITE_WS_HOST || 'localhost'
+      const wsPort = import.meta.env.VITE_WS_PORT
 
-  // Subscribe to chat messages for a specific match
+      const wsUrl = wsPort ? `${wsProtocol}://${wsHost}:${wsPort}` : `${wsProtocol}://${wsHost}`
+
+      wsClient = new WSClient(wsUrl)
+
+      await wsClient.connect().catch(err => {
+        console.error('[WS] WebSocket connection error:', err)
+        connectionError.value = 'WebSocket connection failed (offline mode enabled)'
+        throw err
+      })
+
+      isConnected.value = true
+      connectionError.value = null
+      console.log('[WS] ✓ WebSocket connected successfully')
+
+      if (reconnectInterval) {
+        clearInterval(reconnectInterval)
+        reconnectInterval = null
+      }
+
+      return wsClient
+    } catch (err) {
+      console.error('[WS] ✗ WebSocket initialization error:', err)
+      isConnected.value = false
+      wsClient = null
+      connectionError.value = 'WebSocket unavailable - working in offline mode'
+    }
+  }
+
+  /**
+   * S'abonne aux messages de chat d'un match spécifique
+   * @param {string} matchId - L'ID du match
+   * @param {Function} callback - Fonction appelée quand un message arrive
+   * @returns {Promise<void>}
+   */
   const subscribeToChatMessages = async (matchId, callback) => {
     try {
       if (!matchId) {
-        throw new Error('matchId is required for subscribing to chat');
+        throw new Error('matchId is required for subscribing to chat')
       }
 
       if (!wsClient || !isConnected.value) {
-        await initializeWebSocket();
+        await initializeWebSocket()
       }
-      
-      // Only subscribe if connection was successful
+
       if (wsClient && isConnected.value) {
-        const channelName = `match:${matchId}`;
+        const channelName = `match:${matchId}`
         await wsClient.sub(channelName, (message) => {
-          console.log('Received message:', message);
-          callback(message);
-        });
-        console.log(`Subscribed to ${channelName}`);
+          console.log('Received message:', message)
+          callback(message)
+        })
+        console.log(`Subscribed to ${channelName}`)
       }
     } catch (err) {
-      console.error('Chat subscription error:', err);
-      // Silently fail - offline mode
+      console.error('Chat subscription error:', err)
     }
-  };
+  }
 
-  // Unsubscribe from a match channel
+  /**
+   * Se désabonne des messages de chat d'un match
+   * @param {string} matchId - L'ID du match
+   * @returns {Promise<void>}
+   */
   const unsubscribeFromChat = async (matchId) => {
     try {
       if (wsClient && isConnected.value && matchId) {
-        const channelName = `match:${matchId}`;
-        await wsClient.unsub(channelName);
-        console.log(`Unsubscribed from ${channelName}`);
+        const channelName = `match:${matchId}`
+        await wsClient.unsub(channelName)
+        console.log(`Unsubscribed from ${channelName}`)
       }
     } catch (err) {
-      console.error('Unsubscribe error:', err);
+      console.error('Unsubscribe error:', err)
     }
-  };
+  }
 
-  // Publish a chat message to a specific match
+  /**
+   * Envoie un message de chat via WebSocket
+   * @param {string} matchId - L'ID du match
+   * @param {Object} messageData - Les données du message à envoyer
+   * @returns {Promise<void>}
+   */
   const sendChatMessage = async (matchId, messageData) => {
     try {
       if (!matchId) {
-        throw new Error('matchId is required for sending chat message');
+        throw new Error('matchId is required for sending chat message')
       }
 
       if (!wsClient || !isConnected.value) {
-        // Try to reconnect
-        await initializeWebSocket();
+        await initializeWebSocket()
       }
-      
-      // Only send if connection is active
+
       if (wsClient && isConnected.value) {
-        const channelName = `match:${matchId}`;
-        await wsClient.pub(channelName, messageData);
-        console.log(`Message sent to ${channelName}`);
+        const channelName = `match:${matchId}`
+        await wsClient.pub(channelName, messageData)
+        console.log(`Message sent to ${channelName}`)
       }
     } catch (err) {
-      console.error('Message publish error:', err);
-      // Non-critical error - message is already saved via REST API
+      console.error('Message publish error:', err)
     }
-  };
+  }
 
-  // Disconnect WebSocket
+  /**
+   * Déconnecte le WebSocket et arrête les tentatives de reconnexion
+   * @returns {void}
+   */
   const disconnect = () => {
     if (wsClient) {
       try {
-        // Use close() method for WebSocket disconnection
         if (typeof wsClient.close === 'function') {
-          wsClient.close();
+          wsClient.close()
         }
-        console.log('[WS] ✓ WebSocket disconnected');
+        console.log('[WS] ✓ WebSocket disconnected')
       } catch (err) {
-        // Silently ignore disconnect errors
-        console.warn('[WS] Disconnect warning:', err.message);
+        console.warn('[WS] Disconnect warning:', err.message)
       } finally {
-        wsClient = null;
-        isConnected.value = false;
-        connectionError.value = 'Disconnected';
-        
-        // Clear any pending reconnect attempts
+        wsClient = null
+        isConnected.value = false
+        connectionError.value = 'Disconnected'
+
         if (reconnectInterval) {
-          clearInterval(reconnectInterval);
-          reconnectInterval = null;
+          clearInterval(reconnectInterval)
+          reconnectInterval = null
         }
       }
     }
-  };
-
-  // Note: We don't automatically initialize WebSocket on mount
-  // It will be initialized when needed (on subscribeToChatMessages or by App.vue watcher)
-  // Only disconnect explicitly on logout or app closure (no auto-disconnect on unmount)
+  }
 
   return {
     isConnected,
@@ -156,5 +158,5 @@ export function useWebSocket() {
     unsubscribeFromChat,
     sendChatMessage,
     disconnect
-  };
+  }
 }

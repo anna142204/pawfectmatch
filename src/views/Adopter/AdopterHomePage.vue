@@ -10,7 +10,7 @@ import { initializeWebSocketListeners } from '@/store/wsCommandStore';
 
 const route = useRoute();
 const router = useRouter();
-const { userId, getAuthHeaders, getAuthFetchOptions, handleAuthError } = useAuth();
+const { userId, userType, getAuthFetchOptions, handleAuthError } = useAuth();
 
 const showMapView = ref(route.query.view !== 'list');
 const recentMatches = ref([]);
@@ -75,11 +75,8 @@ const fetchRecentMatches = async () => {
 onMounted(async () => {
   await checkPreferences();
   
-  // Attendre que userId soit disponible avant d'initialiser WebSocket
-  const userType = localStorage.getItem('user_type');
-  const token = localStorage.getItem('token');
-  
-  if (userType === 'adopter' && token) {
+  // Initialiser WebSocket si on est un adopteur authentifié
+  if (userType.value === 'adopter') {
     console.log('[AdopterHomePage] Initializing WebSocket listeners...');
     try {
       await initializeWebSocketListeners();

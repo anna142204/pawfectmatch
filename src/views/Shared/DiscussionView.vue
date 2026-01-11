@@ -16,7 +16,7 @@ const props = defineProps({
 
 const router = useRouter();
 const route = useRoute();
-const { userId, getAuthHeaders, handleAuthError } = useAuth();
+const { userId, getAuthFetchOptions, handleAuthError } = useAuth();
 const toast = ref(null);
 
 const selectedAnimal = ref(null);
@@ -37,9 +37,7 @@ const refreshData = async () => {
     isLoading.value = true;
     
     if (props.userType === 'owner') {
-      const animalsResponse = await fetch(`/api/animals?ownerId=${userId.value}`, {
-        headers: getAuthHeaders()
-      });
+      const animalsResponse = await fetch(`/api/animals?ownerId=${userId.value}`, getAuthFetchOptions());
       
       if (animalsResponse.ok) {
         const data = await animalsResponse.json();
@@ -85,9 +83,7 @@ const loadConversations = async (animalId = null) => {
       params.append('adopterId', userId.value);
     }
     
-    const response = await fetch(`/api/matches?${params.toString()}`, {
-      headers: getAuthHeaders()
-    });
+    const response = await fetch(`/api/matches?${params.toString()}`, getAuthFetchOptions());
     
     if (response.status === 401 || response.status === 403) {
       handleAuthError();

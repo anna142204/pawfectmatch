@@ -3,6 +3,7 @@ import {
   login,
   registerAdopter,
   registerOwner,
+  getMe
 } from '../api/auth.mjs';
 import { logout } from '../api/logout.mjs';
 import {
@@ -57,6 +58,7 @@ const router = express.Router();
 router.post('/auth/register/adopter', registerAdopter);
 router.post('/auth/register/owner', registerOwner);
 router.post('/auth/login', login);
+router.get('/auth/me', requireAuth, getMe);
 router.post('/auth/logout', requireAuth, logout);
 
 // Image upload routes - Protected

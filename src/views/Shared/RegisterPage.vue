@@ -192,9 +192,8 @@ const handleRegister = async () => {
 
     if (response.ok) {
       setAuthData({
-        token: data.token,
-        userId: data.user?._id,
-        userType: userType.value
+        user: data.user,
+        type: data.type
       });
       router.push(userType.value === 'adopter' ? '/adopter' : '/owner/requests');
     } else {
