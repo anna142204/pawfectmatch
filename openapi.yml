@@ -108,7 +108,14 @@ paths:
                         - [petit, moyen]
       responses:
         "201":
-          description: Adopter registered successfully
+          description: Adopter registered successfully (JWT sent as httpOnly cookie `auth_token`)
+          headers:
+            Set-Cookie:
+              description: httpOnly JWT cookie `auth_token` used for subsequent requests
+              schema:
+                type: string
+              examples:
+                - auth_token=jwt.token.value; HttpOnly; Path=/; SameSite=Strict
           content:
             application/json:
               schema:
@@ -117,11 +124,14 @@ paths:
                   message:
                     type: string
                     examples:
-                      - Adopter registered successfully
-                  token:
-                    type: string
+                      - Inscription réussie
                   user:
                     $ref: "#/components/schemas/Adopter"
+                  type:
+                    type: string
+                    enum: [adopter]
+                    examples:
+                      - adopter
         "400":
           description: Validation error
           content:
@@ -221,7 +231,14 @@ paths:
                   maxLength: 150
       responses:
         "201":
-          description: Owner registered successfully
+          description: Owner registered successfully (JWT sent as httpOnly cookie `auth_token`)
+          headers:
+            Set-Cookie:
+              description: httpOnly JWT cookie `auth_token` used for subsequent requests
+              schema:
+                type: string
+              examples:
+                - auth_token=jwt.token.value; HttpOnly; Path=/; SameSite=Strict
           content:
             application/json:
               schema:
@@ -230,11 +247,14 @@ paths:
                   message:
                     type: string
                     examples:
-                      - Owner registered successfully
-                  token:
-                    type: string
+                      - Inscription réussie
                   user:
                     $ref: "#/components/schemas/Owner"
+                  type:
+                    type: string
+                    enum: [owner]
+                    examples:
+                      - owner
         "400":
           description: Validation error
           content:
@@ -283,6 +303,7 @@ paths:
               required:
                 - email
                 - password
+                - type
               properties:
                 email:
                   type: string
@@ -296,16 +317,27 @@ paths:
                   maxLength: 128
                   examples:
                     - securePassword123
+                type:
+                  type: string
+                  enum: [adopter, owner]
+                  description: User type initiating the login
+                  examples:
+                    - adopter
       responses:
         "200":
-          description: Login successful
+          description: Login successful (JWT sent as httpOnly cookie `auth_token`)
+          headers:
+            Set-Cookie:
+              description: httpOnly JWT cookie `auth_token` used for subsequent requests
+              schema:
+                type: string
+              examples:
+                - auth_token=jwt.token.value; HttpOnly; Path=/; SameSite=Strict
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  token:
-                    type: string
                   user:
                     type: object
                     description: User object (Adopter, Owner, or Admin)
@@ -353,6 +385,9 @@ paths:
       summary: Logout user
       tags:
         - Authentication
+      security:
+        - CookieAuth: []
+        - BearerAuth: []
       responses:
         "200":
           description: Logout successful
@@ -379,6 +414,9 @@ paths:
       summary: Upload a single image
       tags:
         - Images
+      security:
+        - CookieAuth: []
+        - BearerAuth: []
       requestBody:
         required: true
         content:
@@ -438,6 +476,9 @@ paths:
       summary: Delete an image
       tags:
         - Images
+      security:
+        - CookieAuth: []
+        - BearerAuth: []
       requestBody:
         required: true
         content:
@@ -490,6 +531,9 @@ paths:
       summary: Upload multiple images (max 10)
       tags:
         - Images
+      security:
+        - CookieAuth: []
+        - BearerAuth: []
       requestBody:
         required: true
         content:
@@ -557,6 +601,9 @@ paths:
       summary: Create a new animal
       tags:
         - Animals
+      security:
+        - CookieAuth: []
+        - BearerAuth: []
       requestBody:
         required: true
         content:
@@ -878,6 +925,9 @@ paths:
       summary: Update an animal by ID
       tags:
         - Animals
+      security:
+        - CookieAuth: []
+        - BearerAuth: []
       parameters:
         - name: id
           in: path
@@ -1011,6 +1061,9 @@ paths:
       summary: Delete an animal by ID
       tags:
         - Animals
+      security:
+        - CookieAuth: []
+        - BearerAuth: []
       parameters:
         - name: id
           in: path
@@ -1227,6 +1280,9 @@ paths:
       summary: Update an adopter by ID
       tags:
         - Adopters
+      security:
+        - CookieAuth: []
+        - BearerAuth: []
       parameters:
         - name: id
           in: path
@@ -1355,6 +1411,9 @@ paths:
       summary: Delete an adopter by ID
       tags:
         - Adopters
+      security:
+        - CookieAuth: []
+        - BearerAuth: []
       parameters:
         - name: id
           in: path
@@ -1522,6 +1581,9 @@ paths:
       summary: Update an owner by ID
       tags:
         - Owners
+      security:
+        - CookieAuth: []
+        - BearerAuth: []
       parameters:
         - name: id
           in: path
@@ -1614,6 +1676,9 @@ paths:
       summary: Delete an owner by ID (only if no associated animals)
       tags:
         - Owners
+      security:
+        - CookieAuth: []
+        - BearerAuth: []
       parameters:
         - name: id
           in: path
@@ -1675,6 +1740,7 @@ paths:
       tags:
         - Matches
       security:
+        - CookieAuth: []
         - BearerAuth: []
       requestBody:
         required: true
@@ -1852,6 +1918,9 @@ paths:
       summary: Update a match by ID
       tags:
         - Matches
+      security:
+        - CookieAuth: []
+        - BearerAuth: []
       parameters:
         - name: id
           in: path
@@ -1908,6 +1977,9 @@ paths:
       summary: Delete a match by ID
       tags:
         - Matches
+      security:
+        - CookieAuth: []
+        - BearerAuth: []
       parameters:
         - name: id
           in: path
@@ -1954,6 +2026,9 @@ paths:
       summary: Add a message to match discussion
       tags:
         - Matches
+      security:
+        - CookieAuth: []
+        - BearerAuth: []
       parameters:
         - name: id
           in: path
@@ -2034,6 +2109,9 @@ paths:
       summary: Get match discussion messages
       tags:
         - Matches
+      security:
+        - CookieAuth: []
+        - BearerAuth: []
       parameters:
         - name: id
           in: path
@@ -2362,6 +2440,11 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+    CookieAuth:
+      type: apiKey
+      in: cookie
+      name: auth_token
+      description: JWT auth token set as httpOnly cookie by login/register
 
 tags:
   - name: Authentication
