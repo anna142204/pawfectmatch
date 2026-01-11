@@ -83,22 +83,15 @@ paths:
                 preferences:
                   type: object
                   properties:
-                    environment:
-                      type: array
-                      items:
-                        type: string
-                        enum: [appartement, voiture, enfant, chien, chat, autre animaux]
-                        maxLength: 30
-                      examples:
-                        - [appartement, enfant]
                     species:
                       type: array
                       items:
                         type: string
+                        enum: [chat, chien, lapin, oiseau, rongeur, autre]
                         maxLength: 50
                       examples:
                         - [chat, chien]
-                    sizePreference:
+                    size:
                       type: array
                       items:
                         type: string
@@ -106,6 +99,50 @@ paths:
                         maxLength: 10
                       examples:
                         - [petit, moyen]
+                    age:
+                      type: array
+                      items:
+                        type: string
+                        enum: ['0-1', '1-3', '3-7', '7+']
+                        maxLength: 10
+                    weight:
+                      type: array
+                      items:
+                        type: string
+                        enum: ['0-5', '5-10', '10-20', '20-30', '30+']
+                        maxLength: 10
+                    sex:
+                      type: array
+                      items:
+                        type: string
+                        enum: [male, female]
+                        maxLength: 10
+                    dressage:
+                      type: array
+                      items:
+                        type: string
+                        enum: [éduqué, "facile à dresser", "habitué à la laisse", têtu]
+                        maxLength: 30
+                    personality:
+                      type: array
+                      items:
+                        type: string
+                        enum: [calme, énergique, indépendant, affectueux, curieux, joueur, bavard, explorateur, câlin, protecteur, territorial, sociable, timide, peureux]
+                        maxLength: 30
+                    environment:
+                      type: array
+                      items:
+                        type: string
+                        enum: [appartement, voiture, enfant, chien, chat, "autre animaux"]
+                        maxLength: 30
+                      examples:
+                        - [appartement, enfant]
+                    maxPrice:
+                      type: number
+                      minimum: 0
+                    maxDistance:
+                      type: number
+                      minimum: 0
       responses:
         "201":
           description: Adopter registered successfully
@@ -1194,7 +1231,7 @@ paths:
               maxLength: 50
           examples:
             - [chat, chien]
-        - name: sizePreference
+        - name: size
           in: query
           style: form
           explode: true
@@ -1347,6 +1384,52 @@ paths:
                 preferences:
                   type: object
                   properties:
+                    species:
+                      type: array
+                      items:
+                        type: string
+                        enum: [chat, chien, lapin, oiseau, rongeur, autre]
+                        maxLength: 50
+                      examples:
+                        - [chat, chien]
+                    size:
+                      type: array
+                      items:
+                        type: string
+                        enum: [petit, moyen, grand]
+                        maxLength: 10
+                      examples:
+                        - [moyen]
+                    age:
+                      type: array
+                      items:
+                        type: string
+                        enum: ['0-1', '1-3', '3-7', '7+']
+                        maxLength: 10
+                    weight:
+                      type: array
+                      items:
+                        type: string
+                        enum: ['0-5', '5-10', '10-20', '20-30', '30+']
+                        maxLength: 10
+                    sex:
+                      type: array
+                      items:
+                        type: string
+                        enum: [male, female]
+                        maxLength: 10
+                    dressage:
+                      type: array
+                      items:
+                        type: string
+                        enum: [éduqué, "facile à dresser", "habitué à la laisse", têtu]
+                        maxLength: 30
+                    personality:
+                      type: array
+                      items:
+                        type: string
+                        enum: [calme, énergique, indépendant, affectueux, curieux, joueur, bavard, explorateur, câlin, protecteur, territorial, sociable, timide, peureux]
+                        maxLength: 30
                     environment:
                       type: array
                       items:
@@ -1355,21 +1438,12 @@ paths:
                         maxLength: 30
                       examples:
                         - [appartement, enfant]
-                    species:
-                      type: array
-                      items:
-                        type: string
-                        maxLength: 50
-                      examples:
-                        - [chat, chien]
-                    sizePreference:
-                      type: array
-                      items:
-                        type: string
-                        enum: [petit, moyen, grand]
-                        maxLength: 10
-                      examples:
-                        - [moyen]
+                    maxPrice:
+                      type: number
+                      minimum: 0
+                    maxDistance:
+                      type: number
+                      minimum: 0
       responses:
         "200":
           description: Adopter updated successfully
@@ -2387,23 +2461,62 @@ components:
         preferences:
           type: object
           properties:
+            species:
+              type: array
+              items:
+                type: string
+                enum: [chat, chien, lapin, oiseau, rongeur, autre]
+                maxLength: 50
+            size:
+              type: array
+              items:
+                type: string
+                enum: [petit, moyen, grand]
+                maxLength: 10
+            age:
+              type: array
+              items:
+                type: string
+                enum: ['0-1', '1-3', '3-7', '7+']
+                maxLength: 10
+            weight:
+              type: array
+              items:
+                type: string
+                enum: ['0-5', '5-10', '10-20', '20-30', '30+']
+                maxLength: 10
+            sex:
+              type: array
+              items:
+                type: string
+                enum: [male, female]
+                maxLength: 10
+            dressage:
+              type: array
+              items:
+                type: string
+                enum: [éduqué, "facile à dresser", "habitué à la laisse", têtu]
+                maxLength: 30
+            personality:
+              type: array
+              items:
+                type: string
+                enum: [calme, énergique, indépendant, affectueux, curieux, joueur, bavard, explorateur, câlin, protecteur, territorial, sociable, timide, peureux]
+                maxLength: 30
             environment:
               type: array
               items:
                 type: string
                 enum: [appartement, voiture, enfant, chien, chat, "autre animaux"]
                 maxLength: 30
-            species:
-              type: array
-              items:
-                type: string
-                maxLength: 50
-            sizePreference:
-              type: array
-              items:
-                type: string
-                enum: [petit, moyen, grand]
-                maxLength: 10
+            maxPrice:
+              type: number
+              minimum: 0
+              description: Prix maximum que l'adopteur est prêt à payer
+            maxDistance:
+              type: number
+              minimum: 0
+              description: Distance maximum en km pour la recherche d'animaux
         image:
           type: string
           format: url
